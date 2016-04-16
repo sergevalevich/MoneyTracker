@@ -34,7 +34,9 @@
             android:textColor="@android:color/background_light"
             android:text="@string/default_username"
             android:textSize="@dimen/subtitle_text_size"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:maxLength="50"/>
 
         <TextView
             android:id="@+id/email"
@@ -44,7 +46,9 @@
             android:layout_marginTop="@dimen/drawer_header_content_divider"
             android:text="@string/default_user_email"
             android:textSize="@dimen/subtitle_text_size"
-            android:textStyle="normal"/>
+            android:textStyle="normal"
+            android:maxLines="1"
+            android:maxLength="50"/>
 
     </LinearLayout>
 
