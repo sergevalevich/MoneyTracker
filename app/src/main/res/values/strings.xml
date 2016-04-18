@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">MoneyTracker</string>
+    <string name="navigation_drawer_open" translatable="false">Open Navigation</string>
+    <string name="navigation_drawer_close" translatable="false">Close Navigation</string>
+    <string name="nav_drawer_expenses">Траты</string>
+    <string name="nav_drawer_statistics">Статистика</string>
+    <string name="nav_drawer_categories">Категории</string>
+    <string name="nav_drawer_settings">Настройки</string>
+    <string name="default_username">Sergey Valevich</string>
+    <string name="default_user_email">kukareku@mail.ru</string>
 </resources>
