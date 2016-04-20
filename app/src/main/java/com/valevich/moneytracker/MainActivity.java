@@ -22,7 +22,7 @@ import com.valevich.moneytracker.fragments.StatisticsFragment;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     @Bind(R.id.drawer_layout)
@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.navigation_view)
     NavigationView mNavigationView;
     private ActionBarDrawerToggle mToggle;
+    private FragmentManager mFragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,12 +40,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        setupActionBar();
+        setupDrawerLayout();
+        setupFragmentManager();
+
         if(savedInstanceState == null) {
             replaceFragment(new ExpensesFragment());
         }
-
-        setupActionBar();
-        setupDrawerLayout();
 
     }
 
@@ -81,10 +83,18 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case R.id.drawer_settings:
                         replaceFragment(new SettingsFragment());
+                        break;
                 }
                 return true;
             }
         });
+    }
+
+    private void changeToolbarTitle(String title) {
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null) {
+            actionBar.setTitle(title);
+        }
     }
 
 
@@ -109,13 +119,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void replaceFragment(Fragment fragment) {
         String backStackName = fragment.getClass().getName();
-        FragmentManager manager = getSupportFragmentManager();
 
-        boolean isFragmentPopped = manager.popBackStackImmediate(backStackName,0);
+        boolean isFragmentPopped = mFragmentManager.popBackStackImmediate(backStackName,0);
 
-        if(!isFragmentPopped && manager.findFragmentByTag(backStackName) == null) {
+        if(!isFragmentPopped && mFragmentManager.findFragmentByTag(backStackName) == null) {
 
-            FragmentTransaction transaction = manager.beginTransaction();
+            FragmentTransaction transaction = mFragmentManager.beginTransaction();
             transaction.replace(R.id.main_container,fragment,backStackName);
             transaction.addToBackStack(backStackName);
             transaction.commit();
@@ -123,5 +132,29 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setupFragmentManager() {
+        mFragmentManager = getSupportFragmentManager();
+        mFragmentManager.addOnBackStackChangedListener(this);
+    }
+
+    @Override
+    public void onBackStackChanged() {
+
+        String backStackEntryName = mFragmentManager
+                .findFragmentById(R.id.main_container)
+                .getClass()
+                .getName();
+
+        if(backStackEntryName.equals(ExpensesFragment.class.getName())) {
+            changeToolbarTitle(getString(R.string.nav_drawer_expenses));
+        } else if(backStackEntryName.equals(CategoriesFragment.class.getName())) {
+            changeToolbarTitle(getString(R.string.nav_drawer_categories));
+        } else if(backStackEntryName.equals(SettingsFragment.class.getName())) {
+            changeToolbarTitle(getString(R.string.nav_drawer_settings));
+        } else {
+            changeToolbarTitle(getString(R.string.nav_drawer_statistics));
+        }
+
+    }
 }
 
