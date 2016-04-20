@@ -9,4 +9,7 @@
     <dimen name="subtitle_height">56dp</dimen>
     <dimen name="subtitle_text_size">14sp</dimen>
     <dimen name="drawer_header_content_divider">5dp</dimen>
+
+    <!-- Default recyclerview list item margins. -->
+    <dimen name="default_list_textview_padding">10dp</dimen>
 </resources>
