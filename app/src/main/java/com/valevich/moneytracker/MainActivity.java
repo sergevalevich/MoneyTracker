@@ -127,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
             FragmentTransaction transaction = mFragmentManager.beginTransaction();
             transaction.replace(R.id.main_container,fragment,backStackName);
             transaction.addToBackStack(backStackName);
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             transaction.commit();
 
         }
