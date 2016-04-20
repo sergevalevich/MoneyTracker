@@ -4,5 +4,11 @@
              android:layout_height="match_parent"
              tools:context="com.valevich.moneytracker.fragments.ExpensesFragment">
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/expenseList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    </android.support.v7.widget.RecyclerView>
+
 
 </FrameLayout>
