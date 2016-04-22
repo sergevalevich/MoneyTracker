@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     public void onBackPressed() {
         if(mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             mDrawerLayout.closeDrawer(GravityCompat.START);
-        } else if (getSupportFragmentManager().getBackStackEntryCount() == 1) {
+        } else if (mFragmentManager.getBackStackEntryCount() == 1) {
             finish();
         } else {
             super.onBackPressed();
