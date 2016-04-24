@@ -25,6 +25,8 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
+    private static final String TOOLBAR_TITLE_KEY = "TOOLBAR_TITLE";
+
     @Bind(R.id.drawer_layout)
     DrawerLayout mDrawerLayout;
     @Bind(R.id.toolbar)
@@ -48,6 +50,22 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
             replaceFragment(new ExpensesFragment());
         }
 
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null) {
+            outState.putString(TOOLBAR_TITLE_KEY,String.valueOf(actionBar.getTitle()));
+        }
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        String toolBarTitle = savedInstanceState.getString(TOOLBAR_TITLE_KEY,getString(R.string.app_name));
+        changeToolbarTitle(toolBarTitle);
     }
 
     @Override

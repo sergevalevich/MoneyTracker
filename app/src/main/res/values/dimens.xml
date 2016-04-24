@@ -1,5 +1,5 @@
 <resources>
-    <!-- Default screen margins, per the Android Design guidelines. -->
+    <!-- Default navigation drawer margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="drawer_header_layout_height">172dp</dimen>
@@ -10,6 +10,18 @@
     <dimen name="subtitle_text_size">14sp</dimen>
     <dimen name="drawer_header_content_divider">5dp</dimen>
 
-    <!-- Default recyclerview list item margins. -->
-    <dimen name="default_list_textview_padding">10dp</dimen>
+    <!--example paddings-->
+    <dimen name="default_textview_padding">10dp</dimen>
+    <dimen name="default_card_height">200dp</dimen>
+
+
+    <!-- Default card's margins styling per the Android Design guidelines. -->
+    <dimen name="expense_card_corner_radius">2dp</dimen>
+    <dimen name = "supporting_text_size">14sp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="default_card_supporting_text_padding">16dp</dimen>
+
+    <!-- fab's dimens -->
+    <dimen name="fab_margin_right">16dp</dimen>
+    <dimen name="fab_margin_bottom">16dp</dimen>
 </resources>

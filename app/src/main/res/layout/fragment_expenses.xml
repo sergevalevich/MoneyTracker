@@ -1,8 +1,11 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context="com.valevich.moneytracker.fragments.ExpensesFragment">
+<android.support.design.widget.CoordinatorLayout
+    android:id="@+id/coordinator"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.valevich.moneytracker.fragments.ExpensesFragment">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/expenseList"
@@ -10,5 +13,19 @@
         android:layout_height="wrap_content">
     </android.support.v7.widget.RecyclerView>
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="@dimen/fab_margin_bottom"
+        android:layout_marginEnd="@dimen/fab_margin_right"
+        android:layout_marginRight="@dimen/fab_margin_right"
+        android:src="@drawable/ic_plus"
+        app:fabSize="normal"
+        app:layout_anchor="@+id/expenseList"
+        app:layout_anchorGravity="bottom|end"
+        app:layout_behavior="com.valevich.moneytracker.ScrollAwareFABBehavior"/>
 
-</FrameLayout>
+
+</android.support.design.widget.CoordinatorLayout>
