@@ -85,7 +85,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
                 if(mDrawerLayout != null) {
-                    item.setChecked(true);
                     mDrawerLayout.closeDrawer(GravityCompat.START);
                 }
                 int itemId = item.getItemId();
@@ -108,10 +107,19 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
         });
     }
 
-    private void changeToolbarTitle(String title) {
-        ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null) {
-            actionBar.setTitle(title);
+    private void changeToolbarTitle(String backStackEntryName) {
+        if(backStackEntryName.equals(ExpensesFragment.class.getName())) {
+            setTitle(getString(R.string.nav_drawer_expenses));
+            mNavigationView.setCheckedItem(R.id.drawer_expenses);
+        } else if(backStackEntryName.equals(CategoriesFragment.class.getName())) {
+            setTitle(getString(R.string.nav_drawer_categories));
+            mNavigationView.setCheckedItem(R.id.drawer_categories);
+        } else if(backStackEntryName.equals(SettingsFragment.class.getName())) {
+            setTitle(getString(R.string.nav_drawer_settings));
+            mNavigationView.setCheckedItem(R.id.drawer_settings);
+        } else {
+            setTitle(getString(R.string.nav_drawer_statistics));
+            mNavigationView.setCheckedItem(R.id.drawer_statistics);
         }
     }
 
@@ -159,19 +167,11 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     @Override
     public void onBackStackChanged() {
 
-        String backStackEntryName = mFragmentManager
-                .findFragmentById(R.id.main_container)
-                .getClass()
-                .getName();
+        Fragment f = mFragmentManager
+                .findFragmentById(R.id.main_container);
 
-        if(backStackEntryName.equals(ExpensesFragment.class.getName())) {
-            changeToolbarTitle(getString(R.string.nav_drawer_expenses));
-        } else if(backStackEntryName.equals(CategoriesFragment.class.getName())) {
-            changeToolbarTitle(getString(R.string.nav_drawer_categories));
-        } else if(backStackEntryName.equals(SettingsFragment.class.getName())) {
-            changeToolbarTitle(getString(R.string.nav_drawer_settings));
-        } else {
-            changeToolbarTitle(getString(R.string.nav_drawer_statistics));
+        if(f != null) {
+            changeToolbarTitle(f.getClass().getName());
         }
 
     }
