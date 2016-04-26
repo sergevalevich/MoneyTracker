@@ -1,4 +1,4 @@
-package com.valevich.moneytracker.fragments;
+package com.valevich.moneytracker.ui.fragments;
 
 
 import android.os.Bundle;
@@ -14,9 +14,7 @@ import android.view.ViewGroup;
 
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.CategoriesAdapter;
-import com.valevich.moneytracker.adapters.ExpenseAdapter;
 import com.valevich.moneytracker.model.Category;
-import com.valevich.moneytracker.model.Expense;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.valevich.moneytracker;
+package com.valevich.moneytracker.ui.activities;
 
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -11,13 +11,13 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 
-import com.valevich.moneytracker.fragments.CategoriesFragment;
-import com.valevich.moneytracker.fragments.ExpensesFragment;
-import com.valevich.moneytracker.fragments.SettingsFragment;
-import com.valevich.moneytracker.fragments.StatisticsFragment;
+import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.ui.fragments.CategoriesFragment;
+import com.valevich.moneytracker.ui.fragments.ExpensesFragment;
+import com.valevich.moneytracker.ui.fragments.SettingsFragment;
+import com.valevich.moneytracker.ui.fragments.StatisticsFragment;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;

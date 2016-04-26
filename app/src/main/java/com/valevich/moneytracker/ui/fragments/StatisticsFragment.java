@@ -1,4 +1,4 @@
-package com.valevich.moneytracker.fragments;
+package com.valevich.moneytracker.ui.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

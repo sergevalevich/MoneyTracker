@@ -1,4 +1,4 @@
-package com.valevich.moneytracker;
+package com.valevich.moneytracker.utils;
 
 import android.content.Context;
 import android.support.design.widget.CoordinatorLayout;
