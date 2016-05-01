@@ -14,24 +14,27 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import com.valevich.moneytracker.R;
-import com.valevich.moneytracker.ui.fragments.CategoriesFragment;
-import com.valevich.moneytracker.ui.fragments.ExpensesFragment;
-import com.valevich.moneytracker.ui.fragments.SettingsFragment;
-import com.valevich.moneytracker.ui.fragments.StatisticsFragment;
+import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
+import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
+import com.valevich.moneytracker.ui.fragments.SettingsFragment_;
+import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.ViewById;
 
+
+@EActivity
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String TOOLBAR_TITLE_KEY = "TOOLBAR_TITLE";
 
-    @Bind(R.id.drawer_layout)
+    @ViewById(R.id.drawer_layout)
     DrawerLayout mDrawerLayout;
-    @Bind(R.id.toolbar)
+    @ViewById(R.id.toolbar)
     Toolbar mToolbar;
-    @Bind(R.id.navigation_view)
+    @ViewById(R.id.navigation_view)
     NavigationView mNavigationView;
     private ActionBarDrawerToggle mToggle;
     private FragmentManager mFragmentManager;
@@ -40,16 +43,18 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
 
+        if(savedInstanceState == null) {
+            replaceFragment(new ExpensesFragment_());
+        }
+
+    }
+
+    @AfterViews
+    void setupViews() {
         setupActionBar();
         setupDrawerLayout();
         setupFragmentManager();
-
-        if(savedInstanceState == null) {
-            replaceFragment(new ExpensesFragment());
-        }
-
     }
 
     @Override
@@ -90,16 +95,16 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
                 int itemId = item.getItemId();
                 switch (itemId) {
                     case R.id.drawer_expenses:
-                        replaceFragment(new ExpensesFragment());
+                        replaceFragment(new ExpensesFragment_());
                         break;
                     case R.id.drawer_categories:
-                        replaceFragment(new CategoriesFragment());
+                        replaceFragment(new CategoriesFragment_());
                         break;
                     case R.id.drawer_statistics:
-                        replaceFragment(new StatisticsFragment());
+                        replaceFragment(new StatisticsFragment_());
                         break;
                     case R.id.drawer_settings:
-                        replaceFragment(new SettingsFragment());
+                        replaceFragment(new SettingsFragment_());
                         break;
                 }
                 return true;
@@ -108,13 +113,13 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     }
 
     private void changeToolbarTitle(String backStackEntryName) {
-        if(backStackEntryName.equals(ExpensesFragment.class.getName())) {
+        if(backStackEntryName.equals(ExpensesFragment_.class.getName())) {
             setTitle(getString(R.string.nav_drawer_expenses));
             mNavigationView.setCheckedItem(R.id.drawer_expenses);
-        } else if(backStackEntryName.equals(CategoriesFragment.class.getName())) {
+        } else if(backStackEntryName.equals(CategoriesFragment_.class.getName())) {
             setTitle(getString(R.string.nav_drawer_categories));
             mNavigationView.setCheckedItem(R.id.drawer_categories);
-        } else if(backStackEntryName.equals(SettingsFragment.class.getName())) {
+        } else if(backStackEntryName.equals(SettingsFragment_.class.getName())) {
             setTitle(getString(R.string.nav_drawer_settings));
             mNavigationView.setCheckedItem(R.id.drawer_settings);
         } else {

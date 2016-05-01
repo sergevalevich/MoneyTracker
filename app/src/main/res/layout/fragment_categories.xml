@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".ui.fragments.CategoriesFragment">
+    tools:context=".ui.fragments.CategoriesFragment_">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/categories_list"

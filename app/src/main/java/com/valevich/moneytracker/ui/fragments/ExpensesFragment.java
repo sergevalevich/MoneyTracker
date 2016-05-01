@@ -9,29 +9,30 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+
 
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.ExpenseAdapter;
 import com.valevich.moneytracker.model.Expense;
 import com.valevich.moneytracker.ui.activities.NewExpenseActivity_;
 
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Click;
+import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.ViewById;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
 
-
+@EFragment(R.layout.fragment_expenses)
 public class ExpensesFragment extends Fragment {
 
-    @Bind(R.id.expenseList)
+    @ViewById(R.id.expenseList)
     RecyclerView mExpenseRecyclerView;
-    @Bind(R.id.fab)
+    @ViewById(R.id.fab)
     FloatingActionButton mFab;
-    @Bind(R.id.coordinator)
+    @ViewById(R.id.coordinator)
     CoordinatorLayout mRootLayout;
     private List<Expense> mExpenseList = new ArrayList<>();
 
@@ -40,37 +41,15 @@ public class ExpensesFragment extends Fragment {
     }
 
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_expenses, container, false);
-        ButterKnife.bind(this,rootView);
-
+    @AfterViews
+    void setupViews() {
         setUpRecyclerView();
-        setupFab();
-
-        return rootView;
     }
 
-    private void setupFab() {
-        mFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //showSnackBar();
-                Intent intent = new Intent(getActivity(), NewExpenseActivity_.class);
-                startActivity(intent);
-            }
-        });
-    }
-
-    private void showSnackBar() {
-        Snackbar.make(mRootLayout, "Hello. I am Snackbar!", Snackbar.LENGTH_SHORT)
-                .setAction("Undo", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                    }
-                })
-                .show();
+    @Click(R.id.fab)
+    void setupFab() {
+        Intent intent = new Intent(getActivity(), NewExpenseActivity_.class);
+        startActivity(intent);
     }
 
     private void setUpRecyclerView() {

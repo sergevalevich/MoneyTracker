@@ -9,20 +9,14 @@ import android.view.ViewGroup;
 
 import com.valevich.moneytracker.R;
 
+import org.androidannotations.annotations.EFragment;
+
+@EFragment(R.layout.fragment_settings)
 public class SettingsFragment extends Fragment {
 
 
     public SettingsFragment() {
 
-    }
-
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_settings, container, false);
-
-        return rootView;
     }
 
 }

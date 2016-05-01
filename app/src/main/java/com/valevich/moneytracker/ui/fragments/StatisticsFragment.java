@@ -8,19 +8,14 @@ import android.view.ViewGroup;
 
 import com.valevich.moneytracker.R;
 
+import org.androidannotations.annotations.EFragment;
+
+@EFragment(R.layout.fragment_statistics)
 public class StatisticsFragment extends Fragment {
 
     public StatisticsFragment() {
 
     }
 
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_statistics, container, false);
-        // Inflate the layout for this fragment
-        return rootView;
-    }
 
 }
