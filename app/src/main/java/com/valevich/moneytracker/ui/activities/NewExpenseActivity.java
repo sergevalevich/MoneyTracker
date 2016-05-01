@@ -202,7 +202,7 @@ public class NewExpenseActivity extends AppCompatActivity implements
             showSnackBar(mEmptyFieldsWarning);
         }
     }
-
+    
     @Click(R.id.cancelButton)
     void setupCancelButton() {
         dropFields();

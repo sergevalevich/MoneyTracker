@@ -34,4 +34,9 @@
     <dimen name="button_padding">8dp</dimen>
     <dimen name="button_text_size">14sp</dimen>
     <dimen name="button_layout_height">52dp</dimen>
+
+
+
+    <dimen name="splash_image_size">200dp</dimen>
+    <dimen name="splash_text_size">40sp</dimen>
 </resources>

@@ -16,20 +16,33 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activities.NewExpenseActivity"
-                  android:theme="@style/AppTheme.NoActionBar">
+        <activity
+            android:name=".ui.activities.NewExpenseActivity"
+            android:theme="@style/AppTheme.NoActionBar">
         </activity>
-        <activity android:name=".ui.activities.NewExpenseActivity_"
-                  android:theme="@style/AppTheme.NoActionBar"
-                  android:parentActivityName=".ui.activities.MainActivity">
+        <activity
+            android:name=".ui.activities.NewExpenseActivity_"
+            android:parentActivityName=".ui.activities.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.valevich.moneytracker.ui.activities.MainActivity" />>
+                android:value="com.valevich.moneytracker.ui.activities.MainActivity"/>
+            >
+        </activity>
+        <activity android:name=".ui.activities.SplashActivity">
+        </activity>
+        <activity android:name=".ui.activities.SplashActivity_"
+                  android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
 
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
         </activity>
     </application>
 
