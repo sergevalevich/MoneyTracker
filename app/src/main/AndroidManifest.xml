@@ -20,12 +20,16 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.activities.NewExpenseActivity"
+                  android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity android:name=".ui.activities.NewExpenseActivity_"
                   android:theme="@style/AppTheme.NoActionBar"
                   android:parentActivityName=".ui.activities.MainActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.valevich.moneytracker.ui.activities.MainActivity" />
+                android:value="com.valevich.moneytracker.ui.activities.MainActivity" />>
+
         </activity>
     </application>
 

@@ -1,10 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout
+    android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     tools:context="com.valevich.moneytracker.ui.activities.NewExpenseActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/main_appBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay"/>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/main_appBar"
+        android:padding="@dimen/default_layout_padding">
+
+        <com.marvinlabs.widget.floatinglabel.edittext.FloatingLabelEditText
+            android:id="@+id/amountLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/input_fields_bottom_margin"
+            android:inputType="number"
+            app:flw_labelText="@string/new_expense_amount_hint" />
+
+        <com.marvinlabs.widget.floatinglabel.edittext.FloatingLabelEditText
+            android:id="@+id/descriptionLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/input_fields_bottom_margin"
+            app:flw_labelText="@string/new_expense_description_hint" />
+
+        <com.marvinlabs.widget.floatinglabel.itempicker.FloatingLabelItemPicker
+            android:id="@+id/categories_picker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/input_fields_bottom_margin"
+            app:flw_labelText="@string/spinner_categories_title" />
+
+
+        <com.marvinlabs.widget.floatinglabel.instantpicker.FloatingLabelDatePicker
+            android:id="@+id/datePicker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/input_fields_bottom_margin"
+            app:flw_labelText="@string/date_picker_title" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/button_layout_height"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="@dimen/default_layout_padding">
+
+        <TextView
+            style="@style/ButtonStyle"
+            android:id="@+id/saveExpenseButton"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:text = "@string/save_expense_button_title"/>
+
+        <TextView
+            style="@style/ButtonStyle"
+            android:id="@+id/cancelButton"
+            android:layout_toLeftOf="@+id/saveExpenseButton"
+            android:layout_toStartOf="@+id/saveExpenseButton"
+            android:text = "@string/cancel_button_title"/>
+
+    </RelativeLayout>
 
 </RelativeLayout>

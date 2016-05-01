@@ -1,6 +1,7 @@
 package com.valevich.moneytracker.ui.fragments;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -15,6 +16,7 @@ import android.view.ViewGroup;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.ExpenseAdapter;
 import com.valevich.moneytracker.model.Expense;
+import com.valevich.moneytracker.ui.activities.NewExpenseActivity_;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +56,9 @@ public class ExpensesFragment extends Fragment {
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showSnackBar();
+                //showSnackBar();
+                Intent intent = new Intent(getActivity(), NewExpenseActivity_.class);
+                startActivity(intent);
             }
         });
     }
