@@ -25,7 +25,7 @@
         app:fabSize="normal"
         app:layout_anchor="@+id/expenseList"
         app:layout_anchorGravity="bottom|end"
-        app:layout_behavior="com.valevich.moneytracker.ScrollAwareFABBehavior"/>
+        app:layout_behavior="com.valevich.moneytracker.utils.ScrollAwareFABBehavior"/>
 
 
 </android.support.design.widget.CoordinatorLayout>
