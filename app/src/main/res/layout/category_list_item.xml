@@ -3,11 +3,12 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
-              android:background="@android:color/holo_purple">
+              android:background="@color/colorCards">
     <TextView
         android:id="@+id/category_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="@dimen/default_textview_padding"/>
+        android:padding="@dimen/default_textview_padding"
+        android:textColor="@color/colorPrimaryLight"/>
 
 </LinearLayout>

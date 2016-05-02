@@ -32,7 +32,7 @@ public class SplashActivity extends AppCompatActivity {
 
     @AfterViews
     void showImageWithText() {
-        YoYo.with(Techniques.RollIn)
+        YoYo.with(Techniques.Landing)
                 .duration(2000)
                 .playOn(mImageView);
         YoYo.with(Techniques.SlideInUp)

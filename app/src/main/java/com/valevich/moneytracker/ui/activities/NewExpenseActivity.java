@@ -5,43 +5,35 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.AppCompatEditText;
+import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.Toolbar;
-import android.text.InputFilter;
-import android.widget.EditText;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.marvinlabs.widget.floatinglabel.edittext.FloatingLabelEditText;
-import com.marvinlabs.widget.floatinglabel.instantpicker.DatePickerFragment;
-import com.marvinlabs.widget.floatinglabel.instantpicker.FloatingLabelDatePicker;
-import com.marvinlabs.widget.floatinglabel.instantpicker.FloatingLabelInstantPicker;
-import com.marvinlabs.widget.floatinglabel.instantpicker.Instant;
-import com.marvinlabs.widget.floatinglabel.instantpicker.InstantPickerListener;
-import com.marvinlabs.widget.floatinglabel.instantpicker.JavaDateInstant;
-import com.marvinlabs.widget.floatinglabel.itempicker.FloatingLabelItemPicker;
-import com.marvinlabs.widget.floatinglabel.itempicker.ItemPickerListener;
-import com.marvinlabs.widget.floatinglabel.itempicker.StringPickerDialogFragment;
 import com.valevich.moneytracker.R;
+import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
+import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 
 @EActivity
-public class NewExpenseActivity extends AppCompatActivity implements
-        FloatingLabelItemPicker.OnItemPickerEventListener<String>,
-        ItemPickerListener<String>,
-        InstantPickerListener,
-        FloatingLabelInstantPicker.OnInstantPickerEventListener,
-        FloatingLabelEditText.EditTextListener{
+public class NewExpenseActivity extends AppCompatActivity {
 
     private String[] mExampleCategories = {
             "Одежда",
@@ -52,16 +44,16 @@ public class NewExpenseActivity extends AppCompatActivity implements
     };
 
     @ViewById(R.id.amountLabel)
-    FloatingLabelEditText mAmountEditText;
+    AppCompatEditText mAmountEditText;
 
     @ViewById(R.id.descriptionLabel)
-    FloatingLabelEditText mDescriptionEditText;
+    AppCompatEditText mDescriptionEditText;
 
     @ViewById(R.id.categories_picker)
-    FloatingLabelItemPicker<String> mCategoriesPicker;
+    AppCompatSpinner mCategoriesPicker;
 
-    @ViewById(R.id.datePicker)
-    FloatingLabelDatePicker<JavaDateInstant> mDatePicker;
+    @ViewById(R.id.date_picker)
+    TextView mDatePicker;
 
     @ViewById(R.id.toolbar)
     Toolbar mToolbar;
@@ -96,6 +88,9 @@ public class NewExpenseActivity extends AppCompatActivity implements
     @StringRes(R.string.new_expense_empty_fields_warning)
     String mEmptyFieldsWarning;
 
+    @ColorRes(R.color.colorPrimary)
+    int mDatePickerColor;
+
 
 
     @Override
@@ -109,7 +104,6 @@ public class NewExpenseActivity extends AppCompatActivity implements
         setupActionBar();
         setupCategoriesPicker();
         setupDatePicker();
-        setupTextFields();
     }
 
     private void setupActionBar() {
@@ -122,58 +116,59 @@ public class NewExpenseActivity extends AppCompatActivity implements
     }
 
     private void setupCategoriesPicker() {
-        mCategoriesPicker.setItemPickerListener(this);
-        mCategoriesPicker.setAvailableItems(new ArrayList<String>(Arrays.asList(mExampleCategories)));
-        mCategoriesPicker.setWidgetListener(new FloatingLabelItemPicker.OnWidgetEventListener<String>() {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item_foreground, mExampleCategories);
+        adapter.setDropDownViewResource(R.layout.spinner_item);
+
+        mCategoriesPicker.setAdapter(adapter);
+        mCategoriesPicker.setPrompt(mCategoriesPickerTitle);
+        mCategoriesPicker.setSelection(0);
+        mCategoriesPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onShowItemPickerDialog(FloatingLabelItemPicker source) {
-                StringPickerDialogFragment categoriesPicker = StringPickerDialogFragment.newInstance(
-                        source.getId(),
-                        mCategoriesPickerTitle,
-                        mCategoriesPickerPositive,
-                        mCategoriesPickerNegative,
-                        false,
-                        source.getSelectedIndices(),
-                        new ArrayList<String>(source.getAvailableItems()));
-                categoriesPicker.show(getSupportFragmentManager(), "CategoriesPicker");
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                Toast.makeText(getBaseContext(), mExampleCategories[position], Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
             }
         });
     }
 
     private void setupDatePicker() {
-        mDatePicker.setSelectedInstant(new JavaDateInstant());
-        mDatePicker.setInstantPickerListener(this);
-        mDatePicker.setWidgetListener(new FloatingLabelInstantPicker.OnWidgetEventListener<JavaDateInstant>() {
-            @Override
-            public void onShowInstantPickerDialog(FloatingLabelInstantPicker<JavaDateInstant> source) {
-                DatePickerFragment<JavaDateInstant> pickerFragment =
-                        DatePickerFragment.<JavaDateInstant>newInstance(source.getId(), source.getSelectedInstant());
-                pickerFragment.show(getSupportFragmentManager(), "DatePicker");
-            }
-        });
+        SimpleDateFormat sdf = new SimpleDateFormat("d/M/yyyy",Locale.getDefault());
+        mDatePicker.setText(sdf.format(new Date()));
     }
 
-    private void setupTextFields() {
-        mAmountEditText.setEditTextListener(this);
-        mDescriptionEditText.setEditTextListener(this);
-
-        setInputFieldMaxLength(mAmountEditText.getInputWidget(),20);
-        setInputFieldMaxLength(mDescriptionEditText.getInputWidget(),140);
-
-        mDescriptionEditText.getInputWidget().setSingleLine(false);
+    @Click(R.id.date_picker)
+    void pickDate() {
+        Date date = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+        DatePickerDialog dialog = DatePickerDialog.newInstance(mDatePickerListener,year,month,day);
+        dialog.setAccentColor(mDatePickerColor);
+        dialog.show(getFragmentManager(),"DatePicker");
 
     }
 
-    private void setInputFieldMaxLength(EditText editText, int maxLength) {
-        InputFilter[] filterArray = new InputFilter[1];
-        filterArray[0] = new InputFilter.LengthFilter(maxLength);
-        editText.setFilters(filterArray);
-    }
+    private DatePickerDialog.OnDateSetListener mDatePickerListener
+            = new DatePickerDialog.OnDateSetListener() {
+
+        public void onDateSet(DatePickerDialog view, int selectedYear,
+                              int selectedMonth, int selectedDay) {
+            mDatePicker.setText(String.format(Locale.getDefault(),
+                    "%d/%d/%d",
+                    selectedDay,
+                    selectedMonth+1,
+                    selectedYear));
+        }
+    };
 
     private void dropFields() {
-        mAmountEditText.getInputWidget().setText("");
-        mDescriptionEditText.getInputWidget().setText("");
-        mCategoriesPicker.setSelectedIndices(null);
+        mAmountEditText.setText("");
+        mDescriptionEditText.setText("");
     }
 
     private void showSnackBar(String text) {
@@ -183,17 +178,14 @@ public class NewExpenseActivity extends AppCompatActivity implements
     @Click(R.id.saveExpenseButton) //if fields are empty show warning
     void setupSaveExenseButton() {
         String amountText = mAmountEditText
-                .getInputWidget()
                 .getText()
                 .toString()
                 .trim();
         String descriptionText = mDescriptionEditText
-                .getInputWidget()
                 .getText()
                 .toString()
                 .trim();
-        Collection<String> selectedItems = mCategoriesPicker.getSelectedItems();
-        if(amountText.length() != 0 && descriptionText.length() != 0 && selectedItems.size() != 0) {
+        if(amountText.length() != 0 && descriptionText.length() != 0) {
             showSnackBar(mSaveMessage);
         } else {
             showSnackBar(mEmptyFieldsWarning);
@@ -205,34 +197,4 @@ public class NewExpenseActivity extends AppCompatActivity implements
         dropFields();
         showSnackBar(mCancelMessage);
     }
-
-    @Override
-    public void onSelectionChanged(FloatingLabelItemPicker<String> source, Collection<String> selectedItems) {
-        Toast.makeText(this, source.getItemPrinter().printCollection(selectedItems), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onCancelled(int pickerId) {
-
-    }
-
-    @Override
-    public void onInstantSelected(int pickerId, Instant instant) {
-        mDatePicker.setSelectedInstant((JavaDateInstant) instant);
-    }
-
-    @Override
-    public void onItemsSelected(int pickerId, int[] selectedIndices) {
-        mCategoriesPicker.setSelectedIndices(selectedIndices);
-    }
-
-    @Override
-    public void onInstantChanged(FloatingLabelInstantPicker source, Instant instant) {
-        Toast.makeText(this, source.getInstantPrinter().print(instant), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onTextChanged(FloatingLabelEditText source, String text) {
-    }
-
 }

@@ -5,8 +5,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground"
     tools:context="com.valevich.moneytracker.ui.activities.NewExpenseActivity">
 
     <android.support.design.widget.AppBarLayout
@@ -31,35 +33,61 @@
         android:layout_below="@+id/main_appBar"
         android:padding="@dimen/default_layout_padding">
 
-        <com.marvinlabs.widget.floatinglabel.edittext.FloatingLabelEditText
-            android:id="@+id/amountLabel"
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/tile_height"
+            android:layout_marginBottom="@dimen/input_fields_bottom_margin"
+            android:theme="@style/TextLabel">
+
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/amountLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/input_text_bottom_padding"
+                android:inputType="number|numberDecimal"
+                android:maxLength="25"
+                android:textSize="@dimen/input_field_text_size"
+                android:textColor="@color/colorPrimaryLight"
+                android:hint="@string/new_expense_amount_hint"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="@dimen/tile_height"
             android:layout_marginBottom="@dimen/input_fields_bottom_margin"
-            android:inputType="number"
-            app:flw_labelText="@string/new_expense_amount_hint" />
+            android:theme="@style/TextLabel">
 
-        <com.marvinlabs.widget.floatinglabel.edittext.FloatingLabelEditText
-            android:id="@+id/descriptionLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/input_fields_bottom_margin"
-            app:flw_labelText="@string/new_expense_description_hint" />
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/descriptionLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/input_text_bottom_padding"
+                android:maxLines="3"
+                android:maxLength="80"
+                android:textSize="@dimen/input_field_text_size"
+                android:textColor="@color/colorPrimaryLight"
+                android:hint="@string/new_expense_description_hint"/>
 
-        <com.marvinlabs.widget.floatinglabel.itempicker.FloatingLabelItemPicker
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.v7.widget.AppCompatSpinner
             android:id="@+id/categories_picker"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/tile_height_single_line"
             android:layout_marginBottom="@dimen/input_fields_bottom_margin"
-            app:flw_labelText="@string/spinner_categories_title" />
+            style="@style/Widget.AppCompat.Spinner.Underlined">
+        </android.support.v7.widget.AppCompatSpinner>
 
-
-        <com.marvinlabs.widget.floatinglabel.instantpicker.FloatingLabelDatePicker
-            android:id="@+id/datePicker"
+        <TextView
+            android:id="@+id/date_picker"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/input_fields_bottom_margin"
-            app:flw_labelText="@string/date_picker_title" />
+            android:layout_height="@dimen/tile_height_single_line"
+            android:textColor="@color/colorPrimaryLight"
+            android:textSize="@dimen/input_field_text_size"
+            style="@style/Widget.AppCompat.Spinner.Underlined"/>
+
     </LinearLayout>
 
     <RelativeLayout
