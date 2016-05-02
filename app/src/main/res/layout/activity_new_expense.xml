@@ -80,13 +80,16 @@
             style="@style/Widget.AppCompat.Spinner.Underlined">
         </android.support.v7.widget.AppCompatSpinner>
 
-        <TextView
+        <EditText
             android:id="@+id/date_picker"
+            android:inputType="none|date"
             android:layout_width="match_parent"
             android:layout_height="@dimen/tile_height_single_line"
             android:textColor="@color/colorPrimaryLight"
-            android:textSize="@dimen/input_field_text_size"
-            style="@style/Widget.AppCompat.Spinner.Underlined"/>
+            android:textColorHint="@color/colorPrimaryLight"
+            android:focusable="false"
+            android:clickable="true"
+            android:textSize="@dimen/input_field_text_size"/>
 
     </LinearLayout>
 

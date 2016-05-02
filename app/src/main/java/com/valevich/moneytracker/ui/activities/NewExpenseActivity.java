@@ -8,10 +8,13 @@ import android.os.Bundle;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,7 +56,7 @@ public class NewExpenseActivity extends AppCompatActivity {
     AppCompatSpinner mCategoriesPicker;
 
     @ViewById(R.id.date_picker)
-    TextView mDatePicker;
+    EditText mDatePicker;
 
     @ViewById(R.id.toolbar)
     Toolbar mToolbar;
@@ -136,7 +139,7 @@ public class NewExpenseActivity extends AppCompatActivity {
 
     private void setupDatePicker() {
         SimpleDateFormat sdf = new SimpleDateFormat("d/M/yyyy",Locale.getDefault());
-        mDatePicker.setText(sdf.format(new Date()));
+        mDatePicker.setHint(sdf.format(new Date()));
     }
 
     @Click(R.id.date_picker)

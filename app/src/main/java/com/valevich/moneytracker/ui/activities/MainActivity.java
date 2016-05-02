@@ -1,5 +1,7 @@
 package com.valevich.moneytracker.ui.activities;
 
+import android.os.Build;
+import android.support.design.internal.ScrimInsetsFrameLayout;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -22,6 +24,7 @@ import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
+import org.androidannotations.annotations.res.ColorRes;
 
 
 @EActivity
