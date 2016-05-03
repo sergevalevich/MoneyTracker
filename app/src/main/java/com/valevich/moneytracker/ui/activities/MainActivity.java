@@ -1,5 +1,7 @@
-package com.valevich.moneytracker;
+package com.valevich.moneytracker.ui.activities;
 
+import android.os.Build;
+import android.support.design.internal.ScrimInsetsFrameLayout;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -11,27 +13,31 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 
-import com.valevich.moneytracker.fragments.CategoriesFragment;
-import com.valevich.moneytracker.fragments.ExpensesFragment;
-import com.valevich.moneytracker.fragments.SettingsFragment;
-import com.valevich.moneytracker.fragments.StatisticsFragment;
+import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
+import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
+import com.valevich.moneytracker.ui.fragments.SettingsFragment_;
+import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.ViewById;
+import org.androidannotations.annotations.res.ColorRes;
 
+
+@EActivity
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String TOOLBAR_TITLE_KEY = "TOOLBAR_TITLE";
 
-    @Bind(R.id.drawer_layout)
+    @ViewById(R.id.drawer_layout)
     DrawerLayout mDrawerLayout;
-    @Bind(R.id.toolbar)
+    @ViewById(R.id.toolbar)
     Toolbar mToolbar;
-    @Bind(R.id.navigation_view)
+    @ViewById(R.id.navigation_view)
     NavigationView mNavigationView;
     private ActionBarDrawerToggle mToggle;
     private FragmentManager mFragmentManager;
@@ -40,16 +46,18 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
 
+        if(savedInstanceState == null) {
+            replaceFragment(new ExpensesFragment_());
+        }
+
+    }
+
+    @AfterViews
+    void setupViews() {
         setupActionBar();
         setupDrawerLayout();
         setupFragmentManager();
-
-        if(savedInstanceState == null) {
-            replaceFragment(new ExpensesFragment());
-        }
-
     }
 
     @Override
@@ -72,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     public void onBackPressed() {
         if(mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             mDrawerLayout.closeDrawer(GravityCompat.START);
-        } else if (getSupportFragmentManager().getBackStackEntryCount() == 1) {
+        } else if (mFragmentManager.getBackStackEntryCount() == 1) {
             finish();
         } else {
             super.onBackPressed();
@@ -85,22 +93,21 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
                 if(mDrawerLayout != null) {
-                    item.setChecked(true);
                     mDrawerLayout.closeDrawer(GravityCompat.START);
                 }
                 int itemId = item.getItemId();
                 switch (itemId) {
                     case R.id.drawer_expenses:
-                        replaceFragment(new ExpensesFragment());
+                        replaceFragment(new ExpensesFragment_());
                         break;
                     case R.id.drawer_categories:
-                        replaceFragment(new CategoriesFragment());
+                        replaceFragment(new CategoriesFragment_());
                         break;
                     case R.id.drawer_statistics:
-                        replaceFragment(new StatisticsFragment());
+                        replaceFragment(new StatisticsFragment_());
                         break;
                     case R.id.drawer_settings:
-                        replaceFragment(new SettingsFragment());
+                        replaceFragment(new SettingsFragment_());
                         break;
                 }
                 return true;
@@ -108,10 +115,19 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
         });
     }
 
-    private void changeToolbarTitle(String title) {
-        ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null) {
-            actionBar.setTitle(title);
+    private void changeToolbarTitle(String backStackEntryName) {
+        if(backStackEntryName.equals(ExpensesFragment_.class.getName())) {
+            setTitle(getString(R.string.nav_drawer_expenses));
+            mNavigationView.setCheckedItem(R.id.drawer_expenses);
+        } else if(backStackEntryName.equals(CategoriesFragment_.class.getName())) {
+            setTitle(getString(R.string.nav_drawer_categories));
+            mNavigationView.setCheckedItem(R.id.drawer_categories);
+        } else if(backStackEntryName.equals(SettingsFragment_.class.getName())) {
+            setTitle(getString(R.string.nav_drawer_settings));
+            mNavigationView.setCheckedItem(R.id.drawer_settings);
+        } else {
+            setTitle(getString(R.string.nav_drawer_statistics));
+            mNavigationView.setCheckedItem(R.id.drawer_statistics);
         }
     }
 
@@ -159,19 +175,11 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     @Override
     public void onBackStackChanged() {
 
-        String backStackEntryName = mFragmentManager
-                .findFragmentById(R.id.main_container)
-                .getClass()
-                .getName();
+        Fragment f = mFragmentManager
+                .findFragmentById(R.id.main_container);
 
-        if(backStackEntryName.equals(ExpensesFragment.class.getName())) {
-            changeToolbarTitle(getString(R.string.nav_drawer_expenses));
-        } else if(backStackEntryName.equals(CategoriesFragment.class.getName())) {
-            changeToolbarTitle(getString(R.string.nav_drawer_categories));
-        } else if(backStackEntryName.equals(SettingsFragment.class.getName())) {
-            changeToolbarTitle(getString(R.string.nav_drawer_settings));
-        } else {
-            changeToolbarTitle(getString(R.string.nav_drawer_statistics));
+        if(f != null) {
+            changeToolbarTitle(f.getClass().getName());
         }
 
     }

@@ -6,7 +6,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context="com.valevich.moneytracker.MainActivity"
+    tools:context=".ui.activities.MainActivity"
+    android:background="@color/colorBackground"
     tools:showIn="@layout/activity_main">
 
     <android.support.design.widget.AppBarLayout

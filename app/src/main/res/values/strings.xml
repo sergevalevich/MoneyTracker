@@ -8,4 +8,16 @@
     <string name="nav_drawer_settings">Настройки</string>
     <string name="default_username">Sergey Valevich</string>
     <string name="default_user_email">kukareku@mail.ru</string>
+    <string name="new_expense_amount_hint">Сумма</string>
+    <string name="new_expense_description_hint">Описание</string>
+    <string name="new_expense_activity_title">Добавить трату</string>
+    <string name="spinner_categories_title">Выберите категорию</string>
+    <string name="date_picker_title">Выберите дату</string>
+    <string name="categories_picker_positive">OK</string>
+    <string name="categories_picker_negative">ОТМЕНА</string>
+    <string name="save_expense_button_title">ДОБАВИТЬ</string>
+    <string name="cancel_button_title">ОТМЕНА</string>
+    <string name="new_expense_cancel_warning">Отменено</string>
+    <string name="new_expense_save_message">Сохранено</string>
+    <string name="new_expense_empty_fields_warning">Заполните все поля</string>
 </resources>

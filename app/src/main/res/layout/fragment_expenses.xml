@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context="com.valevich.moneytracker.fragments.ExpensesFragment">
+    android:background="@color/colorBackground"
+    tools:context=".ui.fragments.ExpensesFragment">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/expenseList"
@@ -25,7 +26,7 @@
         app:fabSize="normal"
         app:layout_anchor="@+id/expenseList"
         app:layout_anchorGravity="bottom|end"
-        app:layout_behavior="com.valevich.moneytracker.ScrollAwareFABBehavior"/>
+        app:layout_behavior="com.valevich.moneytracker.utils.ScrollAwareFABBehavior"/>
 
 
 </android.support.design.widget.CoordinatorLayout>
