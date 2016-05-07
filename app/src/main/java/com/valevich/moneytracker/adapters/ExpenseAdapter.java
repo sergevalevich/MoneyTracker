@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.model.Expense;
 
 import java.util.List;
@@ -16,9 +17,9 @@ import butterknife.ButterKnife;
 
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder> {
 
-    private List<Expense> mExpenses;
+    private List<ExpenseEntry> mExpenses;
 
-    public ExpenseAdapter (List<Expense> expenses) {
+    public ExpenseAdapter (List<ExpenseEntry> expenses) {
         mExpenses = expenses;
     }
 
@@ -39,6 +40,11 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         return mExpenses.size();
     }
 
+    public void refresh(List<ExpenseEntry> expenses) {
+        mExpenses.clear();
+        mExpenses.addAll(expenses);
+    }
+
     class ExpenseViewHolder extends RecyclerView.ViewHolder {
 
         @Bind(R.id.price)
@@ -51,7 +57,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             ButterKnife.bind(this,itemView);
         }
 
-        public void bindExpense(Expense expense) {
+        public void bindExpense(ExpenseEntry expense) {
             price.setText(expense.getPrice());
             description.setText(expense.getDescription());
         }

@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.model.Category;
 
 import java.util.List;
@@ -19,9 +20,9 @@ import butterknife.ButterKnife;
  */
 public class CategoriesAdapter extends RecyclerView.Adapter<CategoriesAdapter.CategoryViewHolder> {
 
-    private List<Category> mCategories;
+    private List<CategoryEntry> mCategories;
 
-    public CategoriesAdapter (List<Category> categories) {
+    public CategoriesAdapter (List<CategoryEntry> categories) {
         mCategories = categories;
     }
 
@@ -42,6 +43,11 @@ public class CategoriesAdapter extends RecyclerView.Adapter<CategoriesAdapter.Ca
         return mCategories.size();
     }
 
+    public void refresh(List<CategoryEntry> data) {
+        mCategories.clear();
+        mCategories.addAll(data);
+    }
+
     class CategoryViewHolder extends RecyclerView.ViewHolder {
 
         @Bind(R.id.category_label)
@@ -52,7 +58,7 @@ public class CategoriesAdapter extends RecyclerView.Adapter<CategoriesAdapter.Ca
             ButterKnife.bind(this,itemView);
         }
 
-        public void bindCategory(Category category) {
+        public void bindCategory(CategoryEntry category) {
             categoryLabel.setText(category.getName());
         }
     }

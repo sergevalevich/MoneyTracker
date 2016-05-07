@@ -22,7 +22,7 @@ public class CategoryEntry extends BaseModel {
     @Column
     private String name;
 
-    private List<ExpenseEntry> expenses;
+    List<ExpenseEntry> expenses;
 
     @OneToMany(methods = {OneToMany.Method.ALL}, variableName = "expenses")
     public List<ExpenseEntry> getExpenses() {
@@ -41,5 +41,11 @@ public class CategoryEntry extends BaseModel {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public static List<CategoryEntry> getAllCategories() {//query
+        return SQLite.select()
+                .from(CategoryEntry.class)
+                .queryList();
     }
 }
