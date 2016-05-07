@@ -3,6 +3,7 @@ package com.valevich.moneytracker.ui.fragments;
 
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -11,10 +12,17 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
+import com.raizlabs.android.dbflow.config.FlowManager;
+import com.raizlabs.android.dbflow.sql.queriable.StringQuery;
+import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
+import com.raizlabs.android.dbflow.structure.database.transaction.ITransaction;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.CategoriesAdapter;
+import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.model.Category;
 
@@ -40,6 +48,17 @@ public class CategoriesFragment extends Fragment implements LoaderManager.Loader
     public CategoriesFragment() {}
 
     private static final int CATEGORIES_LOADER = 1;
+
+    private String[] mDefaultCategories = {"Одежда","Бизнес","Налоги","Еда","Дом"};
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        if(CategoryEntry.getAllCategories().isEmpty()) {
+            saveDefaultCategories();
+        }
+        return null;
+    }
 
     @Override
     public void onResume() {
@@ -100,5 +119,18 @@ public class CategoriesFragment extends Fragment implements LoaderManager.Loader
     @Override
     public void onLoaderReset(Loader<List<CategoryEntry>> loader) {
 
+    }
+
+    private void saveDefaultCategories() {
+        FlowManager.getDatabase(MoneyTrackerDatabase.class).executeTransaction(new ITransaction() {
+            @Override
+            public void execute(DatabaseWrapper databaseWrapper) {
+                for(String defaultCategory:mDefaultCategories) {
+                    CategoryEntry category = new CategoryEntry();
+                    category.setName(defaultCategory);
+                    category.save();
+                }
+            }
+        });
     }
 }

@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:background="@color/colorCards">
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/list_item_min_height">
     <TextView
         android:id="@+id/category_label"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="@dimen/default_textview_padding"
-        android:textColor="@color/colorPrimaryLight"/>
+        android:layout_height="match_parent"
+        android:textSize="@dimen/list_item_text_size"
+        android:gravity="center_vertical"
+        android:layout_gravity="center_vertical"
+        android:textColor="@color/colorPrimaryLight"
+        android:layout_marginStart="@dimen/list_item_side_padding"
+        android:layout_marginEnd="@dimen/list_item_side_padding"/>
 
-</LinearLayout>
+</RelativeLayout>
