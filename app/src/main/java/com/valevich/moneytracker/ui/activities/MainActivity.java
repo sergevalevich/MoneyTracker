@@ -82,10 +82,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null) {
-            outState.putString(TOOLBAR_TITLE_KEY,String.valueOf(actionBar.getTitle()));
-        }
+        outState.putString(TOOLBAR_TITLE_KEY, String.valueOf(getTitle()));
         super.onSaveInstanceState(outState);
     }
 
@@ -93,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         String toolBarTitle = savedInstanceState.getString(TOOLBAR_TITLE_KEY,getString(R.string.app_name));
-        changeToolbarTitle(toolBarTitle);
+        setTitle(toolBarTitle);
     }
 
     @Override
