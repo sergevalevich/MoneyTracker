@@ -43,6 +43,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
     public void refresh(List<ExpenseEntry> expenses) {
         mExpenses.clear();
         mExpenses.addAll(expenses);
+        notifyDataSetChanged();
     }
 
     class ExpenseViewHolder extends RecyclerView.ViewHolder {

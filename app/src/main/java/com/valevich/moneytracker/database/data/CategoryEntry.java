@@ -1,6 +1,7 @@
 package com.valevich.moneytracker.database.data;
 
 import com.raizlabs.android.dbflow.annotation.Column;
+import com.raizlabs.android.dbflow.annotation.ModelContainer;
 import com.raizlabs.android.dbflow.annotation.OneToMany;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
@@ -13,6 +14,7 @@ import java.util.List;
 /**
  * Created by NotePad.by on 07.05.2016.
  */
+@ModelContainer
 @Table(database = MoneyTrackerDatabase.class)
 public class CategoryEntry extends BaseModel {
 
@@ -47,5 +49,10 @@ public class CategoryEntry extends BaseModel {
         return SQLite.select()
                 .from(CategoryEntry.class)
                 .queryList();
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

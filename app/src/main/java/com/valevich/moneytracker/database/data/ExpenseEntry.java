@@ -2,12 +2,14 @@ package com.valevich.moneytracker.database.data;
 
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.ForeignKey;
+import com.raizlabs.android.dbflow.annotation.ModelContainer;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 import com.raizlabs.android.dbflow.structure.container.ForeignKeyContainer;
+import com.raizlabs.android.dbflow.structure.container.ModelContainerAdapter;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.model.Category;
 
@@ -33,7 +35,6 @@ public class ExpenseEntry extends BaseModel {
 
     @ForeignKey
     ForeignKeyContainer<CategoryEntry> category;
-
     public long getId() {
         return id;
     }
@@ -63,9 +64,9 @@ public class ExpenseEntry extends BaseModel {
         this.date = date;
     }
 
-    public void associateBreed(CategoryEntry categoryEntry) {
-        category = FlowManager.getContainerAdapter(CategoryEntry.class)
-                .toForeignKeyContainer(categoryEntry); // convenience conversion
+    public void associateCategory(CategoryEntry categoryEntry) {
+        ModelContainerAdapter<CategoryEntry> adapter = FlowManager.getContainerAdapter(CategoryEntry.class);
+        category = adapter.toForeignKeyContainer(categoryEntry) ;// convenience conversion
     }
 
     public static List<ExpenseEntry> getAllExpenses() {//query

@@ -49,17 +49,6 @@ public class CategoriesFragment extends Fragment implements LoaderManager.Loader
 
     private static final int CATEGORIES_LOADER = 1;
 
-    private String[] mDefaultCategories = {"Одежда","Бизнес","Налоги","Еда","Дом"};
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        if(CategoryEntry.getAllCategories().isEmpty()) {
-            saveDefaultCategories();
-        }
-        return null;
-    }
-
     @Override
     public void onResume() {
         super.onResume();
@@ -121,16 +110,4 @@ public class CategoriesFragment extends Fragment implements LoaderManager.Loader
 
     }
 
-    private void saveDefaultCategories() {
-        FlowManager.getDatabase(MoneyTrackerDatabase.class).executeTransaction(new ITransaction() {
-            @Override
-            public void execute(DatabaseWrapper databaseWrapper) {
-                for(String defaultCategory:mDefaultCategories) {
-                    CategoryEntry category = new CategoryEntry();
-                    category.setName(defaultCategory);
-                    category.save();
-                }
-            }
-        });
-    }
 }

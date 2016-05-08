@@ -15,7 +15,12 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
+import com.raizlabs.android.dbflow.config.FlowManager;
+import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
+import com.raizlabs.android.dbflow.structure.database.transaction.ITransaction;
 import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.database.MoneyTrackerDatabase;
+import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
 import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
 import com.valevich.moneytracker.ui.fragments.SettingsFragment_;
@@ -29,6 +34,8 @@ import org.androidannotations.annotations.res.ColorRes;
 
 @EActivity
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
+
+    private String[] mDefaultCategories = {"Одежда","Бизнес","Налоги","Еда","Дом","Образование"};
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String TOOLBAR_TITLE_KEY = "TOOLBAR_TITLE";
@@ -46,6 +53,10 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if(CategoryEntry.getAllCategories().isEmpty()) {
+            saveDefaultCategories();
+        }
 
         if(savedInstanceState == null) {
             replaceFragment(new ExpensesFragment_());
@@ -182,6 +193,19 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
             changeToolbarTitle(f.getClass().getName());
         }
 
+    }
+
+    private void saveDefaultCategories() {
+        FlowManager.getDatabase(MoneyTrackerDatabase.class).executeTransaction(new ITransaction() {
+            @Override
+            public void execute(DatabaseWrapper databaseWrapper) {
+                for(String defaultCategory:mDefaultCategories) {
+                    CategoryEntry category = new CategoryEntry();
+                    category.setName(defaultCategory);
+                    category.save();
+                }
+            }
+        });
     }
 }
 
