@@ -148,7 +148,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
 
     private void setupDatePicker() {
         SimpleDateFormat sdf = new SimpleDateFormat("d/M/yyyy",Locale.getDefault());
-        mDatePicker.setHint(sdf.format(new Date()));
+        mDatePicker.setText(sdf.format(new Date()));
     }
 
     @Click(R.id.date_picker)

@@ -51,6 +51,9 @@ public class ExpenseEntry extends BaseModel {
         return date;
     }
 
+    public CategoryEntry getCategory() {
+        return category.load();
+    }
 
     public void setPrice(String price) {
         this.price = price;
