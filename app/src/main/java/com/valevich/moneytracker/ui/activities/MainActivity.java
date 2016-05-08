@@ -15,12 +15,17 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
+import com.raizlabs.android.dbflow.config.DatabaseDefinition;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
 import com.raizlabs.android.dbflow.structure.database.transaction.ITransaction;
+import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
+import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
+import com.valevich.moneytracker.database.data.ExpenseEntry;
+import com.valevich.moneytracker.model.Category;
 import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
 import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
 import com.valevich.moneytracker.ui.fragments.SettingsFragment_;
@@ -30,6 +35,9 @@ import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @EActivity
@@ -196,16 +204,28 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     }
 
     private void saveDefaultCategories() {
-        FlowManager.getDatabase(MoneyTrackerDatabase.class).executeTransaction(new ITransaction() {
-            @Override
-            public void execute(DatabaseWrapper databaseWrapper) {
-                for(String defaultCategory:mDefaultCategories) {
-                    CategoryEntry category = new CategoryEntry();
-                    category.setName(defaultCategory);
-                    category.save();
-                }
-            }
-        });
+
+       final CategoryEntry[] categories = new CategoryEntry[mDefaultCategories.length];
+
+
+        DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
+
+        ProcessModelTransaction<CategoryEntry> processModelTransaction =
+                new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<CategoryEntry>() {
+                    @Override
+                    public void processModel(CategoryEntry category) {
+                    }
+                }).processListener(new ProcessModelTransaction.OnModelProcessListener<CategoryEntry>() {
+                    @Override
+                    public void onModelProcessed(long current, long total, CategoryEntry category) {
+                        category = new CategoryEntry();
+                        category.setName(mDefaultCategories[(int) current]);
+                        category.save();
+                    }
+                }).addAll(categories).build();
+
+        Transaction transaction = database.beginTransactionAsync(processModelTransaction).build();
+        transaction.execute();
     }
 }
 
