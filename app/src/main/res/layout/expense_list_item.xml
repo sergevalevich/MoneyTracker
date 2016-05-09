@@ -31,7 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="start"
-                android:textColor="@color/colorPrimaryLight"
+                android:textColor="@color/colorText"
                 android:textSize="@dimen/primary_text_size"
                 android:maxLines="1"
                 android:maxLength="25"
@@ -42,8 +42,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="start"
-                android:textColor="@color/color_secondary_text"
+                android:textColor="@color/colorText"
                 android:textSize="@dimen/secondary_text_size"
+                android:alpha=".7"
                 tools:text="Еда"/>
 
             <TextView
@@ -51,7 +52,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="start"
-                android:textColor="@color/color_secondary_text"
+                android:textColor="@color/colorText"
+                android:alpha=".7"
                 android:textSize="@dimen/secondary_text_size"
                 tools:text="8/5/2016"/>
 
@@ -68,7 +70,7 @@
             android:layout_width="@dimen/list_item_price_text_width"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:textColor="@color/colorPrimaryLight"
+            android:textColor="@color/colorText"
             android:textSize="@dimen/primary_text_size"
             tools:text="10000000$"/>
 

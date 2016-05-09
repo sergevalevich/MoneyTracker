@@ -135,15 +135,6 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         mCategoriesPicker.setAdapter(adapter);
         mCategoriesPicker.setPrompt(mCategoriesPickerTitle);
         mCategoriesPicker.setSelection(0);
-        mCategoriesPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view,
-                                       int position, long id) {
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-            }
-        });
     }
 
     private void setupDatePicker() {
