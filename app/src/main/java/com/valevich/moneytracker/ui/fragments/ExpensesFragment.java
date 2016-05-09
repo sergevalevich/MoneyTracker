@@ -3,16 +3,21 @@ package com.valevich.moneytracker.ui.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.ExpenseAdapter;
+import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.model.Expense;
 import com.valevich.moneytracker.ui.activities.NewExpenseActivity_;
 
@@ -26,7 +31,7 @@ import java.util.List;
 
 
 @EFragment(R.layout.fragment_expenses)
-public class ExpensesFragment extends Fragment {
+public class ExpensesFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<ExpenseEntry>> {
 
     @ViewById(R.id.expenseList)
     RecyclerView mExpenseRecyclerView;
@@ -34,12 +39,18 @@ public class ExpensesFragment extends Fragment {
     FloatingActionButton mFab;
     @ViewById(R.id.coordinator)
     CoordinatorLayout mRootLayout;
-    private List<Expense> mExpenseList = new ArrayList<>();
+
+    private static final int EXPENSES_LOADER = 0;
 
 
     public ExpensesFragment() {
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadExpenses();
+    }
 
     @AfterViews
     void setupViews() {
@@ -53,17 +64,37 @@ public class ExpensesFragment extends Fragment {
     }
 
     private void setUpRecyclerView() {
-        addExampleData();
-        ExpenseAdapter adapter = new ExpenseAdapter(mExpenseList);
-        mExpenseRecyclerView.setAdapter(adapter);
         mExpenseRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
-    //default data
-    private void addExampleData() {
-        for(int i = 1; i<31; i++) {
-            mExpenseList.add(new Expense("Item " + i," " + i*1000));
+    private void loadExpenses() {
+        getLoaderManager().restartLoader(EXPENSES_LOADER,null,this);
+    }
+
+    @Override
+    public Loader<List<ExpenseEntry>> onCreateLoader(int id, Bundle args) {
+        final AsyncTaskLoader<List<ExpenseEntry>> loader = new AsyncTaskLoader<List<ExpenseEntry>>(getActivity()) {
+            @Override
+            public List<ExpenseEntry> loadInBackground() {
+                return ExpenseEntry.getAllExpenses();
+            }
+        };
+        loader.forceLoad();
+        return loader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<ExpenseEntry>> loader, List<ExpenseEntry> data) {
+        ExpenseAdapter adapter = (ExpenseAdapter) mExpenseRecyclerView.getAdapter();
+        if(adapter == null) {
+            mExpenseRecyclerView.setAdapter(new ExpenseAdapter(data));
+        } else {
+            adapter.refresh(data);
         }
     }
 
+    @Override
+    public void onLoaderReset(Loader<List<ExpenseEntry>> loader) {
+
+    }
 }

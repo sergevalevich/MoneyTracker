@@ -7,18 +7,22 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.model.Expense;
 
+import org.w3c.dom.Text;
+
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder> {
 
-    private List<Expense> mExpenses;
+    private List<ExpenseEntry> mExpenses;
 
-    public ExpenseAdapter (List<Expense> expenses) {
+    public ExpenseAdapter (List<ExpenseEntry> expenses) {
         mExpenses = expenses;
     }
 
@@ -39,21 +43,33 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         return mExpenses.size();
     }
 
+    public void refresh(List<ExpenseEntry> expenses) {
+        mExpenses.clear();
+        mExpenses.addAll(expenses);
+        notifyDataSetChanged();
+    }
+
     class ExpenseViewHolder extends RecyclerView.ViewHolder {
 
         @Bind(R.id.price)
         TextView price;
         @Bind(R.id.description)
         TextView description;
+        @Bind(R.id.date)
+        TextView date;
+        @Bind(R.id.category)
+        TextView category;
 
         public ExpenseViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this,itemView);
         }
 
-        public void bindExpense(Expense expense) {
-            price.setText(expense.getPrice());
+        public void bindExpense(ExpenseEntry expense) {
+            price.setText(String.format(Locale.getDefault(),"%s%s",expense.getPrice(),"$"));
             description.setText(expense.getDescription());
+            date.setText(expense.getDate());
+            category.setText(expense.getCategory().getName());
         }
     }
 }

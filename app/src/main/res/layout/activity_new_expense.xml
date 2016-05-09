@@ -45,7 +45,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/input_text_bottom_padding"
                 android:inputType="number|numberDecimal"
-                android:maxLength="25"
+                android:maxLength="8"
                 android:textSize="@dimen/input_field_text_size"
                 android:textColor="@color/colorPrimaryLight"
                 android:hint="@string/new_expense_amount_hint"/>
@@ -64,8 +64,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/input_text_bottom_padding"
-                android:maxLines="3"
-                android:maxLength="80"
+                android:maxLines="2"
+                android:maxLength="25"
                 android:textSize="@dimen/input_field_text_size"
                 android:textColor="@color/colorPrimaryLight"
                 android:hint="@string/new_expense_description_hint"/>

@@ -18,9 +18,21 @@
 
     <!-- Default card's margins styling per the Android Design guidelines. -->
     <dimen name="expense_card_corner_radius">2dp</dimen>
-    <dimen name="supporting_text_size">14sp</dimen>
+    <dimen name="primary_text_size">16sp</dimen>
+    <dimen name="secondary_text_size">14sp</dimen>
     <dimen name="card_elevation">2dp</dimen>
     <dimen name="default_card_supporting_text_padding">16dp</dimen>
+    <dimen name="default_card_supporting_text_bottom_padding">20dp</dimen>
+    <dimen name="card_minHeight">88dp</dimen>
+
+    <dimen name="list_item_price_text_start_padding">48dp</dimen>
+    <dimen name="list_item_price_text_width">100dp</dimen>
+
+    <!--list item margins per the Android Design guidelines. -->
+    <dimen name="list_item_min_height">48dp</dimen>
+    <dimen name="list_item_text_size">16sp</dimen>
+    <dimen name="list_item_side_padding">16dp</dimen>
+    <dimen name="recyclerView_top_padding">16dp</dimen>
 
     <!-- fab's dimens -->
     <dimen name="fab_margin_right">16dp</dimen>
