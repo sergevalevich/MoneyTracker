@@ -29,6 +29,11 @@ import org.androidannotations.annotations.ViewById;
 import java.util.ArrayList;
 import java.util.List;
 
+import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
+import jp.wasabeef.recyclerview.adapters.ScaleInAnimationAdapter;
+import jp.wasabeef.recyclerview.adapters.SlideInBottomAnimationAdapter;
+import jp.wasabeef.recyclerview.adapters.SlideInLeftAnimationAdapter;
+
 
 @EFragment(R.layout.fragment_expenses)
 public class ExpensesFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<ExpenseEntry>> {

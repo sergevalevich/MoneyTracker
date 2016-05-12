@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
     }
 
-    private void setupNavigationContent(NavigationView navigationView) {
+    private void setupNavigationContent(final NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
