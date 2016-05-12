@@ -214,7 +214,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(this) {
             @Override
             public List<CategoryEntry> loadInBackground() {
-                return CategoryEntry.getAllCategories();
+                return CategoryEntry.getAllCategories("");
             }
         };
         loader.forceLoad();

@@ -2,13 +2,10 @@ package com.valevich.moneytracker.ui.fragments;
 
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -19,14 +16,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.SearchView;
 
 
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.ExpenseAdapter;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
-import com.valevich.moneytracker.model.Expense;
 import com.valevich.moneytracker.ui.activities.NewExpenseActivity_;
 
 import org.androidannotations.annotations.AfterViews;
@@ -40,13 +35,7 @@ import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
 import org.androidannotations.api.BackgroundExecutor;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
-import jp.wasabeef.recyclerview.adapters.ScaleInAnimationAdapter;
-import jp.wasabeef.recyclerview.adapters.SlideInBottomAnimationAdapter;
-import jp.wasabeef.recyclerview.adapters.SlideInLeftAnimationAdapter;
 
 @OptionsMenu(R.menu.search_menu)
 @EFragment(R.layout.fragment_expenses)
@@ -60,7 +49,7 @@ public class ExpensesFragment extends Fragment {
     @ViewById(R.id.coordinator)
     CoordinatorLayout mRootLayout;
     @OptionsMenuItem(R.id.action_search)
-    MenuItem mMenuItem;
+    MenuItem mSearchMenuItem;
     @StringRes(R.string.search_hint)
     String mSearchHint;
     @ColorRes(R.color.colorPrimary)
@@ -81,7 +70,7 @@ public class ExpensesFragment extends Fragment {
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        SearchView searchView = (SearchView) mMenuItem.getActionView();
+        SearchView searchView = (SearchView) mSearchMenuItem.getActionView();
 
         //customize default searchview style for pre L devices because it looks ugly
         if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {

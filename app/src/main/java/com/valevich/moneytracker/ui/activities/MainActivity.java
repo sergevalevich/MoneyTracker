@@ -37,7 +37,7 @@ import org.androidannotations.annotations.ViewById;
 @EActivity
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
 
-    private String[] mDefaultCategories = {"Одежда","Бизнес","Налоги","Еда","Дом","Образование"};
+    private String[] mDefaultCategories = {"Одежда","Бизнес","Налоги","Еда","Дом","Образование","ToCheckSearchItem1","ToCheckSearchItem2","ToCheckSearchItem3"};
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String TOOLBAR_TITLE_KEY = "TOOLBAR_TITLE";
@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(CategoryEntry.getAllCategories().isEmpty()) {
+        if(CategoryEntry.getAllCategories("").isEmpty()) {
             saveDefaultCategories();
         }
 
