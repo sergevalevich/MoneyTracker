@@ -25,12 +25,14 @@ import com.valevich.moneytracker.model.Expense;
 import com.valevich.moneytracker.ui.activities.NewExpenseActivity_;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
+import org.androidannotations.api.BackgroundExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +44,9 @@ import jp.wasabeef.recyclerview.adapters.SlideInLeftAnimationAdapter;
 
 @OptionsMenu(R.menu.search_menu)
 @EFragment(R.layout.fragment_expenses)
-public class ExpensesFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<ExpenseEntry>> {
+public class ExpensesFragment extends Fragment {
 
+    private static final String SEARCH_ID = "search_id";
     @ViewById(R.id.expenseList)
     RecyclerView mExpenseRecyclerView;
     @ViewById(R.id.fab)
@@ -64,7 +67,7 @@ public class ExpensesFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onResume() {
         super.onResume();
-        loadExpenses();
+        loadExpenses("");
     }
 
     @Override
@@ -80,6 +83,8 @@ public class ExpensesFragment extends Fragment implements LoaderManager.LoaderCa
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                BackgroundExecutor.cancelAll(SEARCH_ID,true);
+                queryExpenses(newText);
                 return false;
             }
         });
@@ -100,34 +105,40 @@ public class ExpensesFragment extends Fragment implements LoaderManager.LoaderCa
         mExpenseRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
-    private void loadExpenses() {
-        getLoaderManager().restartLoader(EXPENSES_LOADER,null,this);
+    @Background(delay = 700, id = SEARCH_ID)
+    void queryExpenses(String filter) {
+        loadExpenses(filter);
     }
 
-    @Override
-    public Loader<List<ExpenseEntry>> onCreateLoader(int id, Bundle args) {
-        final AsyncTaskLoader<List<ExpenseEntry>> loader = new AsyncTaskLoader<List<ExpenseEntry>>(getActivity()) {
+    private void loadExpenses(final String filter) {
+        getLoaderManager().restartLoader(EXPENSES_LOADER, null, new LoaderManager.LoaderCallbacks<List<ExpenseEntry>>() {
+
             @Override
-            public List<ExpenseEntry> loadInBackground() {
-                return ExpenseEntry.getAllExpenses();
+            public Loader<List<ExpenseEntry>> onCreateLoader(int id, Bundle args) {
+                final AsyncTaskLoader<List<ExpenseEntry>> loader = new AsyncTaskLoader<List<ExpenseEntry>>(getActivity()) {
+                    @Override
+                    public List<ExpenseEntry> loadInBackground() {
+                        return ExpenseEntry.getAllExpenses(filter);
+                    }
+                };
+                loader.forceLoad();
+                return loader;
             }
-        };
-        loader.forceLoad();
-        return loader;
-    }
 
-    @Override
-    public void onLoadFinished(Loader<List<ExpenseEntry>> loader, List<ExpenseEntry> data) {
-        ExpenseAdapter adapter = (ExpenseAdapter) mExpenseRecyclerView.getAdapter();
-        if(adapter == null) {
-            mExpenseRecyclerView.setAdapter(new ExpenseAdapter(data));
-        } else {
-            adapter.refresh(data);
-        }
-    }
+            @Override
+            public void onLoadFinished(Loader<List<ExpenseEntry>> loader, List<ExpenseEntry> data) {
+                ExpenseAdapter adapter = (ExpenseAdapter) mExpenseRecyclerView.getAdapter();
+                if(adapter == null) {
+                    mExpenseRecyclerView.setAdapter(new ExpenseAdapter(data));
+                } else {
+                    adapter.refresh(data);
+                }
+            }
 
-    @Override
-    public void onLoaderReset(Loader<List<ExpenseEntry>> loader) {
+            @Override
+            public void onLoaderReset(Loader<List<ExpenseEntry>> loader) {
 
+            }
+        });
     }
 }
