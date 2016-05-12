@@ -2,6 +2,8 @@ package com.valevich.moneytracker.ui.fragments;
 
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
@@ -15,6 +17,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SearchView;
 
 
@@ -31,6 +36,7 @@ import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.ViewById;
+import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
 import org.androidannotations.api.BackgroundExecutor;
 
@@ -57,6 +63,8 @@ public class ExpensesFragment extends Fragment {
     MenuItem mMenuItem;
     @StringRes(R.string.search_hint)
     String mSearchHint;
+    @ColorRes(R.color.colorPrimary)
+    int mPrimaryColor;
 
     private static final int EXPENSES_LOADER = 0;
 
@@ -74,6 +82,13 @@ public class ExpensesFragment extends Fragment {
     public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
         SearchView searchView = (SearchView) mMenuItem.getActionView();
+
+        //customize default searchview style for pre L devices because it looks ugly
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            customizeSearchViewOld(searchView);
+        }
+
+
         searchView.setQueryHint(mSearchHint);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -88,6 +103,31 @@ public class ExpensesFragment extends Fragment {
                 return false;
             }
         });
+    }
+
+    private void customizeSearchViewOld(SearchView searchView) {
+        int searchPlateId = searchView.getContext().getResources().getIdentifier("android:id/search_plate", null, null);
+        View searchPlateView = searchView.findViewById(searchPlateId);
+
+        if (searchPlateView != null) {
+            searchPlateView.setBackgroundColor(mPrimaryColor);
+        }
+
+        int searchImgId = getResources().getIdentifier("android:id/search_button", null, null);
+        ImageView search = (ImageView) searchView.findViewById(searchImgId);
+
+        if(search != null) {
+            search.setImageResource(R.drawable.ic_action_search);
+        }
+
+        int closeImgId = getResources().getIdentifier("android:id/search_close_btn", null, null);
+        ImageView close = (ImageView) searchView.findViewById(closeImgId);
+
+        if(close != null) {
+            close.setImageResource(R.drawable.ic_clear);
+            close.setAlpha(0.4f);
+        }
+
     }
 
     @AfterViews
