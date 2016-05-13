@@ -47,6 +47,7 @@ public class CategoriesAdapter extends RecyclerView.Adapter<CategoriesAdapter.Ca
     public void refresh(List<CategoryEntry> data) {
         mCategories.clear();
         mCategories.addAll(data);
+        notifyDataSetChanged();
     }
 
     class CategoryViewHolder extends RecyclerView.ViewHolder {

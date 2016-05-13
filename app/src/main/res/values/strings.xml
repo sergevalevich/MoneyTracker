@@ -21,4 +21,6 @@
     <string name="new_expense_save_message">Сохранено</string>
     <string name="new_expense_empty_fields_warning">Заполните все поля</string>
     <string name="new_expense_error_saving_message">Ошибка сохранения</string>
+    <string name="action_search">Поиск</string>
+    <string name="search_hint">Поиск</string>
 </resources>

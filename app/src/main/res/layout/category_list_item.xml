@@ -12,7 +12,7 @@
         android:textSize="@dimen/list_item_text_size"
         android:gravity="center_vertical"
         android:layout_gravity="center_vertical"
-        android:textColor="@color/colorPrimaryLight"
+        android:textColor="@color/colorText"
         android:layout_marginStart="@dimen/list_item_side_padding"
         android:layout_marginEnd="@dimen/list_item_side_padding"/>
 

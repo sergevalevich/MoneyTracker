@@ -6,6 +6,6 @@
     android:layout_height="wrap_content"
     android:padding="@dimen/spinner_item_padding"
     android:textSize="@dimen/input_field_text_size"
-    android:textColor="@color/colorPrimaryLight"
+    android:textColor="@color/colorText"
     android:background="@color/colorCards">
 </TextView>

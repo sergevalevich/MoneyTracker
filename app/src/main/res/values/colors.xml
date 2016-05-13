@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#212121</color>
-    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorPrimary">#424242</color>
+    <color name="colorPrimaryDark">#212121</color>
     <color name="colorAccent">#FFFF00</color>
-    <color name="colorListItemBackground">@color/material_deep_teal_500</color>
-    <color name="colorPrimaryLight">#e0e0e0</color>
-    <color name="colorBackground">#303030</color>
-    <color name="colorCards">#424242</color>
-    <color name="color_drawer_bg">#616161</color>
-    <color name="color_secondary_text">#9E9E9E</color>
+    <color name="colorBackground">#616161</color>
+    <color name="colorCards">#757575</color>
+    <color name="colorText">#ffffff</color>
 </resources>

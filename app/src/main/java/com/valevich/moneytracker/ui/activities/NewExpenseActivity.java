@@ -135,15 +135,6 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         mCategoriesPicker.setAdapter(adapter);
         mCategoriesPicker.setPrompt(mCategoriesPickerTitle);
         mCategoriesPicker.setSelection(0);
-        mCategoriesPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view,
-                                       int position, long id) {
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-            }
-        });
     }
 
     private void setupDatePicker() {
@@ -223,7 +214,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(this) {
             @Override
             public List<CategoryEntry> loadInBackground() {
-                return CategoryEntry.getAllCategories();
+                return CategoryEntry.getAllCategories("");
             }
         };
         loader.forceLoad();

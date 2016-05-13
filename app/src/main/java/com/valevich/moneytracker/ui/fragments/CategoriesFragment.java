@@ -2,8 +2,8 @@ package com.valevich.moneytracker.ui.fragments;
 
 
 
+import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -12,40 +12,46 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-
-import com.raizlabs.android.dbflow.config.FlowManager;
-import com.raizlabs.android.dbflow.sql.queriable.StringQuery;
-import com.raizlabs.android.dbflow.structure.database.DatabaseWrapper;
-import com.raizlabs.android.dbflow.structure.database.transaction.ITransaction;
+import android.widget.ImageView;
+import android.widget.SearchView;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.CategoriesAdapter;
-import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
-import com.valevich.moneytracker.database.data.ExpenseEntry;
-import com.valevich.moneytracker.model.Category;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.OptionsMenu;
+import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.ViewById;
-
-import java.util.ArrayList;
+import org.androidannotations.annotations.res.ColorRes;
+import org.androidannotations.annotations.res.StringRes;
+import org.androidannotations.api.BackgroundExecutor;
 import java.util.List;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
+@OptionsMenu(R.menu.search_menu)
 @EFragment(R.layout.fragment_categories)
-public class CategoriesFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<CategoryEntry>> {
+public class CategoriesFragment extends Fragment {
 
+    private static final String SEARCH_ID = "search_id";
     @ViewById(R.id.categories_list)
     RecyclerView mCategoriesRecyclerView;
 
     @ViewById(R.id.coordinator)
     CoordinatorLayout mRootLayout;
+
+    @OptionsMenuItem(R.id.action_search)
+    MenuItem mSearchMenuItem;
+
+    @StringRes(R.string.search_hint)
+    String mSearchHint;
+
+    @ColorRes(R.color.colorPrimary)
+    int mPrimaryColor;
 
     public CategoriesFragment() {}
 
@@ -54,8 +60,67 @@ public class CategoriesFragment extends Fragment implements LoaderManager.Loader
     @Override
     public void onResume() {
         super.onResume();
-        loadCategories();
+        loadCategories("");
     }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        SearchView searchView = (SearchView) mSearchMenuItem.getActionView();
+
+        //customize default searchview style for pre L devices because it looks ugly
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            customizeSearchViewOld(searchView);
+        }
+
+
+        searchView.setQueryHint(mSearchHint);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                BackgroundExecutor.cancelAll(SEARCH_ID,true);
+                queryCategories(newText);
+                return false;
+            }
+        });
+
+    }
+
+    private void customizeSearchViewOld(SearchView searchView) {
+        int searchPlateId = searchView.getContext().getResources().getIdentifier("android:id/search_plate", null, null);
+        View searchPlateView = searchView.findViewById(searchPlateId);
+
+        if (searchPlateView != null) {
+            searchPlateView.setBackgroundColor(mPrimaryColor);
+        }
+
+        int searchImgId = getResources().getIdentifier("android:id/search_button", null, null);
+        ImageView search = (ImageView) searchView.findViewById(searchImgId);
+
+        if(search != null) {
+            search.setImageResource(R.drawable.ic_action_search);
+        }
+
+        int closeImgId = getResources().getIdentifier("android:id/search_close_btn", null, null);
+        ImageView close = (ImageView) searchView.findViewById(closeImgId);
+
+        if(close != null) {
+            close.setImageResource(R.drawable.ic_clear);
+            close.setAlpha(0.4f);
+        }
+
+    }
+
+    @Background(delay = 700, id = SEARCH_ID)
+    void queryCategories(String filter) {
+        loadCategories(filter);
+    }
+
 
     @AfterViews
     void setupViews() {
@@ -81,35 +146,35 @@ public class CategoriesFragment extends Fragment implements LoaderManager.Loader
         mCategoriesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
-    private void loadCategories() {
-        getLoaderManager().restartLoader(CATEGORIES_LOADER,null,this);
-    }
-
-    @Override
-    public Loader<List<CategoryEntry>> onCreateLoader(int id, Bundle args) {
-        final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(getActivity()) {
+    private void loadCategories(final String filter) {
+        getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks<List<CategoryEntry>>() {
             @Override
-            public List<CategoryEntry> loadInBackground() {
-                return CategoryEntry.getAllCategories();
+            public Loader<List<CategoryEntry>> onCreateLoader(int id, Bundle args) {
+                final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(getActivity()) {
+                    @Override
+                    public List<CategoryEntry> loadInBackground() {
+                        return CategoryEntry.getAllCategories(filter);
+                    }
+                };
+                loader.forceLoad();
+                return loader;
             }
-        };
-        loader.forceLoad();
-        return loader;
-    }
 
-    @Override
-    public void onLoadFinished(Loader<List<CategoryEntry>> loader, List<CategoryEntry> data) {
-        CategoriesAdapter adapter = (CategoriesAdapter) mCategoriesRecyclerView.getAdapter();
-        if (adapter == null) {
-            mCategoriesRecyclerView.setAdapter(new CategoriesAdapter(data));
-        } else {
-            adapter.refresh(data);
-        }
-    }
+            @Override
+            public void onLoadFinished(Loader<List<CategoryEntry>> loader, List<CategoryEntry> data) {
+                CategoriesAdapter adapter = (CategoriesAdapter) mCategoriesRecyclerView.getAdapter();
+                if (adapter == null) {
+                    mCategoriesRecyclerView.setAdapter(new CategoriesAdapter(data));
+                } else {
+                    adapter.refresh(data);
+                }
+            }
 
-    @Override
-    public void onLoaderReset(Loader<List<CategoryEntry>> loader) {
+            @Override
+            public void onLoaderReset(Loader<List<CategoryEntry>> loader) {
 
+            }
+        });
     }
 
 }

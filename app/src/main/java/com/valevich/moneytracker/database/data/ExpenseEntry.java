@@ -72,9 +72,10 @@ public class ExpenseEntry extends BaseModel {
         category = adapter.toForeignKeyContainer(categoryEntry) ;// convenience conversion
     }
 
-    public static List<ExpenseEntry> getAllExpenses() {//query
+    public static List<ExpenseEntry> getAllExpenses(String filter) {//query
         return SQLite.select()
                 .from(ExpenseEntry.class)
+                .where(ExpenseEntry_Table.description.like("%" + filter + "%"))
                 .queryList();
     }
 }
