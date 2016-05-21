@@ -1,7 +1,7 @@
 package com.valevich.moneytracker.ui.activities;
 
-import android.os.Build;
-import android.support.design.internal.ScrimInsetsFrameLayout;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -30,8 +30,7 @@ import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
-
-
+import org.androidannotations.annotations.res.StringRes;
 
 
 @EActivity
@@ -48,6 +47,9 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     Toolbar mToolbar;
     @ViewById(R.id.navigation_view)
     NavigationView mNavigationView;
+    @StringRes(R.string.prefs_filename)
+    String mPrefsFileName;
+
     private ActionBarDrawerToggle mToggle;
     private FragmentManager mFragmentManager;
 
@@ -55,6 +57,8 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        checkIfUserRegistered();
 
         if(CategoryEntry.getAllCategories("").isEmpty()) {
             saveDefaultCategories();
@@ -96,6 +100,23 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
             super.onBackPressed();
         }
 
+    }
+
+    private void checkIfUserRegistered() {
+
+        SharedPreferences sharedPreferences = getSharedPreferences(mPrefsFileName,
+                Context.MODE_PRIVATE);
+        String defaultValue = "";
+        String token = sharedPreferences.getString(getResources().getString(R.string.token_key),defaultValue);
+
+        if(token.equals(defaultValue)) {
+            signUp();
+        }
+
+    }
+
+    private void signUp() {
+        SignUpActivity_.intent(this).start();
     }
 
     private void setupNavigationContent(final NavigationView navigationView) {

@@ -49,7 +49,7 @@
         <item name="android:layout_alignParentTop">true</item>
         <item name="android:layout_alignParentLeft">true</item>
         <item name="android:scaleType">fitXY</item>
-        <item name="android:src">@drawable/gray_bg</item>
+
     </style>
 
     <style name="AuthTitle">
