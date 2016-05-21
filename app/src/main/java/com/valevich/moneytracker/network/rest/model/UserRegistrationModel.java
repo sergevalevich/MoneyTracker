@@ -2,7 +2,7 @@ package com.valevich.moneytracker.network.rest.model;
 
 import com.google.gson.annotations.SerializedName;
 
-public class User {
+public class UserRegistrationModel {
 
     @SerializedName("status")
     private String status;
