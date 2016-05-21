@@ -48,7 +48,6 @@
     <dimen name="button_layout_height">52dp</dimen>
 
 
-
     <dimen name="splash_image_size">200dp</dimen>
     <dimen name="splash_text_size">40sp</dimen>
 
@@ -60,4 +59,14 @@
     <dimen name="input_text_bottom_padding">16dp</dimen>
     <dimen name="input_field_text_size">16sp</dimen>
     <dimen name="tile_height_single_line">48dp</dimen>
+
+
+    <!-- sign ip screen paddings-->
+    <dimen name="login_vertical_margin">32dp</dimen>
+    <dimen name="login_horizontal_padding">10dp</dimen>
+    <dimen name="login_vertical_padding">10dp</dimen>
+    <dimen name="auth_title_top_margin">64dp</dimen>
+    <dimen name="auth_title_textSize">48sp</dimen>
+    <dimen name="auth_subtitle_textSize">13sp</dimen>
+    <dimen name="auth_button_textSize">13sp</dimen>
 </resources>

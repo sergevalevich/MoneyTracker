@@ -7,14 +7,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
+        android:name=".MoneyTrackerApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:name=".MoneyTrackerApplication"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".ui.activities.MainActivity">
+        <activity android:name=".ui.activities.MainActivity">
         </activity>
         <activity
             android:name=".ui.activities.MainActivity_"
@@ -32,8 +31,8 @@
         <activity
             android:name=".ui.activities.NewExpenseActivity_"
             android:parentActivityName=".ui.activities.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
 
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
@@ -43,14 +42,22 @@
         </activity>
         <activity android:name=".ui.activities.SplashActivity">
         </activity>
-        <activity android:name=".ui.activities.SplashActivity_"
-                  android:theme="@style/AppTheme.NoActionBar"
-                  android:screenOrientation="portrait">
+        <activity
+            android:name=".ui.activities.SplashActivity_"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+        <activity android:name=".ui.activities.SignUpActivity">
+        </activity>
+        <activity
+            android:name=".ui.activities.SignUpActivity_"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="portrait">
         </activity>
     </application>
 

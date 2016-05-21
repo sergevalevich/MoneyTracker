@@ -41,14 +41,14 @@
 
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/amountLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/input_text_bottom_padding"
+                style="@style/EditText"
                 android:inputType="number|numberDecimal"
                 android:maxLength="8"
-                android:textSize="@dimen/input_field_text_size"
-                android:textColor="@android:color/primary_text_dark"
-                android:hint="@string/new_expense_amount_hint"/>
+                android:hint="@string/new_expense_amount_hint">
+
+                    <requestFocus/>
+
+            </android.support.v7.widget.AppCompatEditText>
 
         </android.support.design.widget.TextInputLayout>
 
@@ -61,13 +61,9 @@
 
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/descriptionLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/input_text_bottom_padding"
+                style="@style/EditText"
                 android:maxLines="2"
                 android:maxLength="25"
-                android:textSize="@dimen/input_field_text_size"
-                android:textColor="@android:color/primary_text_dark"
                 android:hint="@string/new_expense_description_hint"/>
 
         </android.support.design.widget.TextInputLayout>
@@ -103,12 +99,12 @@
             android:id="@+id/save"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/button_height"
-            android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             app:rv_rippleDuration = "200"
             app:rv_zoom="true"
             app:rv_zoomScale = "1.2"
-            app:rv_type="rectangle">
+            app:rv_type="rectangle"
+            android:layout_alignParentRight="true">
         <TextView
             android:id="@+id/saveExpenseButton"
             style="@style/ButtonStyle"
@@ -118,12 +114,12 @@
         <com.andexert.library.RippleView
             android:layout_width="wrap_content"
             android:layout_height="@dimen/button_height"
-            android:layout_toLeftOf="@+id/save"
             android:layout_toStartOf="@+id/save"
             app:rv_rippleDuration = "200"
             app:rv_zoom="true"
             app:rv_zoomScale = "1.2"
-            app:rv_type="rectangle">
+            app:rv_type="rectangle"
+            android:layout_toLeftOf="@+id/save">
         <TextView
             style="@style/ButtonStyle"
             android:id="@+id/cancelButton"

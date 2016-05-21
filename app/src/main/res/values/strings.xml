@@ -23,4 +23,8 @@
     <string name="new_expense_error_saving_message">Ошибка сохранения</string>
     <string name="action_search">Поиск</string>
     <string name="search_hint">Поиск</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="login_subtitle">A Loftschool Project</string>
+    <string name="ok_button_title">CREATE ACCOUNT</string>
 </resources>
