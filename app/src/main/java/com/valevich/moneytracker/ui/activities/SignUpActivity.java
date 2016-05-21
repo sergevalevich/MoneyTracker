@@ -1,6 +1,7 @@
 package com.valevich.moneytracker.ui.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
@@ -19,6 +20,7 @@ import com.valevich.moneytracker.network.rest.model.UserLoginModel;
 import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 
+import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Click;
@@ -122,6 +124,7 @@ public class SignUpActivity extends AppCompatActivity {
 
     private void navigateToMain() {
         MainActivity_.intent(this).start();
+        finish();
     }
 
     @UiThread

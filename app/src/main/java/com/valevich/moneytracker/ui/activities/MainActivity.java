@@ -1,6 +1,7 @@
 package com.valevich.moneytracker.ui.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -104,19 +105,21 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
     private void checkIfUserRegistered() {
 
-        SharedPreferences sharedPreferences = getSharedPreferences(mPrefsFileName,
-                Context.MODE_PRIVATE);
-        String defaultValue = "";
-        String token = sharedPreferences.getString(getResources().getString(R.string.token_key),defaultValue);
-
-        if(token.equals(defaultValue)) {
-            signUp();
-        }
+//        SharedPreferences sharedPreferences = getSharedPreferences(mPrefsFileName,
+//                Context.MODE_PRIVATE);
+//        String defaultValue = "";
+//        String token = sharedPreferences.getString(getResources().getString(R.string.token_key),defaultValue);
+//
+//        if(token.equals(defaultValue)) {
+//            signUp();
+//        }
+        signUp();
 
     }
 
     private void signUp() {
         SignUpActivity_.intent(this).start();
+        finish();
     }
 
     private void setupNavigationContent(final NavigationView navigationView) {
