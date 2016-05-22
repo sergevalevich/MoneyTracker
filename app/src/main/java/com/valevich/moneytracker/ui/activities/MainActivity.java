@@ -105,15 +105,15 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
     private void checkIfUserRegistered() {
 
-//        SharedPreferences sharedPreferences = getSharedPreferences(mPrefsFileName,
-//                Context.MODE_PRIVATE);
-//        String defaultValue = "";
-//        String token = sharedPreferences.getString(getResources().getString(R.string.token_key),defaultValue);
-//
-//        if(token.equals(defaultValue)) {
-//            signUp();
-//        }
-        signUp();
+        SharedPreferences sharedPreferences = getSharedPreferences(mPrefsFileName,
+                Context.MODE_PRIVATE);
+        String defaultValue = "";
+        String token = sharedPreferences.getString(getResources().getString(R.string.token_key),defaultValue);
+
+        if(token.equals(defaultValue)) {
+            signUp();
+        }
+        //signUp();
 
     }
 

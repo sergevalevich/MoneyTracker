@@ -18,13 +18,16 @@ import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.UserLoginModel;
 import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
+import com.valevich.moneytracker.ui.taskshandlers.SignUpTask;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
@@ -55,14 +58,9 @@ public class SignUpActivity extends AppCompatActivity {
     @StringRes(R.string.wrong_auth_input)
     String mWrongInputMessage;
 
-    @StringRes(R.string.login_busy_message)
-    String mLoginBusyMessage;
-
-    @StringRes(R.string.general_error_message)
-    String mGeneralErrorMessage;
-
-    @StringRes(R.string.prefs_filename)
-    String mPrefsFileName;
+    @NonConfigurationInstance
+    @Bean
+    SignUpTask mSignUpTask;
 
     @AfterViews
     void setupViews() {
@@ -82,57 +80,13 @@ public class SignUpActivity extends AppCompatActivity {
             if(userName.length() < 5 || password.length() < 5) {
                 notifyUser(mWrongInputMessage);
             } else {
-                signUp(userName,password);
+                mSignUpTask.signUp(userName,password);
             }
         } else {
             notifyUser(mNetworkUnavailableMessage);
         }
     }
-
-    @Background
-    void signUp(String userName, String password) {
-        RestService restService = new RestService();
-        UserRegistrationModel userRegistrationModel = restService.register(userName, password);
-        String status = userRegistrationModel.getStatus();
-        switch (status) {
-            case UserRegistrationModel.STATUS_SUCCESS:
-                logIn(userName,password,restService);
-                break;
-            case UserRegistrationModel.STATUS_LOGIN_BUSY:
-                notifyUser(mLoginBusyMessage);
-                break;
-            default:
-                notifyUser(mGeneralErrorMessage);
-                break;
-        }
-    }
-
-    @Background
-    void logIn(String userName, String password,RestService restService) {
-        UserLoginModel userLoginModel = restService.logIn(userName, password);
-        String status = userLoginModel.getStatus();
-        if(status.equals(UserRegistrationModel.STATUS_SUCCESS)) {
-            saveToken(userLoginModel.getAuthToken());
-            navigateToMain();
-        } else {
-            notifyUser(mGeneralErrorMessage);
-        }
-    }
-
-    private void saveToken(String authToken) {
-        getSharedPreferences(mPrefsFileName,Context.MODE_PRIVATE)
-            .edit()
-            .putString(getResources().getString(R.string.token_key),authToken)
-            .commit();
-    }
-
-    private void navigateToMain() {
-        MainActivity_.intent(this).start();
-        finish();
-    }
-
-    @UiThread
-    void notifyUser(String message) {
+    public void notifyUser(String message) {
         Snackbar.make(mRootLayout,message,Snackbar.LENGTH_LONG).show();
     }
 }

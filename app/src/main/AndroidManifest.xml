@@ -56,8 +56,7 @@
         </activity>
         <activity
             android:name=".ui.activities.SignUpActivity_"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait">
+            android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>
 
