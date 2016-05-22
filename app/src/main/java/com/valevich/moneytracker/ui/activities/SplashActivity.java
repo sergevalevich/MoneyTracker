@@ -32,10 +32,10 @@ public class SplashActivity extends AppCompatActivity {
 
     @AfterViews
     void showImageWithText() {
-        YoYo.with(Techniques.Landing)
+        YoYo.with(Techniques.SlideInDown)
                 .duration(2000)
                 .playOn(mImageView);
-        YoYo.with(Techniques.SlideInUp)
+        YoYo.with(Techniques.SlideInDown)
                 .duration(2000)
                 .playOn(mTextView);
     }
@@ -48,8 +48,7 @@ public class SplashActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable(){
             @Override
             public void run() {
-                Intent mainIntent = new Intent(SplashActivity.this,MainActivity_.class);
-                startActivity(mainIntent);
+                MainActivity_.intent(SplashActivity.this).start();
                 finish();
             }
         }, SPLASH_DISPLAY_LENGTH);

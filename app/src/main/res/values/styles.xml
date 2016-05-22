@@ -49,7 +49,6 @@
         <item name="android:layout_alignParentTop">true</item>
         <item name="android:layout_alignParentLeft">true</item>
         <item name="android:scaleType">fitXY</item>
-
     </style>
 
     <style name="AuthTitle">
@@ -62,6 +61,7 @@
         <item name="android:textColor">@color/colorText</item>
         <item name="android:textStyle">bold</item>
         <item name="android:text">@string/app_name</item>
+        <item name="android:alpha">.7</item>
     </style>
 
     <style name="AuthFieldContainer">

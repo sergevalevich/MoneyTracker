@@ -66,7 +66,11 @@ public class SignUpActivity extends AppCompatActivity {
 
     @AfterViews
     void setupViews() {
-        Glide.with(this).load(R.drawable.gray_bg).into(mBackground);
+        Glide.with(this)
+                .load(R.drawable.gray_bg)
+                .placeholder(R.drawable.gray_bg_placeholder)
+                .crossFade()
+                .into(mBackground);
     }
 
     @Click(R.id.signUpButton)
