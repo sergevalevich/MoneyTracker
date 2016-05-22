@@ -3,11 +3,14 @@ package com.valevich.moneytracker.network.rest;
 import com.valevich.moneytracker.network.rest.requests.LoginUserApi;
 import com.valevich.moneytracker.network.rest.requests.RegisterUserApi;
 
+import org.androidannotations.annotations.EBean;
+
 import retrofit.RestAdapter;
 
 /**
  * Created by NotePad.by on 20.05.2016.
  */
+@EBean
 public class RestClient {
     private static final String BASE_URL = "http://lmt.loftblog.tmweb.ru";
     private RegisterUserApi registerUserApi;

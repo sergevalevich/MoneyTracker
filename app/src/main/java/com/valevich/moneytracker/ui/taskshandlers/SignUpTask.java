@@ -12,6 +12,7 @@ import com.valevich.moneytracker.ui.activities.SignUpActivity;
 import com.valevich.moneytracker.ui.activities.SignUpActivity_;
 
 import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 import org.androidannotations.annotations.UiThread;
@@ -34,14 +35,16 @@ public class SignUpTask {
     @StringRes(R.string.prefs_filename)
     String mPrefsFileName;
 
+    @Bean
+    RestService mRestService;
+
     @Background
     public void signUp(String userName, String password) {
-        RestService restService = new RestService();
-        UserRegistrationModel userRegistrationModel = restService.register(userName, password);
+        UserRegistrationModel userRegistrationModel = mRestService.register(userName, password);
         String status = userRegistrationModel.getStatus();
         switch (status) {
             case UserRegistrationModel.STATUS_SUCCESS:
-                logIn(userName, password, restService);
+                logIn(userName, password);
                 break;
             case UserRegistrationModel.STATUS_LOGIN_BUSY:
                 notifyUser(mLoginBusyMessage);
@@ -53,8 +56,8 @@ public class SignUpTask {
     }
 
     @Background
-    void logIn(String userName, String password, RestService restService) {
-        UserLoginModel userLoginModel = restService.logIn(userName, password);
+    void logIn(String userName, String password) {
+        UserLoginModel userLoginModel = mRestService.logIn(userName, password);
         String status = userLoginModel.getStatus();
         if (status.equals(UserRegistrationModel.STATUS_SUCCESS)) {
             saveToken(userLoginModel.getAuthToken());
