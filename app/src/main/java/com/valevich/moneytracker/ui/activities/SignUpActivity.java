@@ -62,6 +62,9 @@ public class SignUpActivity extends AppCompatActivity {
     @Bean
     SignUpTask mSignUpTask;
 
+    @Bean
+    NetworkStatusChecker mNetworkStatusChecker;
+
     @AfterViews
     void setupViews() {
         Glide.with(this)
@@ -74,7 +77,7 @@ public class SignUpActivity extends AppCompatActivity {
     @Click(R.id.signUpButton)
     void submitAccountInfo() {
         Log.d(LOG_TAG,"Click");
-        if(NetworkStatusChecker.isNetworkAvailable(this)) {
+        if(mNetworkStatusChecker.isNetworkAvailable()) {
             String userName = mUsernameField.getText().toString();
             String password = mPasswordField.getText().toString();
             if(userName.length() < 5 || password.length() < 5) {
