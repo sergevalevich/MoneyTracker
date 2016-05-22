@@ -27,11 +27,13 @@ import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
 import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
 import com.valevich.moneytracker.ui.fragments.SettingsFragment_;
 import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
+import com.valevich.moneytracker.utils.Preferences_;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
+import org.androidannotations.annotations.sharedpreferences.Pref;
 
 
 @EActivity
@@ -48,8 +50,9 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     Toolbar mToolbar;
     @ViewById(R.id.navigation_view)
     NavigationView mNavigationView;
-    @StringRes(R.string.prefs_filename)
-    String mPrefsFileName;
+
+    @Pref
+    Preferences_ mPreferences;
 
     private ActionBarDrawerToggle mToggle;
     private FragmentManager mFragmentManager;
@@ -104,17 +107,10 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     }
 
     private void checkIfUserRegistered() {
-
-        SharedPreferences sharedPreferences = getSharedPreferences(mPrefsFileName,
-                Context.MODE_PRIVATE);
-        String defaultValue = "";
-        String token = sharedPreferences.getString(getResources().getString(R.string.token_key),defaultValue);
-
-        if(token.equals(defaultValue)) {
+        boolean tokenExists = mPreferences.token().exists();
+        if(!tokenExists) {
             signUp();
         }
-        //signUp();
-
     }
 
     private void signUp() {

@@ -32,5 +32,4 @@
     <string name="wrong_auth_input">Имя пользователя и пароль должны содержать от 5 до 10 символов!</string>
     <string name="login_busy_message">Пользователь с таким именем уже существует</string>
     <string name="general_error_message">Упс! Возникла ошибка. Попробуйте ещё раз.</string>
-    <string name="prefs_filename">authprefs</string>
 </resources>

@@ -10,6 +10,7 @@ import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
 import com.valevich.moneytracker.ui.activities.MainActivity_;
 import com.valevich.moneytracker.ui.activities.SignUpActivity;
 import com.valevich.moneytracker.ui.activities.SignUpActivity_;
+import com.valevich.moneytracker.utils.Preferences_;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -17,6 +18,7 @@ import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.res.StringRes;
+import org.androidannotations.annotations.sharedpreferences.Pref;
 
 /**
  * Created by NotePad.by on 22.05.2016.
@@ -32,11 +34,11 @@ public class SignUpTask {
     @StringRes(R.string.general_error_message)
     String mGeneralErrorMessage;
 
-    @StringRes(R.string.prefs_filename)
-    String mPrefsFileName;
-
     @Bean
     RestService mRestService;
+
+    @Pref
+    Preferences_ mPreferences;
 
     @Background
     public void signUp(String userName, String password) {
@@ -68,10 +70,7 @@ public class SignUpTask {
     }
 
     private void saveToken(String authToken) {
-        mActivity.getSharedPreferences(mPrefsFileName, Context.MODE_PRIVATE)
-                .edit()
-                .putString(mActivity.getResources().getString(R.string.token_key), authToken)
-                .commit();
+        mPreferences.token().put(authToken);
     }
 
     private void navigateToMain() {
