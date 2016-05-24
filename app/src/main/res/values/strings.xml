@@ -23,4 +23,13 @@
     <string name="new_expense_error_saving_message">Ошибка сохранения</string>
     <string name="action_search">Поиск</string>
     <string name="search_hint">Поиск</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="login_subtitle">A Loftschool Project</string>
+    <string name="ok_button_title">CREATE ACCOUNT</string>
+    <string name="token_key">TOKEN_KEY</string>
+    <string name="network_unavailable">Сеть недоступна</string>
+    <string name="wrong_auth_input">Имя пользователя и пароль должны содержать от 5 до 10 символов!</string>
+    <string name="login_busy_message">Пользователь с таким именем уже существует</string>
+    <string name="general_error_message">Упс! Возникла ошибка. Попробуйте ещё раз.</string>
 </resources>
