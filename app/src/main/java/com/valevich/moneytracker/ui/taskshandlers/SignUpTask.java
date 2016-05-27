@@ -68,9 +68,8 @@ public class SignUpTask {
             notifyUser(mGeneralErrorMessage);
         }
     }
-
     private void saveToken(String authToken) {
-        mPreferences.token().put(authToken);
+        mPreferences.loftApiToken().put(authToken);
     }
 
     private void navigateToMain() {

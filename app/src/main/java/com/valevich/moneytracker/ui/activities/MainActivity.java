@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     }
 
     private void checkIfUserRegistered() {
-        boolean tokenExists = mPreferences.token().exists();
+        boolean tokenExists = mPreferences.loftApiToken().exists();
         if(!tokenExists) {
             signUp();
         }

@@ -68,7 +68,7 @@
         android:layout_below = "@id/inputFields"
         app:rv_rippleDuration = "200"
         app:rv_zoom="true"
-        app:rv_zoomScale = "1.1"
+        app:rv_zoomScale = "1.05"
         app:rv_type="rectangle"
         android:layout_centerHorizontal="true">
 
