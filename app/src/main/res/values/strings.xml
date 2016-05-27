@@ -33,4 +33,8 @@
     <string name="login_busy_message">Пользователь с таким именем уже существует</string>
     <string name="general_error_message">Упс! Возникла ошибка. Попробуйте ещё раз.</string>
     <string name="google_account_picker_error_msg">Извините. Возникла ошибка. Попробуйте ещё раз.</string>
+    <string name="email_hint">Email</string>
+    <string name="invalid_username_msg">Username must contain at least 5 symbols!</string>
+    <string name="invalid_password_msg">Password must contain at least 5 symbols!</string>
+    <string name="invalid_email_msg">Invalid email!</string>
 </resources>

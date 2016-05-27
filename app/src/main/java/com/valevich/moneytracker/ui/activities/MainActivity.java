@@ -51,9 +51,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     @ViewById(R.id.navigation_view)
     NavigationView mNavigationView;
 
-    @Pref
-    Preferences_ mPreferences;
-
     private ActionBarDrawerToggle mToggle;
     private FragmentManager mFragmentManager;
 
@@ -61,8 +58,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        checkIfUserRegistered();
 
         if(CategoryEntry.getAllCategories("").isEmpty()) {
             saveDefaultCategories();
@@ -106,17 +101,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
     }
 
-    private void checkIfUserRegistered() {
-        boolean tokenExists = mPreferences.loftApiToken().exists();
-        if(!tokenExists) {
-            signUp();
-        }
-    }
-
-    private void signUp() {
-        SignUpActivity_.intent(this).start();
-        finish();
-    }
 
     private void setupNavigationContent(final NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {

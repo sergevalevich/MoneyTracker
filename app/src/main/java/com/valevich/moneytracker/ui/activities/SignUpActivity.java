@@ -19,6 +19,7 @@ import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.UserLoginModel;
 import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
 import com.valevich.moneytracker.ui.taskshandlers.SignUpTask;
+import com.valevich.moneytracker.utils.InputFieldValidator;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 
 import org.androidannotations.annotations.AfterInject;
@@ -49,6 +50,9 @@ public class SignUpActivity extends AppCompatActivity {
     @ViewById(R.id.passwordField)
     AppCompatEditText mPasswordField;
 
+    @ViewById(R.id.emailField)
+    AppCompatEditText mEmailField;
+
     @ViewById(R.id.signUpButton)
     Button mSignUpButton;
 
@@ -57,6 +61,15 @@ public class SignUpActivity extends AppCompatActivity {
 
     @StringRes(R.string.wrong_auth_input)
     String mWrongInputMessage;
+
+    @StringRes(R.string.invalid_username_msg)
+    String mInvalidUsernameMessage;
+
+    @StringRes(R.string.invalid_password_msg)
+    String mInvalidPasswordMessage;
+
+    @StringRes(R.string.invalid_email_msg)
+    String mInvalidEmailMessage;
 
     @NonConfigurationInstance
     @Bean
@@ -80,8 +93,13 @@ public class SignUpActivity extends AppCompatActivity {
         if(mNetworkStatusChecker.isNetworkAvailable()) {
             String userName = mUsernameField.getText().toString();
             String password = mPasswordField.getText().toString();
-            if(userName.length() < 5 || password.length() < 5) {
-                notifyUser(mWrongInputMessage);
+            String email = mEmailField.getText().toString();
+            if(!InputFieldValidator.isUsernameValid(userName)) {
+                notifyUser(mInvalidUsernameMessage);
+            } else if(!InputFieldValidator.isPasswordValid(password)) {
+                notifyUser(mInvalidPasswordMessage);
+            } else if(!InputFieldValidator.isEmailValid(email)) {
+                notifyUser(mInvalidEmailMessage);
             } else {
                 mSignUpTask.signUp(userName,password);
             }

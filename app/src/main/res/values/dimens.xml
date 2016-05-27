@@ -62,7 +62,7 @@
 
 
     <!-- sign ip screen paddings-->
-    <dimen name="login_vertical_margin">32dp</dimen>
+    <dimen name="login_vertical_margin">16dp</dimen>
     <dimen name="login_horizontal_padding">10dp</dimen>
     <dimen name="login_vertical_padding">10dp</dimen>
     <dimen name="auth_title_top_margin">64dp</dimen>
