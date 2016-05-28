@@ -25,11 +25,39 @@ public class MoneyTrackerApplication extends Application {
         FlowManager.init(new FlowConfig.Builder(this)
                 .openDatabasesOnInit(true).build());
     }
+
     public static void saveGoogleToken(String token) {
         mPreferences.googleToken().put(token);
     }
-    public static String getGoogleToken() {
-        return mPreferences.googleToken().get();
+    public static boolean isGoogleTokenExist() {
+        return mPreferences.googleToken().exists();
+    }
+
+    public static void saveLoftApiToken(String token) {
+        mPreferences.loftApiToken().put(token);
+    }
+    public static boolean isLoftTokenExist() {
+        return mPreferences.loftApiToken().exists();
+    }
+
+    public static void saveUserInfo(String name, String email, String picture) {
+        mPreferences.edit()
+                .userFullName().put(name)
+                .userEmail().put(email)
+                .userPhoto().put(picture)
+                .apply();
+    }
+
+    public static String getUserFullName() {
+        return mPreferences.userFullName().get();
+    }
+
+    public static String getUserEmail() {
+        return mPreferences.userEmail().get();
+    }
+
+    public static String getUserPhoto() {
+        return mPreferences.userPhoto().get();
     }
 
     @Override

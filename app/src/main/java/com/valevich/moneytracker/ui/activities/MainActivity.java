@@ -15,11 +15,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.raizlabs.android.dbflow.config.DatabaseDefinition;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
+import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
@@ -127,6 +132,16 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
                 return true;
             }
         });
+//        View headerView = navigationView.getHeaderView(0);
+//        ImageView profileImage = (ImageView) headerView.findViewById(R.id.profile_image);
+//        TextView nameField = (TextView) headerView.findViewById(R.id.name);
+//        TextView emailField = (TextView) headerView.findViewById(R.id.email);
+//
+//        String imageUrl = MoneyTrackerApplication_.getUserPhoto();
+//        String userFullName = MoneyTrackerApplication_.getUserFullName();
+//        String userEmail = MoneyTrackerApplication_.getUserEmail();
+//
+//        Glide.with(this).load()
     }
 
     private void changeToolbarTitle(String backStackEntryName) {

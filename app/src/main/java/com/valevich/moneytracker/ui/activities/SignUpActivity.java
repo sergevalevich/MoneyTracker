@@ -21,6 +21,7 @@ import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
 import com.valevich.moneytracker.ui.taskshandlers.SignUpTask;
 import com.valevich.moneytracker.utils.InputFieldValidator;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
+import com.valevich.moneytracker.utils.UserNotifier;
 
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.AfterViews;
@@ -28,6 +29,7 @@ import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
@@ -35,7 +37,7 @@ import org.androidannotations.annotations.res.StringRes;
 
 
 @EActivity(R.layout.activity_sign_up)
-public class SignUpActivity extends AppCompatActivity {
+public class SignUpActivity extends AppCompatActivity{
 
     private static final String LOG_TAG = SignUpActivity.class.getSimpleName();
     @ViewById(R.id.root)
@@ -78,8 +80,11 @@ public class SignUpActivity extends AppCompatActivity {
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
 
+    @Bean
+    UserNotifier mUserNotifier;
+
     @AfterViews
-    void setupViews() {
+    void loadBackground() {
         Glide.with(this)
                 .load(R.drawable.gray_bg)
                 .placeholder(R.drawable.gray_bg_placeholder)
@@ -91,23 +96,30 @@ public class SignUpActivity extends AppCompatActivity {
     void submitAccountInfo() {
         Log.d(LOG_TAG,"Click");
         if(mNetworkStatusChecker.isNetworkAvailable()) {
-            String userName = mUsernameField.getText().toString();
+
+            String username = mUsernameField.getText().toString();
             String password = mPasswordField.getText().toString();
             String email = mEmailField.getText().toString();
-            if(!InputFieldValidator.isUsernameValid(userName)) {
-                notifyUser(mInvalidUsernameMessage);
-            } else if(!InputFieldValidator.isPasswordValid(password)) {
-                notifyUser(mInvalidPasswordMessage);
-            } else if(!InputFieldValidator.isEmailValid(email)) {
-                notifyUser(mInvalidEmailMessage);
-            } else {
-                mSignUpTask.signUp(userName,password);
-            }
+
+            if(isInputValid(username,password,email))
+                mSignUpTask.signUp(username,password);
+
         } else {
-            notifyUser(mNetworkUnavailableMessage);
+            mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
         }
     }
-    public void notifyUser(String message) {
-        Snackbar.make(mRootLayout,message,Snackbar.LENGTH_LONG).show();
+
+    private boolean isInputValid(String username,String password,String email) {
+        if(!InputFieldValidator.isUsernameValid(username)) {
+            mUserNotifier.notifyUser(mRootLayout,mInvalidUsernameMessage);
+            return false;
+        } else if(!InputFieldValidator.isPasswordValid(password)) {
+            mUserNotifier.notifyUser(mRootLayout,mInvalidPasswordMessage);
+            return false;
+        } else if(!InputFieldValidator.isEmailValid(email)) {
+            mUserNotifier.notifyUser(mRootLayout,mInvalidEmailMessage);
+            return false;
+        }
+        return true;
     }
 }

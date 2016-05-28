@@ -2,15 +2,111 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.valevich.moneytracker.ui.activities.LoginActivity">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ui.activities.LoginActivity">
 
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/google_login_btn"
+    <ImageView
+        android:id="@+id/backgroundImageView"
+        tools:src = "@color/colorBackground"
+        style="@style/AuthBackgroundImage"/>
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/AuthTitle"/>
+
+    <LinearLayout
+        android:id="@+id/inputFields"
+        style="@style/AuthFieldContainer">
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/tile_height"
+            android:layout_marginBottom="@dimen/input_fields_bottom_margin"
+            android:theme="@style/TextLabel">
+
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/userNameField"
+                style="@style/EditText"
+                android:maxLength="10"
+                android:hint="@string/username_hint">
+
+                <requestFocus/>
+
+            </android.support.v7.widget.AppCompatEditText>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/tile_height"
+            android:layout_marginBottom="@dimen/input_fields_bottom_margin"
+            android:theme="@style/TextLabel">
+
+            <android.support.v7.widget.AppCompatEditText
+                android:id="@+id/passwordField"
+                style="@style/EditText"
+                android:inputType="textPassword"
+                android:maxLength="10"
+                android:hint="@string/password_hint">
+
+            </android.support.v7.widget.AppCompatEditText>
+
+        </android.support.design.widget.TextInputLayout>
+
+
+    </LinearLayout>
+
+    <com.andexert.library.RippleView
+        android:id="@+id/logInView"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft = "@dimen/activity_horizontal_margin"
+        android:layout_marginRight = "@dimen/activity_horizontal_margin"
+        android:layout_below = "@id/inputFields"
+        app:rv_rippleDuration = "200"
+        app:rv_zoom="true"
+        app:rv_zoomScale = "1.05"
+        app:rv_type="rectangle">
 
-    </com.google.android.gms.common.SignInButton>
+        <Button
+            android:id="@+id/logInButton"
+            android:text="@string/login_btn_title"
+            style="@style/AuthButton"/>
 
+    </com.andexert.library.RippleView>
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/logInView"
+        android:orientation="vertical">
+        <include
+            layout="@layout/google_btn_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/google_login_btn"
+            android:layout_gravity="center"
+            android:layout_weight="1">
+        </include>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sign_up_text"
+            android:id="@+id/signUpText"
+            android:gravity="start"
+            android:layout_gravity="center"
+            android:textColor="@color/colorText"
+            android:textSize="@dimen/sign_up_textSize"
+            android:layout_weight="1"/>
+
+    </LinearLayout>
 </RelativeLayout>
+

@@ -61,7 +61,7 @@
     <dimen name="tile_height_single_line">48dp</dimen>
 
 
-    <!-- sign ip screen paddings-->
+    <!-- sign up screen paddings-->
     <dimen name="login_vertical_margin">16dp</dimen>
     <dimen name="login_horizontal_padding">10dp</dimen>
     <dimen name="login_vertical_padding">10dp</dimen>
@@ -69,4 +69,18 @@
     <dimen name="auth_title_textSize">48sp</dimen>
     <dimen name="auth_subtitle_textSize">13sp</dimen>
     <dimen name="auth_button_textSize">13sp</dimen>
+
+
+    <!--custom google button paddings-->
+    <dimen name="google_icon_horizontal_padding">8dp</dimen>
+    <dimen name="google_icon_size">36dp</dimen>
+    <dimen name="google_icon_end_padding">16dp</dimen>
+    <dimen name="google_button_height">40dp</dimen>
+    <dimen name="google_button_textSize">14sp</dimen>
+
+
+
+    <dimen name="google_btn_top_margin">32dp</dimen>
+    <dimen name="sign_up_textSize">14sp</dimen>
+
 </resources>

@@ -93,7 +93,7 @@
 
     <Button
         android:id="@+id/signUpButton"
-        android:text="@string/ok_button_title"
+        android:text="@string/create_account_btn_title"
         style="@style/AuthButton"/>
 
     </com.andexert.library.RippleView>

@@ -10,6 +10,16 @@ import org.androidannotations.annotations.sharedpreferences.SharedPref;
 public interface Preferences {
     @DefaultString("")
     String loftApiToken();
+
     @DefaultString("")
     String googleToken();
+
+    @DefaultString("")
+    String userFullName();
+
+    @DefaultString("")
+    String userEmail();
+
+    @DefaultString("")
+    String userPhoto();
 }

@@ -1,5 +1,6 @@
 package com.valevich.moneytracker.network.rest;
 
+import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
 import com.valevich.moneytracker.network.rest.model.UserLoginModel;
 import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
 
@@ -21,5 +22,9 @@ public class RestService {
     }
     public UserLoginModel logIn (String login, String password) {
         return restClient.getLoginUserApi().logIn(login, password);
+    }
+
+    public UserGoogleInfoModel getGoogleInfo(String token) {
+        return restClient.getSubmitGoogleTokenApi().submitGoogleToken(token);
     }
 }

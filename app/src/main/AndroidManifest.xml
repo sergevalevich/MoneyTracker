@@ -38,7 +38,6 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.valevich.moneytracker.ui.activities.MainActivity"/>
-            >
         </activity>
         <activity android:name=".ui.activities.SplashActivity">
         </activity>
@@ -57,11 +56,19 @@
         <activity
             android:name=".ui.activities.SignUpActivity_"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".ui.activities.LoginActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.valevich.moneytracker.ui.activities.LoginActivity"/>
         </activity>
         <activity android:name=".ui.activities.LoginActivity">
         </activity>
-        <activity android:name=".ui.activities.LoginActivity_">
+        <activity
+            android:name=".ui.activities.LoginActivity_"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>
 

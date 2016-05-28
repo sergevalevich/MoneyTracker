@@ -1,5 +1,6 @@
 package com.valevich.moneytracker.ui.activities;
 
+import android.content.Intent;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.widget.TextView;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.utils.Preferences_;
 
@@ -27,8 +29,6 @@ public class SplashActivity extends AppCompatActivity {
     @ViewById(R.id.textView)
     TextView mTextView;
 
-    @Pref
-    Preferences_ mPreferences;
 
     @AfterViews
     void showImageWithText() {
@@ -55,19 +55,20 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void checkIfUserRegistered() {
-        boolean tokenExists = mPreferences.loftApiToken().exists();
-//        if(!tokenExists) {
-//            navigateToLogIn();
-//        } else {
-//            navigateToMain();
-//        }
-        SignUpActivity_.intent(this).start();
-        finish();
+        boolean tokenExists = MoneyTrackerApplication_.isLoftTokenExist()
+                || MoneyTrackerApplication_.isGoogleTokenExist();
+        if(!tokenExists) {
+            navigateToLogIn();
+        } else {
+            navigateToMain();
+        }
     }
 
     private void navigateToLogIn() {
-        LoginActivity_.intent(this).start();
-        finish();
+        Intent intent = new Intent(this,LoginActivity_.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 
     private void navigateToMain() {
