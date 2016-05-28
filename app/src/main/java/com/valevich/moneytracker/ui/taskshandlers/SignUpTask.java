@@ -54,15 +54,37 @@ public class SignUpTask {
     RestService mRestService;
 
     @Background
-    public void signUp(String userName, String password) {
+    public void signUp(String userName, String password, String email) {
         UserRegistrationModel userRegistrationModel = mRestService.register(userName, password);
         String status = userRegistrationModel.getStatus();
         switch (status) {
             case UserRegistrationModel.STATUS_SUCCESS:
-                logIn(userName, password);
+                logIn(userName, password, email);
                 break;
             case UserRegistrationModel.STATUS_LOGIN_BUSY:
                 notifyUser(mLoginBusyMessage);
+                break;
+            default:
+                notifyUser(mGeneralErrorMessage);
+                break;
+        }
+    }
+
+    @Background
+    public void logIn(String userName, String password, String email) {
+        UserLoginModel userLoginModel = mRestService.logIn(userName, password);
+        String status = userLoginModel.getStatus();
+        switch (status) {
+            case UserLoginModel.STATUS_SUCCESS:
+                MoneyTrackerApplication_.saveLoftApiToken(userLoginModel.getAuthToken());
+                MoneyTrackerApplication_.saveUserInfo(userName,email,"");
+                navigateToMain();
+                break;
+            case UserLoginModel.STATUS_WRONG_USERNAME:
+                notifyUser(mWrongUsernameMessage);
+                break;
+            case UserLoginModel.STATUS_WRONG_PASSWORD:
+                notifyUser(mWrongPasswordMessage);
                 break;
             default:
                 notifyUser(mGeneralErrorMessage);

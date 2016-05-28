@@ -102,7 +102,7 @@ public class SignUpActivity extends AppCompatActivity{
             String email = mEmailField.getText().toString();
 
             if(isInputValid(username,password,email))
-                mSignUpTask.signUp(username,password);
+                mSignUpTask.signUp(username,password,email);
 
         } else {
             mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);

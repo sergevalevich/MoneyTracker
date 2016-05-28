@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.raizlabs.android.dbflow.config.DatabaseDefinition;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
@@ -132,16 +133,28 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
                 return true;
             }
         });
-//        View headerView = navigationView.getHeaderView(0);
-//        ImageView profileImage = (ImageView) headerView.findViewById(R.id.profile_image);
-//        TextView nameField = (TextView) headerView.findViewById(R.id.name);
-//        TextView emailField = (TextView) headerView.findViewById(R.id.email);
-//
-//        String imageUrl = MoneyTrackerApplication_.getUserPhoto();
-//        String userFullName = MoneyTrackerApplication_.getUserFullName();
-//        String userEmail = MoneyTrackerApplication_.getUserEmail();
-//
-//        Glide.with(this).load()
+        View headerView = navigationView.getHeaderView(0);
+        ImageView profileImage = (ImageView) headerView.findViewById(R.id.profile_image);
+        TextView nameField = (TextView) headerView.findViewById(R.id.name);
+        TextView emailField = (TextView) headerView.findViewById(R.id.email);
+
+        String imageUrl = MoneyTrackerApplication_.getUserPhoto();
+        String userFullName = MoneyTrackerApplication_.getUserFullName();
+        String userEmail = MoneyTrackerApplication_.getUserEmail();
+
+        nameField.setText(userFullName);
+        emailField.setText(userEmail);
+
+        if(MoneyTrackerApplication_.isGoogleTokenExist()) {
+            Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.default_profile_image)
+                    .crossFade()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(profileImage);
+        } else {
+            Glide.with(this).load(R.drawable.default_profile_image).into(profileImage);
+        }
     }
 
     private void changeToolbarTitle(String backStackEntryName) {

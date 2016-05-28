@@ -1,5 +1,6 @@
 package com.valevich.moneytracker.ui.taskshandlers;
 
+import android.content.Intent;
 import android.util.Log;
 
 import com.google.android.gms.auth.GoogleAuthException;
@@ -10,6 +11,7 @@ import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
 import com.valevich.moneytracker.ui.activities.LoginActivity;
+import com.valevich.moneytracker.ui.activities.MainActivity_;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.Preferences_;
 import com.valevich.moneytracker.utils.UserNotifier;
@@ -49,7 +51,7 @@ public class SignUpWithGoogleTask {
             fatalAuthEx.printStackTrace();
             Log.e(LoginActivity.TAG, "Fatal Exception " + fatalAuthEx.getLocalizedMessage());
         }
-        Log.d(LoginActivity.TAG,token);
+        //Log.d(LoginActivity.TAG,token);
         if(token != null) {
             MoneyTrackerApplication_.saveGoogleToken(token);
             UserGoogleInfoModel userGoogleInfoModel = mRestService.getGoogleInfo(token);
@@ -57,6 +59,15 @@ public class SignUpWithGoogleTask {
                     userGoogleInfoModel.getName(),
                     userGoogleInfoModel.getEmail(),
                     userGoogleInfoModel.getPicture());
+
+            navigateToMain();
         }
+    }
+
+    private void navigateToMain() {
+        Intent intent = new Intent(mLoginActivity,MainActivity_.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        mLoginActivity.startActivity(intent);
     }
 }
