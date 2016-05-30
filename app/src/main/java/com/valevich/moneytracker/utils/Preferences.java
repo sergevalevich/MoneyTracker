@@ -9,5 +9,17 @@ import org.androidannotations.annotations.sharedpreferences.SharedPref;
 @SharedPref(value=SharedPref.Scope.UNIQUE)
 public interface Preferences {
     @DefaultString("")
-    String token();
+    String loftApiToken();
+
+    @DefaultString("")
+    String googleToken();
+
+    @DefaultString("")
+    String userFullName();
+
+    @DefaultString("")
+    String userEmail();
+
+    @DefaultString("")
+    String userPhoto();
 }

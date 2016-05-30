@@ -10,7 +10,6 @@
 
     <ImageView
         android:id="@+id/backgroundImageView"
-        tools:src = "@color/colorBackground"
         style="@style/AuthBackgroundImage"/>
 
     <TextView
@@ -46,24 +45,6 @@
             android:theme="@style/TextLabel">
 
             <android.support.v7.widget.AppCompatEditText
-                android:id="@+id/emailField"
-                style="@style/EditText"
-                android:inputType="textEmailAddress"
-                android:maxLength="30"
-                android:hint="@string/email_hint">
-
-            </android.support.v7.widget.AppCompatEditText>
-
-        </android.support.design.widget.TextInputLayout>
-
-
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/tile_height"
-            android:layout_marginBottom="@dimen/input_fields_bottom_margin"
-            android:theme="@style/TextLabel">
-
-            <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/passwordField"
                 style="@style/EditText"
                 android:inputType="textPassword"
@@ -77,25 +58,15 @@
 
     </LinearLayout>
 
-    <com.andexert.library.RippleView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft = "@dimen/activity_horizontal_margin"
-        android:layout_marginRight = "@dimen/activity_horizontal_margin"
-        android:layout_below = "@id/inputFields"
-        app:rv_rippleDuration = "200"
-        app:rv_zoom="true"
-        app:rv_zoomScale = "1.05"
-        app:rv_type="rectangle"
-        android:layout_centerHorizontal="true">
 
     <Button
         android:id="@+id/signUpButton"
         android:text="@string/create_account_btn_title"
-        style="@style/AuthButton"/>
-
-    </com.andexert.library.RippleView>
+        style="@style/AuthButton"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft = "@dimen/activity_horizontal_margin"
+        android:layout_marginRight = "@dimen/activity_horizontal_margin"
+        android:layout_below = "@id/inputFields"
+        android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>

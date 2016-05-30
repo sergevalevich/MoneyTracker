@@ -26,10 +26,19 @@
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>
     <string name="login_subtitle">A Loftschool Project</string>
-    <string name="ok_button_title">CREATE ACCOUNT</string>
+    <string name="create_account_btn_title">CREATE ACCOUNT</string>
+    <string name="login_btn_title">SIGN IN</string>
     <string name="token_key">TOKEN_KEY</string>
     <string name="network_unavailable">Сеть недоступна</string>
     <string name="wrong_auth_input">Имя пользователя и пароль должны содержать от 5 до 10 символов!</string>
     <string name="login_busy_message">Пользователь с таким именем уже существует</string>
     <string name="general_error_message">Упс! Возникла ошибка. Попробуйте ещё раз.</string>
+    <string name="google_account_picker_error_msg">Извините. Возникла ошибка. Попробуйте ещё раз.</string>
+    <string name="email_hint">Email</string>
+    <string name="invalid_username_msg">Username must contain at least 5 symbols!</string>
+    <string name="invalid_password_msg">Password must contain at least 5 symbols!</string>
+    <string name="invalid_email_msg">Invalid email!</string>
+    <string name="sign_up_text">Don\'t have an account? Sign Up!</string>
+    <string name="wrong_username_msg">Wrong username</string>
+    <string name="wrong_password_msg">Wrong password</string>
 </resources>

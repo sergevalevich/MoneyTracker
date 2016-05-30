@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:drawable="@drawable/btn_google_dark_pressed_xxxhdpi" android:state_pressed="true" android:color="@color/colorPrimaryDark"/>
+
+    <item android:drawable = "@drawable/btn_google_dark_focus_xxxhdpi" android:state_focused="true" android:color="@color/colorPrimary" />
+
+    <item android:drawable = "@drawable/btn_google_dark_normal_xxxhdpi" android:color="@color/colorPrimary" />
+
+</selector>

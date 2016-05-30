@@ -3,10 +3,13 @@ package com.valevich.moneytracker.ui.activities;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -15,11 +18,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.raizlabs.android.dbflow.config.DatabaseDefinition;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
+import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
@@ -27,9 +37,11 @@ import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
 import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
 import com.valevich.moneytracker.ui.fragments.SettingsFragment_;
 import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
+import com.valevich.moneytracker.utils.ImageLoader;
 import com.valevich.moneytracker.utils.Preferences_;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
@@ -51,8 +63,8 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     @ViewById(R.id.navigation_view)
     NavigationView mNavigationView;
 
-    @Pref
-    Preferences_ mPreferences;
+    @Bean
+    ImageLoader mImageLoader;
 
     private ActionBarDrawerToggle mToggle;
     private FragmentManager mFragmentManager;
@@ -61,8 +73,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        checkIfUserRegistered();
 
         if(CategoryEntry.getAllCategories("").isEmpty()) {
             saveDefaultCategories();
@@ -106,17 +116,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
     }
 
-    private void checkIfUserRegistered() {
-        boolean tokenExists = mPreferences.token().exists();
-        if(!tokenExists) {
-            signUp();
-        }
-    }
-
-    private void signUp() {
-        SignUpActivity_.intent(this).start();
-        finish();
-    }
 
     private void setupNavigationContent(final NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -143,7 +142,25 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
                 return true;
             }
         });
+        View headerView = navigationView.getHeaderView(0);
+        final ImageView profileImage = (ImageView) headerView.findViewById(R.id.profile_image);
+        TextView nameField = (TextView) headerView.findViewById(R.id.name);
+        TextView emailField = (TextView) headerView.findViewById(R.id.email);
+
+        String imageUrl = MoneyTrackerApplication_.getUserPhoto();
+        String userFullName = MoneyTrackerApplication_.getUserFullName();
+        String userEmail = MoneyTrackerApplication_.getUserEmail();
+
+        nameField.setText(userFullName);
+        emailField.setText(userEmail);
+
+        if(MoneyTrackerApplication_.isGoogleTokenExist()) {
+            mImageLoader.loadRoundedUserImage(profileImage, imageUrl);
+        } else {
+            mImageLoader.loadRoundedUserImage(profileImage,R.drawable.default_profile_image);
+        }
     }
+
 
     private void changeToolbarTitle(String backStackEntryName) {
         if(backStackEntryName.equals(ExpensesFragment_.class.getName())) {

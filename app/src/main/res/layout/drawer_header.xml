@@ -2,20 +2,29 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/drawer_header_layout_height"
+                xmlns:tools="http://schemas.android.com/tools"
                 android:background="@mipmap/header"
                 android:orientation="vertical"
                 android:paddingTop="@dimen/drawer_status_bar_height"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
 
-    <de.hdodenhof.circleimageview.CircleImageView
+    <!--<de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/profile_image"
         android:layout_width="@dimen/profile_image_size"
         android:layout_height="@dimen/profile_image_size"
         android:layout_marginStart="@dimen/profile_margin"
         android:layout_marginLeft="@dimen/profile_margin"
         android:layout_marginTop="@dimen/profile_margin"
-        android:src="@drawable/default_profile_img"/>
+        android:src="@drawable/default_profile_img"/> -->
+
+    <ImageView
+        android:id="@+id/profile_image"
+        android:layout_width="@dimen/profile_image_size"
+        android:layout_height="@dimen/profile_image_size"
+        android:layout_marginStart="@dimen/profile_margin"
+        android:layout_marginLeft="@dimen/profile_margin"
+        android:layout_marginTop="@dimen/profile_margin"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -32,7 +41,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/colorText"
-            android:text="@string/default_username"
+            tools:text="@string/default_username"
             android:textSize="@dimen/subtitle_text_size"
             android:textStyle="bold"
             android:maxLines="1"
@@ -44,7 +53,7 @@
             android:layout_height="wrap_content"
             android:textColor="@color/colorText"
             android:layout_marginTop="@dimen/drawer_header_content_divider"
-            android:text="@string/default_user_email"
+            tools:text="@string/default_user_email"
             android:textSize="@dimen/subtitle_text_size"
             android:textStyle="normal"
             android:maxLines="1"

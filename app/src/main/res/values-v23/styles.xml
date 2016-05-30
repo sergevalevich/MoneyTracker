@@ -1,0 +1,23 @@
+<resources>
+
+    <style name="ButtonStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/button_height</item>
+        <item name="android:minWidth">@dimen/button_min_width</item>
+        <item name="android:padding">@dimen/button_padding</item>
+        <item name="android:layout_alignParentBottom">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/button_text_size</item>
+        <item name="android:textColor">@color/colorText</item>
+        <item name="android:background">@color/buttons_new_expense</item>
+    </style>
+
+
+    <style name="AuthButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/auth_button_textSize</item>
+        <item name="android:textColor">@color/colorText</item>
+        <item name="android:background">@color/button_auth</item>
+    </style>
+</resources>

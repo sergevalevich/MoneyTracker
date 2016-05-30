@@ -61,7 +61,7 @@
         <item name="android:textColor">@color/colorText</item>
         <item name="android:textStyle">bold</item>
         <item name="android:text">@string/app_name</item>
-        <item name="android:alpha">.7</item>
+        <item name="android:alpha">.8</item>
     </style>
 
     <style name="AuthFieldContainer">
