@@ -44,7 +44,9 @@ import java.util.Locale;
 
 
 @EActivity
-public class NewExpenseActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<CategoryEntry>>{
+public class NewExpenseActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<CategoryEntry>>,
+        Transaction.Success,
+        Transaction.Error {
 
     private static final int CATEGORIES_LOADER = 2;
 
@@ -232,48 +234,22 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void saveExpense() {
+        String description = mDescriptionEditText.getText().toString();
+        String amount = mAmountEditText.getText().toString();
+        String date = mDatePicker.getText().toString();
+        CategoryEntry category = (CategoryEntry) mCategoriesPicker.getSelectedItem();
 
-        ExpenseEntry expense = new ExpenseEntry();
+        ExpenseEntry.saveExpense(description,amount,date,category,this,this);
+    }
 
-        DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
+    @Override
+    public void onSuccess(Transaction transaction) {
+        showToast(mSaveMessage);
+        finish();
+    }
 
-        ProcessModelTransaction<ExpenseEntry> processModelTransaction =
-                new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<ExpenseEntry>() {
-                    @Override
-                    public void processModel(ExpenseEntry expense) {
-                        expense.setDate(mDatePicker.getText().toString());
-                        expense.setDescription(mDescriptionEditText.getText().toString());
-                        expense.setPrice(mAmountEditText.getText().toString());
-
-                        CategoryEntry category = (CategoryEntry) mCategoriesPicker.getSelectedItem();
-
-                        expense.associateCategory(category);
-                        expense.save();
-                    }
-                }).processListener(new ProcessModelTransaction.OnModelProcessListener<ExpenseEntry>() {
-                    @Override
-                    public void onModelProcessed(long current, long total, ExpenseEntry modifiedModel) {
-
-                    }
-                }).addAll(expense).build();
-
-        Transaction transaction = database.beginTransactionAsync(processModelTransaction)
-                .success(new Transaction.Success() {
-                    @Override
-                    public void onSuccess(Transaction transaction) {
-                        showToast(mSaveMessage);
-                        finish();
-                    }
-                })
-                .error(new Transaction.Error() {
-                    @Override
-                    public void onError(Transaction transaction, Throwable error) {
-                        showSnackBar(mSaveErrorMessage);
-                    }
-                })
-                .build();
-
-        transaction.execute();
-
+    @Override
+    public void onError(Transaction transaction, Throwable error) {
+        showSnackBar(mSaveErrorMessage);
     }
 }

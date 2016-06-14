@@ -58,7 +58,8 @@ public class SignUpWithGoogleTask {
             MoneyTrackerApplication_.saveUserInfo(
                     userGoogleInfoModel.getName(),
                     userGoogleInfoModel.getEmail(),
-                    userGoogleInfoModel.getPicture());
+                    userGoogleInfoModel.getPicture(),
+                    "");
 
             navigateToMain();
         }

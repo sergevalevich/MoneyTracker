@@ -77,7 +77,7 @@ public class SignUpTask {
         switch (status) {
             case UserLoginModel.STATUS_SUCCESS:
                 MoneyTrackerApplication_.saveLoftApiToken(userLoginModel.getAuthToken());
-                MoneyTrackerApplication_.saveUserInfo(userName,email,"");
+                MoneyTrackerApplication_.saveUserInfo(userName,email,"",password);
                 navigateToMain();
                 break;
             case UserLoginModel.STATUS_WRONG_USERNAME:
@@ -99,6 +99,7 @@ public class SignUpTask {
         switch (status) {
             case UserLoginModel.STATUS_SUCCESS:
                 MoneyTrackerApplication_.saveLoftApiToken(userLoginModel.getAuthToken());
+                MoneyTrackerApplication_.saveUserInfo(userName,"","",password);
                 navigateToMain();
                 break;
             case UserLoginModel.STATUS_WRONG_USERNAME:

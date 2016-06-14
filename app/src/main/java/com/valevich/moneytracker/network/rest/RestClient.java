@@ -3,6 +3,7 @@ package com.valevich.moneytracker.network.rest;
 import com.valevich.moneytracker.network.rest.requests.LoginUserApi;
 import com.valevich.moneytracker.network.rest.requests.RegisterUserApi;
 import com.valevich.moneytracker.network.rest.requests.SubmitGoogleTokenApi;
+import com.valevich.moneytracker.network.rest.requests.SyncExpensesApi;
 
 import org.androidannotations.annotations.EBean;
 
@@ -17,6 +18,7 @@ public class RestClient {
     private RegisterUserApi registerUserApi;
     private LoginUserApi loginUserApi;
     private SubmitGoogleTokenApi submitGoogleTokenApi;
+    private SyncExpensesApi syncExpensesApi;
     public RestClient() {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(BASE_URL)
@@ -25,6 +27,7 @@ public class RestClient {
         registerUserApi = restAdapter.create(RegisterUserApi.class);
         loginUserApi = restAdapter.create(LoginUserApi.class);
         submitGoogleTokenApi = restAdapter.create(SubmitGoogleTokenApi.class);
+        syncExpensesApi = restAdapter.create(SyncExpensesApi.class);
     }
     public RegisterUserApi getRegisterUserApi() {
         return registerUserApi;
@@ -36,5 +39,9 @@ public class RestClient {
 
     public SubmitGoogleTokenApi getSubmitGoogleTokenApi() {
         return submitGoogleTokenApi;
+    }
+
+    public SyncExpensesApi getSyncExpensesApi() {
+        return syncExpensesApi;
     }
 }

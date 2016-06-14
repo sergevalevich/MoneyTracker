@@ -32,6 +32,9 @@ public class MoneyTrackerApplication extends Application {
     public static boolean isGoogleTokenExist() {
         return mPreferences.googleToken().exists();
     }
+    public static String getGoogleToken() {
+        return mPreferences.googleToken().get();
+    }
 
     public static void saveLoftApiToken(String token) {
         mPreferences.loftApiToken().put(token);
@@ -39,14 +42,20 @@ public class MoneyTrackerApplication extends Application {
     public static boolean isLoftTokenExist() {
         return mPreferences.loftApiToken().exists();
     }
+    public static String getLoftApiToken() {
+        return mPreferences.loftApiToken().get();
+    }
 
-    public static void saveUserInfo(String name, String email, String picture) {
+
+    public static void saveUserInfo(String name, String email, String picture, String password) {
         mPreferences.edit()
                 .userFullName().put(name)
                 .userEmail().put(email)
                 .userPhoto().put(picture)
+                .userPassword().put(password)
                 .apply();
     }
+
 
     public static String getUserFullName() {
         return mPreferences.userFullName().get();
@@ -58,6 +67,10 @@ public class MoneyTrackerApplication extends Application {
 
     public static String getUserPhoto() {
         return mPreferences.userPhoto().get();
+    }
+
+    public static String getUserPassword() {
+        return mPreferences.userPassword().get();
     }
 
     @Override

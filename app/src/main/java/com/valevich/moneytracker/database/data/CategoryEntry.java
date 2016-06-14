@@ -45,6 +45,10 @@ public class CategoryEntry extends BaseModel {
         this.name = name;
     }
 
+    public long getId() {
+        return id;
+    }
+
     public static List<CategoryEntry> getAllCategories(String filter) {//query
         return SQLite.select()
                 .from(CategoryEntry.class)

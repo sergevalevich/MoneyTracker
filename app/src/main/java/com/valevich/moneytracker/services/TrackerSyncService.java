@@ -17,7 +17,7 @@ public class TrackerSyncService extends Service {
     public void onCreate() {
         synchronized (sSyncAdapterLock) {
             if (sTrackerSyncAdapter == null) {
-                sTrackerSyncAdapter=new TrackerSyncAdapter(getApplicationContext(), true);
+                sTrackerSyncAdapter=new TrackerSyncAdapter(getApplicationContext());
             }
         }
     }
