@@ -1,6 +1,7 @@
 package com.valevich.moneytracker.network.rest;
 
 import com.valevich.moneytracker.model.Expense;
+import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.ExpensesSyncModel;
 import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
@@ -40,6 +41,10 @@ public class RestService {
 
     public ExpensesSyncModel syncExpenses(String expenses, String token,String googleToken) {
         return restClient.getSyncExpensesApi().syncExpenses(expenses, token, googleToken);
+    }
+
+    public CategoriesSyncModel syncCategories(String categories, String token, String googleToken) {
+        return restClient.getSyncCategoriesApi().syncCategories(categories, token, googleToken);
     }
 
     public void setRestClient(RestClient restClient) {

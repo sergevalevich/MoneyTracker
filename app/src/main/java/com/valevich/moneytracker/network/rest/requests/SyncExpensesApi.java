@@ -22,7 +22,7 @@ public interface SyncExpensesApi {
 
     @POST("/transactions/synch")
     ExpensesSyncModel syncExpenses(
-            @Query(value = "data") String data,
+            @Query("data") String data,
             @Query("auth_token") String token,
             @Query("google_token") String googleToken);
 

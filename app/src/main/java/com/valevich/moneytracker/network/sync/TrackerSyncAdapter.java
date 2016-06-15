@@ -16,19 +16,17 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.network.rest.RestClient;
 import com.valevich.moneytracker.network.rest.RestService;
+import com.valevich.moneytracker.network.rest.model.CategoryData;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
-import com.valevich.moneytracker.network.rest.model.ExpensesSyncModel;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 
 /**
@@ -52,16 +50,33 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
         Log.d(TAG,"SYNC");
 
-        List<ExpenseEntry> expensesDb = ExpenseEntry.getAllExpenses("");
+        List<CategoryEntry> categoriesDb = CategoryEntry.getAllCategories("");
 
-        if(expensesDb.size() != 0) {
+        if(categoriesDb.size() != 0) {
 
-            String expensesString = getExpensesString(expensesDb);
+            String categoriesString = getCategoriesString(categoriesDb);
 
-            syncExpenses(expensesString);
+            syncCategories(categoriesString);
+
+            List<ExpenseEntry> expensesDb = ExpenseEntry.getAllExpenses("");
+
+            if (expensesDb.size() != 0) {
+
+                String expensesString = getExpensesString(expensesDb);
+
+                syncExpenses(expensesString);
+
+            }
 
         }
 
+    }
+
+    private void syncCategories(String categoriesString) {
+        String loftToken = getLoftToken();
+        String googleToken = getGoogleToken();
+
+        mRestService.syncCategories(categoriesString,loftToken,googleToken);
     }
 
     private void syncExpenses(String expensesString) {
@@ -78,6 +93,32 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         Gson gson = new Gson();
 
         return gson.toJson(expensesToSync);
+    }
+
+    @NonNull
+    private String getCategoriesString(List<CategoryEntry> categoriesDb) {
+        List<CategoryData> categoriesToSync = getPreparedCategories(categoriesDb);
+
+        Gson gson = new Gson();
+
+        return gson.toJson(categoriesToSync);
+    }
+
+    private List<CategoryData> getPreparedCategories(List<CategoryEntry> categoriesDb) {
+
+        List<CategoryData> categoriesToSync = new ArrayList<>();
+
+        for(int i = 0; i<categoriesDb.size(); i++) {
+            CategoryData categoryToSync = new CategoryData();
+            CategoryEntry categoryDb = categoriesDb.get(i);
+
+
+            categoryToSync.setId(0);
+            categoryToSync.setTitle(categoryDb.getName());
+
+            categoriesToSync.add(categoryToSync);
+        }
+        return categoriesToSync;
     }
 
     @NonNull
@@ -147,7 +188,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private static void onAccountCreated(Account newAccount, Context context) {
-        final int SYNC_INTERVAL = 12;
+        final int SYNC_INTERVAL = 60*60*3;
         final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
         TrackerSyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
         ContentResolver.setSyncAutomatically(newAccount,
