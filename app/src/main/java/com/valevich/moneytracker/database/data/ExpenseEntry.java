@@ -17,6 +17,7 @@ import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.model.Category;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by NotePad.by on 07.05.2016.
@@ -118,6 +119,44 @@ public class ExpenseEntry extends BaseModel {
 
         transaction.execute();
 
+    }
+
+    public static void updateCategoryIds(List<ExpenseEntry> expenses,
+                                         final Map<String,Integer> ids,
+                                         Transaction.Success successCallback,
+                                         Transaction.Error errorCallback) {
+        DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
+
+        ProcessModelTransaction<ExpenseEntry> processModelTransaction =
+                new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<ExpenseEntry>() {
+                    @Override
+                    public void processModel(ExpenseEntry expense) {
+                        CategoryEntry category = expense.getCategory();
+                        String categoryName = category.getName();
+
+                        for (Map.Entry<String,Integer> id:ids.entrySet()) {
+                            if(categoryName.equals(id.getKey())) {
+                                category.setId(id.getValue());
+                                break;
+                            }
+                        }
+
+                        category.update();
+                        expense.update();
+                    }
+                }).processListener(new ProcessModelTransaction.OnModelProcessListener<ExpenseEntry>() {
+                    @Override
+                    public void onModelProcessed(long current, long total, ExpenseEntry modifiedModel) {
+
+                    }
+                }).addAll(expenses).build();
+
+        Transaction transaction = database.beginTransactionAsync(processModelTransaction)
+                .success(successCallback)
+                .error(errorCallback)
+                .build();
+
+        transaction.execute();
     }
 
 }
