@@ -8,10 +8,4 @@
         app:showAsAction = "never">
     </item>
 
-    <item
-        android:id = "@+id/action_refresh"
-        android:title="Reftesh"
-        app:showAsAction = "never">
-    </item>
-
 </menu>

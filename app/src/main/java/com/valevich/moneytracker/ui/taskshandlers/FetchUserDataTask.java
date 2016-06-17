@@ -1,6 +1,7 @@
 package com.valevich.moneytracker.ui.taskshandlers;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.util.Log;
 
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
@@ -9,6 +10,7 @@ import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.GlobalCategoriesDataModel;
+import com.valevich.moneytracker.ui.activities.MainActivity_;
 import com.valevich.moneytracker.utils.UserNotifier;
 
 import org.androidannotations.annotations.Background;
@@ -63,5 +65,13 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
     @Override
     public void onSuccess(Transaction transaction) {
         Log.d(TAG,"DATA SAVED SUCCESSFULLY");
+        navigateToMain();
+    }
+
+    private void navigateToMain() {
+        Intent intent = new Intent(mActivity,MainActivity_.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        mActivity.startActivity(intent);
     }
 }

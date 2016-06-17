@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.model.Expense;
+import com.valevich.moneytracker.utils.DateFormatter;
 
 import org.w3c.dom.Text;
 
@@ -68,7 +69,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         public void bindExpense(ExpenseEntry expense) {
             price.setText(String.format(Locale.getDefault(),"%s%s",expense.getPrice(),"$"));
             description.setText(expense.getDescription());
-            date.setText(expense.getDate());
+            date.setText(DateFormatter.formatDateFromDb(expense.getDate()));
             category.setText(expense.getCategory().getName());
         }
     }

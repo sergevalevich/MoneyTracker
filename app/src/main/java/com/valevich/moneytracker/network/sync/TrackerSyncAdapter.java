@@ -14,10 +14,16 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Produce;
+import com.squareup.otto.ThreadEnforcer;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
+import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
 import com.valevich.moneytracker.network.rest.RestClient;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
@@ -26,10 +32,13 @@ import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.utils.ConstantsManager;
 
 
+import org.androidannotations.annotations.AfterInject;
+import org.androidannotations.annotations.Bean;
+import org.androidannotations.annotations.EBean;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
 
 public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
@@ -43,6 +52,8 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private boolean mIsSyncStopped = false;
 
+    private static boolean mStopAfterSync = false;
+
     private static Account mAccount;
 
     public TrackerSyncAdapter(Context context) {
@@ -51,7 +62,8 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         mRestService.setRestClient(new RestClient());
     }
 
-    public static void syncImmediately(Context context) {
+    public static void syncImmediately(Context context,boolean stopAfterSync) {
+        mStopAfterSync = stopAfterSync;
         Bundle bundle = new Bundle();
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED,
                 true);
@@ -102,6 +114,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
 
         Log.d(TAG,"SYNC");
+
         if(!mIsSyncStopped) {
 
             List<ExpenseEntry> expensesDb = ExpenseEntry.getAllExpenses("");
@@ -109,10 +122,17 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             if (expensesDb.size() != 0) {
 
                 syncCategories();
-                syncExpenses();
-                updateDbEntriesIds();
+                if(mNewCategoryIds != null && mNewCategoryIds.length != 0) {
+                    syncExpenses();
+                    updateDbEntriesIds();
+                }
 
             }
+        }
+        if(mStopAfterSync) {
+            disableSync();
+            BusProvider.getInstance().post(new SyncFinishedEvent());
+            mStopAfterSync = false;
         }
     }
 
@@ -122,7 +142,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         mIsSyncStopped = true;
     }
 
-    public static void disableSync() {
+    private void disableSync() {
         ContentResolver.setIsSyncable(mAccount, ConstantsManager.CONTENT_AUTHORITY, 0);
         ContentResolver.cancelSync(mAccount,ConstantsManager.CONTENT_AUTHORITY);
     }
@@ -137,9 +157,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String googleToken = getGoogleToken();
 
         CategoriesSyncModel apiCategories = mRestService
-                .syncCategories(categoriesString,loftToken,googleToken);
-
-
+                .syncCategories(categoriesString, loftToken, googleToken);
         setNewCategoryIds(apiCategories);
     }
 
@@ -190,7 +208,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
 
-        mRestService.syncExpenses(expensesString,loftToken,googleToken);
+        mRestService.syncExpenses(expensesString, loftToken, googleToken);
     }
 
     @NonNull
@@ -241,7 +259,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         ContentResolver.addPeriodicSync(newAccount, ConstantsManager.CONTENT_AUTHORITY,
                 Bundle.EMPTY,
                 SYNC_INTERVAL);
-        syncImmediately(context);
+        syncImmediately(context,false);
     }
 
     private String getLoftToken() {
@@ -252,5 +270,8 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         return MoneyTrackerApplication_.getGoogleToken();
     }
 
-
+    @Produce
+    public SyncFinishedEvent produceEvent() {
+        return new SyncFinishedEvent();
+    }
 }

@@ -23,7 +23,9 @@ import com.valevich.moneytracker.network.rest.model.GlobalCategoriesDataModel;
 
 import org.androidannotations.annotations.EBean;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -118,6 +120,7 @@ public class CategoryEntry extends BaseModel {
                         category = new CategoryEntry();
                         category.setId(fetchedCategory.getId());
                         category.setName(fetchedCategory.getTitle());
+                        category.save();
 
                         List<ExpenseData> fetchedExpenses = fetchedCategory.getTransactions();
                         for (ExpenseData fetchedExpense: fetchedExpenses) {
@@ -128,7 +131,6 @@ public class CategoryEntry extends BaseModel {
                             expense.associateCategory(category);
                             expense.save();
                         }
-                        category.save();
                     }
                 }).addAll(categories).build();
 

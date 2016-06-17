@@ -13,6 +13,8 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.common.AccountPicker;
 import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.network.rest.model.UserLoginModel;
+import com.valevich.moneytracker.ui.taskshandlers.FetchUserDataTask;
 import com.valevich.moneytracker.ui.taskshandlers.SignUpTask;
 import com.valevich.moneytracker.ui.taskshandlers.SignUpWithGoogleTask;
 import com.valevich.moneytracker.utils.InputFieldValidator;
@@ -89,7 +91,6 @@ public class LoginActivity extends AppCompatActivity{
                 .crossFade()
                 .into(mBackground);
     }
-
     @Click(R.id.google_login_btn)
     void pickAccount() {
         Intent intent = AccountPicker.newChooseAccountIntent(null, null, new String[]{"com.google"},

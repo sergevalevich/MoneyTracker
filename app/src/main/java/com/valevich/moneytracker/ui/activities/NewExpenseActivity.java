@@ -27,6 +27,7 @@ import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
+import com.valevich.moneytracker.utils.DateFormatter;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import org.androidannotations.annotations.AfterViews;
@@ -140,8 +141,9 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void setupDatePicker() {
-        SimpleDateFormat sdf = new SimpleDateFormat("d/M/yyyy",Locale.getDefault());
-        mDatePicker.setText(sdf.format(new Date()));
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy",Locale.getDefault());
+        Date date = new Date();
+        mDatePicker.setText(sdf.format(date));
     }
 
     @Click(R.id.date_picker)
@@ -163,10 +165,14 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
 
         public void onDateSet(DatePickerDialog view, int selectedYear,
                               int selectedMonth, int selectedDay) {
+            int month = selectedMonth + 1;
+            String stringMonth = String.valueOf(month);
+            if(month < 10) stringMonth = "0" + stringMonth;
+
             mDatePicker.setText(String.format(Locale.getDefault(),
-                    "%d/%d/%d",
+                    "%d-%s-%d",
                     selectedDay,
-                    selectedMonth+1,
+                    stringMonth,
                     selectedYear));
         }
     };
@@ -236,7 +242,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     private void saveExpense() {
         String description = mDescriptionEditText.getText().toString();
         String amount = mAmountEditText.getText().toString();
-        String date = mDatePicker.getText().toString();
+        String date = DateFormatter.formatDateForDb(mDatePicker.getText().toString());
         CategoryEntry category = (CategoryEntry) mCategoriesPicker.getSelectedItem();
 
         ExpenseEntry.saveExpense(description,amount,date,category,this,this);

@@ -7,11 +7,8 @@ public class Expense {
 
     private String mDescription;
     private String mPrice;
-
-    public Expense(String description, String price) {
-        mDescription = description;
-        mPrice = price;
-    }
+    private String mDate;
+    private String mCategory;
 
     public String getDescription() {
         return mDescription;
@@ -19,5 +16,29 @@ public class Expense {
 
     public String getPrice() {
         return mPrice;
+    }
+
+    public void setDescription(String description) {
+        mDescription = description;
+    }
+
+    public void setPrice(String price) {
+        mPrice = price;
+    }
+
+    public String getDate() {
+        return mDate;
+    }
+
+    public void setDate(String date) {
+        mDate = date;
+    }
+
+    public String getCategory() {
+        return mCategory;
+    }
+
+    public void setCategory(String category) {
+        mCategory = category;
     }
 }

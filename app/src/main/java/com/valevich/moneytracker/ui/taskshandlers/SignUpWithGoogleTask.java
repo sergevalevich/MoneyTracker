@@ -36,6 +36,9 @@ public class SignUpWithGoogleTask {
     @Bean
     RestService mRestService;
 
+    @Bean
+    FetchUserDataTask mFetchUserDataTask;
+
     @Background
     public void logInWithGoogle(final String accountName) {
         String token = null;
@@ -60,15 +63,12 @@ public class SignUpWithGoogleTask {
                     userGoogleInfoModel.getEmail(),
                     userGoogleInfoModel.getPicture(),
                     "");
-
-            navigateToMain();
+            fetchUserData();
         }
     }
 
-    private void navigateToMain() {
-        Intent intent = new Intent(mLoginActivity,MainActivity_.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        mLoginActivity.startActivity(intent);
+    private void fetchUserData() {
+        mFetchUserDataTask.fetchUserData();
     }
+
 }

@@ -77,19 +77,12 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     @OptionsMenuItem(R.id.action_logout)
     MenuItem mLogoutMenuItem;
 
-    @OptionsMenuItem(R.id.action_refresh)
-    MenuItem mRefreshOptionsMenu;
-
     @Bean
     ImageLoader mImageLoader;
 
     @Bean
     @NonConfigurationInstance
     LogoutTask mLogoutTask;
-
-    @Bean
-    @NonConfigurationInstance
-    FetchUserDataTask mFetchUserDataTask;
 
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
@@ -128,22 +121,12 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
     @OptionsItem(R.id.action_logout)
     void logout() {
-        if(mNetworkStatusChecker.isNetworkAvailable()) {
-            mLogoutTask.logout();
+        if (mNetworkStatusChecker.isNetworkAvailable()) {
+            mLogoutTask.syncAndLogOut();
         } else {
-            mUserNotifier.notifyUser(mDrawerLayout,mNetworkUnavailableMessage);
+            mUserNotifier.notifyUser(mDrawerLayout, mNetworkUnavailableMessage);
         }
     }
-
-    @OptionsItem(R.id.action_refresh)
-    void refresh() {
-        if(mNetworkStatusChecker.isNetworkAvailable()) {
-            mFetchUserDataTask.fetchUserData();
-        } else {
-            mUserNotifier.notifyUser(mDrawerLayout,mNetworkUnavailableMessage);
-        }
-    }
-
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {

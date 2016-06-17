@@ -39,6 +39,9 @@ public class SignUpTask {
     @Bean
     UserNotifier mUserNotifier;
 
+    @Bean
+    FetchUserDataTask mFetchUserDataTask;
+
     @StringRes(R.string.login_busy_message)
     String mLoginBusyMessage;
 
@@ -101,7 +104,7 @@ public class SignUpTask {
             case ConstantsManager.STATUS_SUCCESS:
                 MoneyTrackerApplication_.saveLoftApiToken(userLoginModel.getAuthToken());
                 MoneyTrackerApplication_.saveUserInfo(userName,"","",password);
-                navigateToMain();
+                fetchUserData();
                 break;
             case ConstantsManager.STATUS_WRONG_USERNAME:
                 notifyUser(mWrongUsernameMessage);
@@ -113,6 +116,10 @@ public class SignUpTask {
                 notifyUser(mGeneralErrorMessage);
                 break;
         }
+    }
+
+    private void fetchUserData() {
+        mFetchUserDataTask.fetchUserData();
     }
 
     private void navigateToMain() {
