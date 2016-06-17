@@ -1,14 +1,22 @@
 package com.valevich.moneytracker.ui.taskshandlers;
 
+import android.accounts.Account;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
 
+import com.raizlabs.android.dbflow.sql.language.Delete;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
+import com.valevich.moneytracker.database.data.CategoryEntry;
+import com.valevich.moneytracker.database.data.ExpenseEntry;
+import com.valevich.moneytracker.database.data.ExpenseEntry_Table;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.UserLogoutModel;
+import com.valevich.moneytracker.network.sync.TrackerSyncAdapter;
 import com.valevich.moneytracker.ui.activities.LoginActivity_;
+import com.valevich.moneytracker.ui.activities.MainActivity;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.UserNotifier;
 
@@ -26,7 +34,7 @@ import org.androidannotations.annotations.res.StringRes;
 public class LogoutTask {
 
     @RootContext
-    Activity mActivity;
+    MainActivity mActivity;
 
     @Bean
     RestService mRestService;
@@ -63,14 +71,19 @@ public class LogoutTask {
     }
 
     private void clearUserData() {
+        stopSync();
+        clearDatabase();
         MoneyTrackerApplication_.saveUserInfo("","","","");
         MoneyTrackerApplication_.saveGoogleToken("");
         MoneyTrackerApplication_.saveLoftApiToken("");
-        clearDatabase();
+    }
+
+    private void stopSync() {
+        TrackerSyncAdapter.disableSync();
     }
 
     private void clearDatabase() {
-        mActivity.deleteDatabase(MoneyTrackerDatabase.NAME + ".db");
+        Delete.tables(ExpenseEntry.class, CategoryEntry.class);
     }
 
     private void navigateToLogIn() {//check back press after logout

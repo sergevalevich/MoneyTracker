@@ -14,31 +14,21 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.raizlabs.android.dbflow.sql.language.Condition;
-import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
-import com.valevich.moneytracker.model.Category;
 import com.valevich.moneytracker.network.rest.RestClient;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
 import com.valevich.moneytracker.network.rest.model.CategoryData;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
+import com.valevich.moneytracker.utils.ConstantsManager;
 
-
-import org.androidannotations.annotations.Background;
-import org.androidannotations.annotations.EBean;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-
-
 
 
 public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
@@ -50,6 +40,10 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     private int[] mNewCategoryIds;
 
     private List<CategoryEntry> mCategoriesDb;
+
+    private boolean mIsSyncStopped = false;
+
+    private static Account mAccount;
 
     public TrackerSyncAdapter(Context context) {
         super(context,true);
@@ -64,26 +58,27 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL,
                 true);
         ContentResolver.requestSync(getSyncAccount(context),
-                context.getString(R.string.content_authority), bundle);
+                ConstantsManager.CONTENT_AUTHORITY, bundle);
     }
 
-    public static Account getSyncAccount(Context context) {
+    private static Account getSyncAccount(Context context) {
         AccountManager accountManager =
                 (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
-        Account newAccount = new Account(context.getString(R.string.app_name),
-                context.getString(R.string.sync_account_type));
-        if ( null == accountManager.getPassword(newAccount) ) {
-            if (!accountManager.addAccountExplicitly(newAccount, "", null)) {
+        mAccount = new Account(context.getString(R.string.app_name),
+                ConstantsManager.SYNC_ACCOUNT_TYPE);
+        ContentResolver.setIsSyncable(mAccount,ConstantsManager.CONTENT_AUTHORITY,1);
+        if ( null == accountManager.getPassword(mAccount) ) {
+            if (!accountManager.addAccountExplicitly(mAccount, "", null)) {
                 return null;
             }
-            onAccountCreated(newAccount, context);
+            onAccountCreated(mAccount, context);
         }
-        return newAccount;
+        return mAccount;
     }
 
     public static void configurePeriodicSync(Context context, int syncInterval, int flexTime) {
         Account account = getSyncAccount(context);
-        String authority = context.getString(R.string.content_authority);
+        String authority = ConstantsManager.CONTENT_AUTHORITY;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             // we can enable inexact timers in our periodic sync
             SyncRequest request = new SyncRequest.Builder().
@@ -107,18 +102,29 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
 
         Log.d(TAG,"SYNC");
+        if(!mIsSyncStopped) {
 
-        List<ExpenseEntry> expensesDb = ExpenseEntry.getAllExpenses("");
+            List<ExpenseEntry> expensesDb = ExpenseEntry.getAllExpenses("");
 
-        if(expensesDb.size() != 0) {
+            if (expensesDb.size() != 0) {
 
-            syncCategories();
-            syncExpenses();
-            updateDbEntriesIds();
+                syncCategories();
+                syncExpenses();
+                updateDbEntriesIds();
 
+            }
         }
+    }
 
+    @Override
+    public void onSyncCanceled() {
+        super.onSyncCanceled();
+        mIsSyncStopped = true;
+    }
 
+    public static void disableSync() {
+        ContentResolver.setIsSyncable(mAccount, ConstantsManager.CONTENT_AUTHORITY, 0);
+        ContentResolver.cancelSync(mAccount,ConstantsManager.CONTENT_AUTHORITY);
     }
 
     private void syncCategories() {
@@ -231,8 +237,8 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
         TrackerSyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
         ContentResolver.setSyncAutomatically(newAccount,
-                context.getString(R.string.content_authority), true);
-        ContentResolver.addPeriodicSync(newAccount, context.getString(R.string.content_authority),
+                ConstantsManager.CONTENT_AUTHORITY, true);
+        ContentResolver.addPeriodicSync(newAccount, ConstantsManager.CONTENT_AUTHORITY,
                 Bundle.EMPTY,
                 SYNC_INTERVAL);
         syncImmediately(context);

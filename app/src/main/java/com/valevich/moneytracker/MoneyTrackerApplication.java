@@ -30,7 +30,7 @@ public class MoneyTrackerApplication extends Application {
         mPreferences.googleToken().put(token);
     }
     public static boolean isGoogleTokenExist() {
-        return mPreferences.googleToken().exists();
+        return !mPreferences.googleToken().get().equals("");
     }
     public static String getGoogleToken() {
         return mPreferences.googleToken().get();
@@ -40,7 +40,7 @@ public class MoneyTrackerApplication extends Application {
         mPreferences.loftApiToken().put(token);
     }
     public static boolean isLoftTokenExist() {
-        return mPreferences.loftApiToken().exists();
+        return !mPreferences.loftApiToken().get().equals("");
     }
     public static String getLoftApiToken() {
         return mPreferences.loftApiToken().get();

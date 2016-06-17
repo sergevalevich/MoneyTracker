@@ -81,14 +81,15 @@ public class CategoryEntry extends BaseModel {
 
         for(int i = 0; i < ids.length; i++) {
             CategoryEntry category = categories.get(i);
-            int id = ids[i];
+            int newId = ids[i];
+            long oldId = category.getId();
             SQLite.update(CategoryEntry.class)
-                    .set(CategoryEntry_Table.id.eq(ids[i]))
-                    .where(CategoryEntry_Table.id.eq(category.getId()))
+                    .set(CategoryEntry_Table.id.eq(newId))
+                    .where(CategoryEntry_Table.id.eq(oldId))
                     .execute();
             SQLite.update(ExpenseEntry.class)
-                    .set(ExpenseEntry_Table.category_id.eq(ids[i]))
-                    .where(ExpenseEntry_Table.category_id.eq(category.getId()))
+                    .set(ExpenseEntry_Table.category_id.eq(newId))
+                    .where(ExpenseEntry_Table.category_id.eq(oldId))
                     .execute();
         }
 

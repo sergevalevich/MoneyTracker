@@ -18,4 +18,8 @@ public final class ConstantsManager {
     public static final String STATUS_WRONG_PASSWORD = "Wrong password";
     public static final String STATUS_WRONG_USERNAME = "Wrong login";
     public static final String STATUS_EMPTY = "";
+
+    //-----SYNC-----------------//
+    public static final String CONTENT_AUTHORITY = "com.loftschool.loftmoneytracker";
+    public static final String SYNC_ACCOUNT_TYPE = "loftmoneytracker.loftschool.com";
 }
