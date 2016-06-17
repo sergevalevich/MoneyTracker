@@ -15,6 +15,7 @@ import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTr
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.model.Category;
+import com.valevich.moneytracker.network.rest.model.ExpenseData;
 
 import java.util.List;
 import java.util.Map;
@@ -120,44 +121,5 @@ public class ExpenseEntry extends BaseModel {
         transaction.execute();
 
     }
-
-    public static void updateCategoryIds(List<ExpenseEntry> expenses,
-                                         final Map<String,Integer> ids,
-                                         Transaction.Success successCallback,
-                                         Transaction.Error errorCallback) {
-        DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
-
-        ProcessModelTransaction<ExpenseEntry> processModelTransaction =
-                new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<ExpenseEntry>() {
-                    @Override
-                    public void processModel(ExpenseEntry expense) {
-                        CategoryEntry category = expense.getCategory();
-                        String categoryName = category.getName();
-
-                        for (Map.Entry<String,Integer> id:ids.entrySet()) {
-                            if(categoryName.equals(id.getKey())) {
-                                category.setId(id.getValue());
-                                break;
-                            }
-                        }
-
-                        category.update();
-                        expense.update();
-                    }
-                }).processListener(new ProcessModelTransaction.OnModelProcessListener<ExpenseEntry>() {
-                    @Override
-                    public void onModelProcessed(long current, long total, ExpenseEntry modifiedModel) {
-
-                    }
-                }).addAll(expenses).build();
-
-        Transaction transaction = database.beginTransactionAsync(processModelTransaction)
-                .success(successCallback)
-                .error(errorCallback)
-                .build();
-
-        transaction.execute();
-    }
-
 }
 

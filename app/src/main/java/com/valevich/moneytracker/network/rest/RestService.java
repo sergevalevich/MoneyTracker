@@ -4,8 +4,10 @@ import com.valevich.moneytracker.model.Expense;
 import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.ExpensesSyncModel;
+import com.valevich.moneytracker.network.rest.model.GlobalCategoriesDataModel;
 import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
 import com.valevich.moneytracker.network.rest.model.UserLoginModel;
+import com.valevich.moneytracker.network.rest.model.UserLogoutModel;
 import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
 
 import org.androidannotations.annotations.Bean;
@@ -45,6 +47,14 @@ public class RestService {
 
     public CategoriesSyncModel syncCategories(String categories, String token, String googleToken) {
         return restClient.getSyncCategoriesApi().syncCategories(categories, token, googleToken);
+    }
+
+    public UserLogoutModel logout() {
+        return restClient.getLogoutUserApi().logOut();
+    }
+
+    public List<GlobalCategoriesDataModel> fetchGlobalCategoriesData(String authToken, String googleToken) {
+        return restClient.getFetchGlobalCategoriesDataApi().fetchGlobalCategoriesData(authToken,googleToken);
     }
 
     public void setRestClient(RestClient restClient) {

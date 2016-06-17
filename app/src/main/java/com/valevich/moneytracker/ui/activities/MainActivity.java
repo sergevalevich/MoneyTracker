@@ -39,18 +39,27 @@ import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
 import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
 import com.valevich.moneytracker.ui.fragments.SettingsFragment_;
 import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
+import com.valevich.moneytracker.ui.taskshandlers.FetchUserDataTask;
+import com.valevich.moneytracker.ui.taskshandlers.LogoutTask;
 import com.valevich.moneytracker.utils.ImageLoader;
+import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.Preferences_;
+import com.valevich.moneytracker.utils.UserNotifier;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.NonConfigurationInstance;
+import org.androidannotations.annotations.OptionsItem;
+import org.androidannotations.annotations.OptionsMenu;
+import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
 
 @EActivity
+@OptionsMenu(R.menu.menu_main)
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
 
     private String[] mDefaultCategories = {"Одежда","Бизнес","Налоги","Еда","Дом","Образование","ToCheckSearchItem1","ToCheckSearchItem2","ToCheckSearchItem3"};
@@ -65,8 +74,31 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     @ViewById(R.id.navigation_view)
     NavigationView mNavigationView;
 
+    @OptionsMenuItem(R.id.action_logout)
+    MenuItem mLogoutMenuItem;
+
+    @OptionsMenuItem(R.id.action_refresh)
+    MenuItem mRefreshOptionsMenu;
+
     @Bean
     ImageLoader mImageLoader;
+
+    @Bean
+    @NonConfigurationInstance
+    LogoutTask mLogoutTask;
+
+    @Bean
+    @NonConfigurationInstance
+    FetchUserDataTask mFetchUserDataTask;
+
+    @Bean
+    NetworkStatusChecker mNetworkStatusChecker;
+
+    @Bean
+    UserNotifier mUserNotifier;
+
+    @StringRes(R.string.network_unavailable)
+    String mNetworkUnavailableMessage;
 
     private ActionBarDrawerToggle mToggle;
     private FragmentManager mFragmentManager;
@@ -93,6 +125,25 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
         setupDrawerLayout();
         setupFragmentManager();
     }
+
+    @OptionsItem(R.id.action_logout)
+    void logout() {
+        if(mNetworkStatusChecker.isNetworkAvailable()) {
+            mLogoutTask.logout();
+        } else {
+            mUserNotifier.notifyUser(mDrawerLayout,mNetworkUnavailableMessage);
+        }
+    }
+
+    @OptionsItem(R.id.action_refresh)
+    void refresh() {
+        if(mNetworkStatusChecker.isNetworkAvailable()) {
+            mFetchUserDataTask.fetchUserData();
+        } else {
+            mUserNotifier.notifyUser(mDrawerLayout,mNetworkUnavailableMessage);
+        }
+    }
+
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {

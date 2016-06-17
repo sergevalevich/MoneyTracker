@@ -37,24 +37,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 
 
 
 
-public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter implements Transaction.Success, Transaction.Error {
+public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private static final String TAG = TrackerSyncAdapter.class.getSimpleName();
 
     private RestService mRestService;
 
-    private Map<String,Integer> mNewCategoryIds;
+    private int[] mNewCategoryIds;
+
+    private List<CategoryEntry> mCategoriesDb;
 
     public TrackerSyncAdapter(Context context) {
         super(context,true);
         mRestService = new RestService();
         mRestService.setRestClient(new RestClient());
-        mNewCategoryIds = new TreeMap<>();
     }
 
     public static void syncImmediately(Context context) {
@@ -108,29 +108,24 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter implements T
 
         Log.d(TAG,"SYNC");
 
-        List<CategoryEntry> categoriesDb = CategoryEntry.getAllCategories("");
+        List<ExpenseEntry> expensesDb = ExpenseEntry.getAllExpenses("");
 
-        if(categoriesDb.size() != 0) {
+        if(expensesDb.size() != 0) {
 
-            syncCategories(categoriesDb);
-
-            List<ExpenseEntry> expensesDb = ExpenseEntry.getAllExpenses("");
-
-            if (expensesDb.size() != 0) {
-
-                syncExpenses(expensesDb);
-                updateDbEntriesIds(expensesDb);
-
-            }
+            syncCategories();
+            syncExpenses();
+            updateDbEntriesIds();
 
         }
 
 
     }
 
-    private void syncCategories(List<CategoryEntry> categoriesDb) {
+    private void syncCategories() {
 
-        String categoriesString = getCategoriesString(categoriesDb);
+        mCategoriesDb = CategoryEntry.getAllCategories("");
+
+        String categoriesString = getCategoriesString();
 
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
@@ -145,32 +140,33 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter implements T
     private void setNewCategoryIds(CategoriesSyncModel apiCategories) {
 
         List<CategoryData> categoryData = apiCategories.getData();
+        int dataSize = categoryData.size();
+        mNewCategoryIds = new int[dataSize];
 
-        for(int i = 0; i<categoryData.size(); i++) {
+        for(int i = 0; i<dataSize; i++) {
 
-            String categoryName = categoryData.get(i).getTitle();
-            Integer categoryId = categoryData.get(i).getId();
-            mNewCategoryIds.put(categoryName,categoryId);
+            int categoryId = categoryData.get(i).getId();
+            mNewCategoryIds[i] = categoryId;
 
         }
     }
 
     @NonNull
-    private String getCategoriesString(List<CategoryEntry> categoriesDb) {
-        List<CategoryData> categoriesToSync = getPreparedCategories(categoriesDb);
+    private String getCategoriesString() {
+        List<CategoryData> categoriesToSync = getPreparedCategories();
 
         Gson gson = new Gson();
 
         return gson.toJson(categoriesToSync);
     }
 
-    private List<CategoryData> getPreparedCategories(List<CategoryEntry> categoriesDb) {
+    private List<CategoryData> getPreparedCategories() {
 
         List<CategoryData> categoriesToSync = new ArrayList<>();
 
-        for(int i = 0; i<categoriesDb.size(); i++) {
+        for(int i = 0; i<mCategoriesDb.size(); i++) {
             CategoryData categoryToSync = new CategoryData();
-            CategoryEntry categoryDb = categoriesDb.get(i);
+            CategoryEntry categoryDb = mCategoriesDb.get(i);
 
 
             categoryToSync.setId(0);
@@ -181,9 +177,9 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter implements T
         return categoriesToSync;
     }
 
-    private void syncExpenses(List<ExpenseEntry> expensesDb) {
+    private void syncExpenses() {
 
-        String expensesString = getExpensesString(expensesDb);
+        String expensesString = getExpensesString();
 
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
@@ -192,8 +188,8 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter implements T
     }
 
     @NonNull
-    private String getExpensesString(List<ExpenseEntry> expensesDb) {
-        List<ExpenseData> expensesToSync = getPreparedExpenses(expensesDb);
+    private String getExpensesString() {
+        List<ExpenseData> expensesToSync = getPreparedExpenses();
 
         Gson gson = new Gson();
 
@@ -201,35 +197,33 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter implements T
     }
 
     @NonNull
-    private List<ExpenseData> getPreparedExpenses(List<ExpenseEntry> expensesDb) {
+    private List<ExpenseData> getPreparedExpenses() {
 
         List<ExpenseData> expensesToSync = new ArrayList<>();
 
-        for(int i = 0; i<expensesDb.size(); i++) {
-            ExpenseData expenseToSync = new ExpenseData();
-            ExpenseEntry expenseDb = expensesDb.get(i);
+        for(int i = 0; i< mCategoriesDb.size(); i++) {
+            CategoryEntry category = mCategoriesDb.get(i);
+            for(ExpenseEntry expenseDb:category.getExpenses()) {
+                ExpenseData expenseToSync = new ExpenseData();
 
-            expenseToSync.setCategory_id(getNewCategoryId(expenseDb.getCategory().getName()));
-            expenseToSync.setComment(expenseDb.getDescription());
-            expenseToSync.setId((int) expenseDb.getId());
-            expenseToSync.setSum(Double.valueOf(expenseDb.getPrice()));
-            expenseToSync.setTrDate(expenseDb.getDate());
+                expenseToSync.setCategory_id(mNewCategoryIds[i]);
+                expenseToSync.setComment(expenseDb.getDescription());
+                expenseToSync.setId((int) expenseDb.getId());
+                expenseToSync.setSum(Double.valueOf(expenseDb.getPrice()));
+                expenseToSync.setTrDate(expenseDb.getDate());
 
-            expensesToSync.add(expenseToSync);
+                expensesToSync.add(expenseToSync);
+            }
         }
         return expensesToSync;
     }
 
-    private int getNewCategoryId(String categoryName) {
-        for(Map.Entry<String,Integer> newId: mNewCategoryIds.entrySet()) {
-            if(categoryName.equals(newId.getKey())) return newId.getValue();
+    private void updateDbEntriesIds() {
+        // FIXME: 16.06.2016 не доставать категории. Достаю их, чтобы проверить обновление id
+        List<CategoryEntry> categoryEntries = CategoryEntry.updateIds(mCategoriesDb,mNewCategoryIds);
+        for (CategoryEntry category:categoryEntries) {
+            Log.d(TAG,String.format(Locale.getDefault(),"%s = %d %n",category.getName(),category.getId()));
         }
-        return 0;
-    }
-
-    private void updateDbEntriesIds(List<ExpenseEntry> expensesDb) {
-       ExpenseEntry.updateCategoryIds(expensesDb,mNewCategoryIds,this,this);
-        //CategoryEntry.updateCategoryIds(mNewCategoryIds,this,this);
     }
 
     private static void onAccountCreated(Account newAccount, Context context) {
@@ -252,22 +246,5 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter implements T
         return MoneyTrackerApplication_.getGoogleToken();
     }
 
-    @Override
-    public void onSuccess(Transaction transaction) {
-        Log.d(TAG,"updated ids successfully");
-        List<CategoryEntry> categoryEntries = CategoryEntry.getAllCategories("");
-        List<ExpenseEntry> expenseEntries = ExpenseEntry.getAllExpenses("");
-        for (CategoryEntry category: categoryEntries) {
-            Log.d(TAG,String.format(Locale.getDefault(),"%s --- %d %n",category.getName(),category.getId()));
-        }
-        for (ExpenseEntry expense: expenseEntries) {
-            Log.d(TAG,String.format(Locale.getDefault(),"%s --- %d %n",expense.getCategory().getName(),expense.getCategory().getId()));
-        }
-    }
-
-    @Override
-    public void onError(Transaction transaction, Throwable error) {
-        Log.d(TAG,"error updating ids");
-    }
 
 }

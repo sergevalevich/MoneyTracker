@@ -43,4 +43,6 @@
     <string name="wrong_password_msg">Wrong password</string>
     <string name="content_authority">com.loftschool.loftmoneytracker</string>
     <string name="sync_account_type">loftmoneytracker.loftschool.com</string>
+    <string name="action_logout">Выход</string>
+    <string name="logout_error_message">При выходе возникла ошибка. Попробуйте ещё раз.</string>
 </resources>

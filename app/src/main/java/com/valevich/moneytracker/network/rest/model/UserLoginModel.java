@@ -5,9 +5,6 @@ import com.google.gson.annotations.SerializedName;
 
 public class UserLoginModel {
 
-    public static final String STATUS_SUCCESS = "success";
-    public static final String STATUS_WRONG_PASSWORD = "Wrong password";
-    public static final String STATUS_WRONG_USERNAME = "Wrong login";
 
     @SerializedName("status")
     private String status;

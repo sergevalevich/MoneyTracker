@@ -3,11 +3,14 @@ package com.valevich.moneytracker.database.data;
 import android.util.Log;
 
 import com.raizlabs.android.dbflow.annotation.Column;
+import com.raizlabs.android.dbflow.annotation.ConflictAction;
 import com.raizlabs.android.dbflow.annotation.Database;
 import com.raizlabs.android.dbflow.annotation.ModelContainer;
 import com.raizlabs.android.dbflow.annotation.OneToMany;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.annotation.Unique;
+import com.raizlabs.android.dbflow.annotation.UniqueGroup;
 import com.raizlabs.android.dbflow.config.DatabaseDefinition;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
@@ -15,6 +18,8 @@ import com.raizlabs.android.dbflow.structure.BaseModel;
 import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
+import com.valevich.moneytracker.network.rest.model.ExpenseData;
+import com.valevich.moneytracker.network.rest.model.GlobalCategoriesDataModel;
 
 import org.androidannotations.annotations.EBean;
 
@@ -25,12 +30,14 @@ import java.util.Map;
  * Created by NotePad.by on 07.05.2016.
  */
 @ModelContainer
-@Table(database = MoneyTrackerDatabase.class)
+@Table(database = MoneyTrackerDatabase.class,
+        uniqueColumnGroups = {@UniqueGroup(groupNumber = 1, uniqueConflict = ConflictAction.IGNORE)})
 public class CategoryEntry extends BaseModel {
 
     @PrimaryKey(autoincrement = true)
     long id;
 
+    @Unique(unique = false, uniqueGroups = 1)
     @Column
     private String name;
 
@@ -70,8 +77,30 @@ public class CategoryEntry extends BaseModel {
                 .queryList();
     }
 
+    public static List<CategoryEntry> updateIds(List<CategoryEntry> categories,int[] ids) {
 
-    public static void updateCategoryIds(final Map<String,Integer> ids, Transaction.Success successCallback, Transaction.Error errorCallback) {
+        for(int i = 0; i < ids.length; i++) {
+            CategoryEntry category = categories.get(i);
+            int id = ids[i];
+            SQLite.update(CategoryEntry.class)
+                    .set(CategoryEntry_Table.id.eq(ids[i]))
+                    .where(CategoryEntry_Table.id.eq(category.getId()))
+                    .execute();
+            SQLite.update(ExpenseEntry.class)
+                    .set(ExpenseEntry_Table.category_id.eq(ids[i]))
+                    .where(ExpenseEntry_Table.category_id.eq(category.getId()))
+                    .execute();
+        }
+
+        return getAllCategories("");
+
+    }
+
+    public static void saveCategories(final List<GlobalCategoriesDataModel> globalCategoriesData,
+                                      Transaction.Success successCallback,
+                                      Transaction.Error errorCallback) {
+
+        final CategoryEntry[] categories = new CategoryEntry[globalCategoriesData.size()];
 
         DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
 
@@ -79,25 +108,28 @@ public class CategoryEntry extends BaseModel {
                 new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<CategoryEntry>() {
                     @Override
                     public void processModel(CategoryEntry category) {
-
-                        String categoryName = category.getName();
-
-                        for(Map.Entry<String,Integer> id: ids.entrySet()) {
-                            if(categoryName.equals(id.getKey())) {
-                                category.setId(id.getValue());
-                                break;
-                            }
-                        }
-
-                        category.update();
-
                     }
                 }).processListener(new ProcessModelTransaction.OnModelProcessListener<CategoryEntry>() {
                     @Override
                     public void onModelProcessed(long current, long total, CategoryEntry category) {
+                        GlobalCategoriesDataModel fetchedCategory =
+                                globalCategoriesData.get((int) current);
+                        category = new CategoryEntry();
+                        category.setId(fetchedCategory.getId());
+                        category.setName(fetchedCategory.getTitle());
 
+                        List<ExpenseData> fetchedExpenses = fetchedCategory.getTransactions();
+                        for (ExpenseData fetchedExpense: fetchedExpenses) {
+                            ExpenseEntry expense = new ExpenseEntry();
+                            expense.setDate(fetchedExpense.getTrDate());
+                            expense.setDescription(fetchedExpense.getComment());
+                            expense.setPrice(String.valueOf(fetchedExpense.getSum()));
+                            expense.associateCategory(category);
+                            expense.save();
+                        }
+                        category.save();
                     }
-                }).addAll(getAllCategories("")).build();//// FIXME: 16.06.2016
+                }).addAll(categories).build();
 
 
         Transaction transaction = database

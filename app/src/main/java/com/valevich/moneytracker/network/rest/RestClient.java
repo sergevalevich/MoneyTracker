@@ -1,6 +1,8 @@
 package com.valevich.moneytracker.network.rest;
 
+import com.valevich.moneytracker.network.rest.requests.FetchGlobalCategoriesDataApi;
 import com.valevich.moneytracker.network.rest.requests.LoginUserApi;
+import com.valevich.moneytracker.network.rest.requests.LogoutUserApi;
 import com.valevich.moneytracker.network.rest.requests.RegisterUserApi;
 import com.valevich.moneytracker.network.rest.requests.SubmitGoogleTokenApi;
 import com.valevich.moneytracker.network.rest.requests.SyncCategoriesApi;
@@ -21,6 +23,8 @@ public class RestClient {
     private SubmitGoogleTokenApi submitGoogleTokenApi;
     private SyncExpensesApi syncExpensesApi;
     private SyncCategoriesApi syncCategoriesApi;
+    private LogoutUserApi logoutUserApi;
+    private FetchGlobalCategoriesDataApi fetchGlobalCategoriesDataApi;
 
     public RestClient() {
         RestAdapter restAdapter = new RestAdapter.Builder()
@@ -32,6 +36,8 @@ public class RestClient {
         submitGoogleTokenApi = restAdapter.create(SubmitGoogleTokenApi.class);
         syncExpensesApi = restAdapter.create(SyncExpensesApi.class);
         syncCategoriesApi = restAdapter.create(SyncCategoriesApi.class);
+        logoutUserApi = restAdapter.create(LogoutUserApi.class);
+        fetchGlobalCategoriesDataApi = restAdapter.create(FetchGlobalCategoriesDataApi.class);
     }
     public RegisterUserApi getRegisterUserApi() {
         return registerUserApi;
@@ -52,4 +58,8 @@ public class RestClient {
     public SyncCategoriesApi getSyncCategoriesApi() {
         return syncCategoriesApi;
     }
+
+    public LogoutUserApi getLogoutUserApi() {return logoutUserApi;}
+
+    public FetchGlobalCategoriesDataApi getFetchGlobalCategoriesDataApi() {return fetchGlobalCategoriesDataApi;}
 }
