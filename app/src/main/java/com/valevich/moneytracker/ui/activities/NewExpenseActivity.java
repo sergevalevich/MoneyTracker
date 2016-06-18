@@ -27,12 +27,16 @@ import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
+import com.valevich.moneytracker.ui.taskshandlers.AddExpenseTask;
 import com.valevich.moneytracker.utils.DateFormatter;
+import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
@@ -50,6 +54,13 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         Transaction.Error {
 
     private static final int CATEGORIES_LOADER = 2;
+
+    @NonConfigurationInstance
+    @Bean
+    AddExpenseTask mAddExpenseTask;
+
+    @Bean
+    NetworkStatusChecker mNetworkStatusChecker;
 
     @ViewById(R.id.amountLabel)
     AppCompatEditText mAmountEditText;
@@ -101,6 +112,11 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
 
     @ColorRes(R.color.colorPrimary)
     int mDatePickerColor;
+
+    private double mSum;
+    private String mDescription;
+    private int mCategoryId;
+    private String mDate;
 
 
 
@@ -240,16 +256,22 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void saveExpense() {
-        String description = mDescriptionEditText.getText().toString();
-        String amount = mAmountEditText.getText().toString();
-        String date = DateFormatter.formatDateForDb(mDatePicker.getText().toString());
         CategoryEntry category = (CategoryEntry) mCategoriesPicker.getSelectedItem();
+        String amount = mAmountEditText.getText().toString();
 
-        ExpenseEntry.saveExpense(description,amount,date,category,this,this);
+        mCategoryId = (int) category.getId();
+        mDescription = mDescriptionEditText.getText().toString();
+        mDate = DateFormatter.formatDateForDb(mDatePicker.getText().toString());
+        mSum = Double.valueOf(amount);
+
+        ExpenseEntry.saveExpense(mDescription,amount,mDate,category,this,this);
     }
 
     @Override
     public void onSuccess(Transaction transaction) {
+        if(mNetworkStatusChecker.isNetworkAvailable()) {
+            mAddExpenseTask.addExpense(mSum,mDescription,mCategoryId,mDate);
+        }
         showToast(mSaveMessage);
         finish();
     }

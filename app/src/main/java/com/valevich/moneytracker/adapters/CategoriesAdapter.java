@@ -9,7 +9,6 @@ import android.widget.TextView;
 
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
-import com.valevich.moneytracker.model.Category;
 
 import java.util.List;
 

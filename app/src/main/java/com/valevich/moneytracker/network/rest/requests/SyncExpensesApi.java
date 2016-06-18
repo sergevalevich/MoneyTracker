@@ -1,6 +1,5 @@
 package com.valevich.moneytracker.network.rest.requests;
 
-import com.valevich.moneytracker.model.Expense;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.ExpensesSyncModel;
 import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;

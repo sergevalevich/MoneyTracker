@@ -1,5 +1,6 @@
 package com.valevich.moneytracker.network.rest;
 
+import com.valevich.moneytracker.network.rest.requests.AddExpenseApi;
 import com.valevich.moneytracker.network.rest.requests.FetchGlobalCategoriesDataApi;
 import com.valevich.moneytracker.network.rest.requests.LoginUserApi;
 import com.valevich.moneytracker.network.rest.requests.LogoutUserApi;
@@ -25,6 +26,7 @@ public class RestClient {
     private SyncCategoriesApi syncCategoriesApi;
     private LogoutUserApi logoutUserApi;
     private FetchGlobalCategoriesDataApi fetchGlobalCategoriesDataApi;
+    private AddExpenseApi addExpenseApi;
 
     public RestClient() {
         RestAdapter restAdapter = new RestAdapter.Builder()
@@ -38,6 +40,7 @@ public class RestClient {
         syncCategoriesApi = restAdapter.create(SyncCategoriesApi.class);
         logoutUserApi = restAdapter.create(LogoutUserApi.class);
         fetchGlobalCategoriesDataApi = restAdapter.create(FetchGlobalCategoriesDataApi.class);
+        addExpenseApi = restAdapter.create(AddExpenseApi.class);
     }
     public RegisterUserApi getRegisterUserApi() {
         return registerUserApi;
@@ -62,4 +65,8 @@ public class RestClient {
     public LogoutUserApi getLogoutUserApi() {return logoutUserApi;}
 
     public FetchGlobalCategoriesDataApi getFetchGlobalCategoriesDataApi() {return fetchGlobalCategoriesDataApi;}
+
+    public AddExpenseApi getAddExpenseApi() {
+        return addExpenseApi;
+    }
 }

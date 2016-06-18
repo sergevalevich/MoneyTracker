@@ -1,6 +1,6 @@
 package com.valevich.moneytracker.network.rest;
 
-import com.valevich.moneytracker.model.Expense;
+import com.valevich.moneytracker.network.rest.model.AddedExpenseModel;
 import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.ExpensesSyncModel;
@@ -55,6 +55,12 @@ public class RestService {
 
     public List<GlobalCategoriesDataModel> fetchGlobalCategoriesData(String authToken, String googleToken) {
         return restClient.getFetchGlobalCategoriesDataApi().fetchGlobalCategoriesData(authToken,googleToken);
+    }
+
+    public AddedExpenseModel addExpense(double sum, String comment, int categoryId,
+                                        String trDate, String authToken, String googleToken) {
+        return restClient.getAddExpenseApi().addExpense(sum,comment,categoryId,
+                trDate,authToken,googleToken);
     }
 
     public void setRestClient(RestClient restClient) {
