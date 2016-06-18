@@ -117,13 +117,13 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
         Log.d(TAG,"SYNC");
 
-        BusProvider.getInstance().post(new QueryStartedEvent());
-
         if(!mIsSyncStopped) {
 
             List<ExpenseEntry> expensesDb = ExpenseEntry.getAllExpenses("");
 
             if (expensesDb.size() != 0) {
+
+                BusProvider.getInstance().post(new QueryStartedEvent());
 
                 syncCategories();
                 if(mNewCategoryIds != null && mNewCategoryIds.length != 0) {
@@ -131,10 +131,10 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                     updateDbEntriesIds();
                 }
 
+                BusProvider.getInstance().post(new QueryFinishedEvent());
+
             }
         }
-
-        BusProvider.getInstance().post(new QueryFinishedEvent());
 
         if(mStopAfterSync) {
             disableSync();

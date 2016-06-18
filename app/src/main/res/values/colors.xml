@@ -6,4 +6,5 @@
     <color name="colorBackground">#616161</color>
     <color name="colorCards">#757575</color>
     <color name="colorText">#ffffff</color>
+    <color name="colorSelectedItem">#70212121</color>
 </resources>

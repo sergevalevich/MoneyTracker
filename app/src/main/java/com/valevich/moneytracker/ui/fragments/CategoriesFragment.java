@@ -1,7 +1,6 @@
 package com.valevich.moneytracker.ui.fragments;
 
 
-
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
@@ -10,6 +9,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -17,9 +18,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SearchView;
+
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.CategoriesAdapter;
 import com.valevich.moneytracker.database.data.CategoryEntry;
+import com.valevich.moneytracker.utils.ClickListener;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -31,11 +34,12 @@ import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
 import org.androidannotations.api.BackgroundExecutor;
+
 import java.util.List;
 
 @OptionsMenu(R.menu.search_menu)
 @EFragment(R.layout.fragment_categories)
-public class CategoriesFragment extends Fragment {
+public class CategoriesFragment extends Fragment implements ClickListener {
 
     private static final String SEARCH_ID = "search_id";
     @ViewById(R.id.categories_list)
@@ -56,6 +60,12 @@ public class CategoriesFragment extends Fragment {
     public CategoriesFragment() {}
 
     private static final int CATEGORIES_LOADER = 1;
+
+    private CategoriesAdapter mCategoriesAdapter;
+
+    private ActionMode mActionMode;
+
+    private ActionMode.Callback mActionModeCallback = new ActionModeCallback();
 
     @Override
     public void onResume() {
@@ -162,11 +172,12 @@ public class CategoriesFragment extends Fragment {
 
             @Override
             public void onLoadFinished(Loader<List<CategoryEntry>> loader, List<CategoryEntry> data) {
-                CategoriesAdapter adapter = (CategoriesAdapter) mCategoriesRecyclerView.getAdapter();
-                if (adapter == null) {
-                    mCategoriesRecyclerView.setAdapter(new CategoriesAdapter(data));
+                mCategoriesAdapter = (CategoriesAdapter) mCategoriesRecyclerView.getAdapter();
+                if (mCategoriesAdapter == null) {
+                    mCategoriesAdapter = new CategoriesAdapter(data,CategoriesFragment.this);
+                    mCategoriesRecyclerView.setAdapter(mCategoriesAdapter);
                 } else {
-                    adapter.refresh(data);
+                    mCategoriesAdapter.refresh(data);
                 }
             }
 
@@ -177,4 +188,63 @@ public class CategoriesFragment extends Fragment {
         });
     }
 
+    private void toggleSection(int position) {
+        mCategoriesAdapter.toggleSelection(position);
+        int selectedItemsCount = mCategoriesAdapter.getSelectedItemCount();
+        if(selectedItemsCount == 0) {
+            mActionMode.finish();
+        } else {
+            mActionMode.setTitle(String.valueOf(selectedItemsCount));
+            mActionMode.invalidate();
+        }
+    }
+
+    @Override
+    public boolean onItemClick(int position) {
+        if(mActionMode != null) {
+            toggleSection(position);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onItemLongClick(int position) {
+        if (mActionMode == null) {
+            mActionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallback);
+        }
+
+        toggleSection(position);
+        return true;
+    }
+
+    private class ActionModeCallback implements ActionMode.Callback {
+        @Override
+        public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+            actionMode.getMenuInflater().inflate(R.menu.contextual_action_bar,menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+            switch (menuItem.getItemId()) {
+                case R.id.menu_remove:
+                    mCategoriesAdapter.removeItems(mCategoriesAdapter.getSelectedItems());
+                    mActionMode.finish();
+                    return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode actionMode) {
+            mCategoriesAdapter.clearSelection();
+            mActionMode = null;
+        }
+    }
 }

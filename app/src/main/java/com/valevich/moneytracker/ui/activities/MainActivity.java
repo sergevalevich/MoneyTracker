@@ -68,7 +68,7 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 @OptionsMenu(R.menu.menu_main)
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
 
-    private String[] mDefaultCategories = {"Одежда","Бизнес","Налоги","Еда","Дом","Образование","ToCheckSearchItem1","ToCheckSearchItem2","ToCheckSearchItem3"};
+    private String[] mDefaultCategories = {"Одежда","Бизнес","Налоги","Еда","Дом","Образование"};
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String TOOLBAR_TITLE_KEY = "TOOLBAR_TITLE";
