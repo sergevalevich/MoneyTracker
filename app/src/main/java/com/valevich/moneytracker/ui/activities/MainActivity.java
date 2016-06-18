@@ -30,10 +30,13 @@ import com.raizlabs.android.dbflow.config.DatabaseDefinition;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
+import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
+import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
 import com.valevich.moneytracker.network.sync.TrackerSyncAdapter;
 import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
 import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
@@ -112,6 +115,18 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        BusProvider.getInstance().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        BusProvider.getInstance().unregister(this);
+    }
+
     @AfterViews
     void setupViews() {
         setupActionBar();
@@ -122,10 +137,15 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     @OptionsItem(R.id.action_logout)
     void logout() {
         if (mNetworkStatusChecker.isNetworkAvailable()) {
-            mLogoutTask.syncAndLogOut();
+            mLogoutTask.requestSync();
         } else {
             mUserNotifier.notifyUser(mDrawerLayout, mNetworkUnavailableMessage);
         }
+    }
+
+    @Subscribe
+    public void onSyncFinished(SyncFinishedEvent syncFinishedEvent) {
+        mLogoutTask.onSyncFinished();
     }
 
     @Override

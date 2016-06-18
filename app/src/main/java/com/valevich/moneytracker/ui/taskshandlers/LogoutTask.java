@@ -47,26 +47,12 @@ public class LogoutTask {
     @StringRes(R.string.logout_error_message)
     String mLogoutErrorMessage;
 
-    @AfterInject
-    void register() {
-        BusProvider.getInstance().register(this);
-    }
-
-    @UiThread
-    void unRegister() {
-        BusProvider.getInstance().unregister(this);
-    }
-
-    public void syncAndLogOut() {
-        requestSync();
-    }
-
     @UiThread
     void notifyUser(String message) {
         mUserNotifier.notifyUser(mActivity.findViewById(R.id.drawer_layout),message);
     }
 
-    private void requestSync() {
+    public void requestSync() {
         TrackerSyncAdapter.syncImmediately(mActivity,true);
     }
 
@@ -88,8 +74,7 @@ public class LogoutTask {
         }
     }
 
-    @Subscribe
-    public void onSyncFinished(SyncFinishedEvent syncFinishedEvent) {
+    public void onSyncFinished() {
         logOut();
     }
 
@@ -110,7 +95,5 @@ public class LogoutTask {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         mActivity.startActivity(intent);
-
-        unRegister();
     }
 }

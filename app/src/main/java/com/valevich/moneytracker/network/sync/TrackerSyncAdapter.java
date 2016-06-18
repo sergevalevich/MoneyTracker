@@ -251,7 +251,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private static void onAccountCreated(Account newAccount, Context context) {
-        final int SYNC_INTERVAL = 12;
+        final int SYNC_INTERVAL = 60;
         final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
         TrackerSyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
         ContentResolver.setSyncAutomatically(newAccount,
@@ -268,10 +268,5 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private String getGoogleToken() {
         return MoneyTrackerApplication_.getGoogleToken();
-    }
-
-    @Produce
-    public SyncFinishedEvent produceEvent() {
-        return new SyncFinishedEvent();
     }
 }

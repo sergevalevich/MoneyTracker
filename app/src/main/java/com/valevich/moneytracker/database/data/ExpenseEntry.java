@@ -14,7 +14,6 @@ import com.raizlabs.android.dbflow.structure.container.ModelContainerAdapter;
 import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
-import com.valevich.moneytracker.model.Category;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
 
 import java.util.List;
