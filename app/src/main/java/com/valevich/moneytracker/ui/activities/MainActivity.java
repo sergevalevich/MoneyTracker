@@ -21,6 +21,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -36,6 +37,8 @@ import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
+import com.valevich.moneytracker.eventbus.events.QueryStartedEvent;
 import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
 import com.valevich.moneytracker.network.sync.TrackerSyncAdapter;
 import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
@@ -76,6 +79,8 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     Toolbar mToolbar;
     @ViewById(R.id.navigation_view)
     NavigationView mNavigationView;
+    @ViewById(R.id.progress_spinner)
+    ProgressBar mProgressBar;
 
     @OptionsMenuItem(R.id.action_logout)
     MenuItem mLogoutMenuItem;
@@ -144,8 +149,26 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     }
 
     @Subscribe
-    public void onSyncFinished(SyncFinishedEvent syncFinishedEvent) {
+    public void onLastSyncFinished(SyncFinishedEvent syncFinishedEvent) {
         mLogoutTask.onSyncFinished();
+    }
+
+    @Subscribe
+    public void onQueryStartedEvent(QueryStartedEvent queryStartedEvent) {
+        toggleProgressBar();
+    }
+
+    @Subscribe
+    public void onQueryFinished(QueryFinishedEvent queryFinishedEvent) {
+        toggleProgressBar();
+    }
+
+    private void toggleProgressBar() {
+        if(mProgressBar.getVisibility() == View.INVISIBLE) {
+            mProgressBar.setVisibility(View.VISIBLE);
+        } else {
+            mProgressBar.setVisibility(View.INVISIBLE);
+        }
     }
 
     @Override

@@ -23,6 +23,8 @@ import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.eventbus.buses.BusProvider;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
+import com.valevich.moneytracker.eventbus.events.QueryStartedEvent;
 import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
 import com.valevich.moneytracker.network.rest.RestClient;
 import com.valevich.moneytracker.network.rest.RestService;
@@ -115,6 +117,8 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
         Log.d(TAG,"SYNC");
 
+        BusProvider.getInstance().post(new QueryStartedEvent());
+
         if(!mIsSyncStopped) {
 
             List<ExpenseEntry> expensesDb = ExpenseEntry.getAllExpenses("");
@@ -129,6 +133,9 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
             }
         }
+
+        BusProvider.getInstance().post(new QueryFinishedEvent());
+
         if(mStopAfterSync) {
             disableSync();
             BusProvider.getInstance().post(new SyncFinishedEvent());
@@ -251,7 +258,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private static void onAccountCreated(Account newAccount, Context context) {
-        final int SYNC_INTERVAL = 60;
+        final int SYNC_INTERVAL = 60*5;
         final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
         TrackerSyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
         ContentResolver.setSyncAutomatically(newAccount,
