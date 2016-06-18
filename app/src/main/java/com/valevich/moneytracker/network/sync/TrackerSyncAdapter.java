@@ -31,6 +31,8 @@ import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
 import com.valevich.moneytracker.network.rest.model.CategoryData;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
+import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
+import com.valevich.moneytracker.network.rest.model.UserLogoutModel;
 import com.valevich.moneytracker.utils.ConstantsManager;
 
 
@@ -165,7 +167,44 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
         CategoriesSyncModel apiCategories = mRestService
                 .syncCategories(categoriesString, loftToken, googleToken);
-        setNewCategoryIds(apiCategories);
+
+        String status = apiCategories.getStatus();
+
+        switch (status) {
+            case ConstantsManager.STATUS_SUCCESS:
+                setNewCategoryIds(apiCategories);
+                break;
+            default:
+                reLogInAndTryAgain();
+                break;
+        }
+
+    }
+
+    private void reLogInAndTryAgain() {
+        UserLogoutModel userLogoutModel = mRestService.logout();
+        String status = userLogoutModel.getStatus();
+        switch (status) {
+            case ConstantsManager.STATUS_EMPTY:// TODO: 19.06.2016 Shorten
+                logIn();
+                syncImmediately(getContext(),false);
+                break;
+            case ConstantsManager.STATUS_SUCCESS:
+                logIn();
+                syncImmediately(getContext(),false);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void logIn() {
+        if(MoneyTrackerApplication_.isGoogleTokenExist()) {
+            mRestService.getGoogleInfo(MoneyTrackerApplication_.getGoogleToken());
+        } else {
+            mRestService.logIn(MoneyTrackerApplication_.getUserFullName(),
+                    MoneyTrackerApplication_.getUserPassword());
+        }
     }
 
     private void setNewCategoryIds(CategoriesSyncModel apiCategories) {
