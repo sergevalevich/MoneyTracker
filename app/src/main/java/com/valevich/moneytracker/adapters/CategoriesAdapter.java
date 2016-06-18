@@ -60,7 +60,7 @@ public class CategoriesAdapter extends SelectableAdapter<CategoriesAdapter.Categ
         @Bind(R.id.category_label)
         TextView categoryLabel;
 
-        @Bind(R.id.selected_overlay)// TODO: 18.06.2016
+        @Bind(R.id.selected_overlay)
         View selectedView;
         private ClickListener clickListener;
 
@@ -114,8 +114,9 @@ public class CategoriesAdapter extends SelectableAdapter<CategoriesAdapter.Categ
     }
 
     public void removeItem(int position) {
-        if (mCategories.get(position) != null) {
-            mCategories.get(position).delete();
+        CategoryEntry category = mCategories.get(position);
+        if (category!= null) {
+            category.delete();
             mCategories.remove(position);
             notifyItemRemoved(position);
         }

@@ -9,29 +9,35 @@ import android.widget.TextView;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
+import com.valevich.moneytracker.utils.ClickListener;
 import com.valevich.moneytracker.utils.DateFormatter;
 
 import org.w3c.dom.Text;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder> {
+public class ExpenseAdapter extends SelectableAdapter<ExpenseAdapter.ExpenseViewHolder> {
 
     private List<ExpenseEntry> mExpenses;
 
-    public ExpenseAdapter (List<ExpenseEntry> expenses) {
+    private ClickListener mClickListener;
+
+    public ExpenseAdapter (List<ExpenseEntry> expenses, ClickListener clickListener) {
         mExpenses = expenses;
+        mClickListener = clickListener;
     }
 
     @Override
     public ExpenseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).
                 inflate(R.layout.expense_list_item,parent,false);
-        return new ExpenseViewHolder(view);
+        return new ExpenseViewHolder(view,mClickListener);
     }
 
     @Override
@@ -50,7 +56,8 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         notifyDataSetChanged();
     }
 
-    class ExpenseViewHolder extends RecyclerView.ViewHolder {
+    class ExpenseViewHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener, View.OnLongClickListener{
 
         @Bind(R.id.price)
         TextView price;
@@ -61,9 +68,16 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         @Bind(R.id.category)
         TextView category;
 
-        public ExpenseViewHolder(View itemView) {
+        @Bind(R.id.selected_overlay)
+        View selectedView;
+        private ClickListener clickListener;
+
+        public ExpenseViewHolder(View itemView, ClickListener clickListener) {
             super(itemView);
             ButterKnife.bind(this,itemView);
+            itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
+            this.clickListener = clickListener;
         }
 
         public void bindExpense(ExpenseEntry expense) {
@@ -73,6 +87,53 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             CategoryEntry categoryDb = expense.getCategory();
             if(categoryDb != null)
             category.setText(expense.getCategory().getName());
+
+            selectedView.setVisibility(isSelected(getAdapterPosition())
+                    ? View.VISIBLE
+                    : View.INVISIBLE);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (clickListener != null) {
+                clickListener.onItemClick(getAdapterPosition());
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            if (clickListener != null) {
+                clickListener.onItemLongClick(getAdapterPosition());
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+    }
+
+    public void removeItems(List<Integer> positions) {
+
+        Collections.sort(positions, new Comparator<Integer>() {
+            @Override
+            public int compare(Integer lhs, Integer rhs) {
+                return rhs - lhs;
+            }
+        });
+
+        while (!positions.isEmpty()) {
+            removeItem(positions.get(0));
+            positions.remove(0);
         }
     }
+
+    public void removeItem(int position) {
+        ExpenseEntry expense = mExpenses.get(position);
+        if (expense != null) {
+            expense.delete();
+            mExpenses.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+
 }
