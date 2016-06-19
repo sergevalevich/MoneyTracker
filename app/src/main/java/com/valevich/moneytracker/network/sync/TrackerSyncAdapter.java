@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Produce;
 import com.squareup.otto.ThreadEnforcer;
+import com.valevich.moneytracker.MoneyTrackerApplication;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
@@ -34,6 +35,7 @@ import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
 import com.valevich.moneytracker.network.rest.model.CategoryData;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
+import com.valevich.moneytracker.network.rest.model.ExpensesSyncModel;
 import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
 import com.valevich.moneytracker.network.rest.model.UserLoginModel;
 import com.valevich.moneytracker.network.rest.model.UserLogoutModel;
@@ -136,7 +138,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
             if (!areExpensesEmpty()) {
 
-                syncCategories(getCategoriesString(getPreparedCategories()),true);
+                syncCategories(getCategoriesString(getPreparedCategories()));
 
                 if (newIdsReceived()) {
                     syncExpenses(getExpensesString(getPreparedExpenses()));
@@ -144,7 +146,8 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             } else {
                 if(!areCategoriesEmpty()) {
                     //sync categories without expenses to remove expenses from the server
-                    syncCategories(getCategoriesString(getPreparedCategories()),false);
+                    syncCategories(getCategoriesString(getPreparedCategories()));
+                    updateDbEntriesIds();
 
                 } else {
                     /*
@@ -156,7 +159,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                      But if the user removes all data without internet, we need to perform this
                      query when network connection is present or the user logs out.
                      */
-                    syncCategories(getDefaultCategoryString(),false);
+                    syncCategories(getDefaultCategoryString());
 
                 }
             }
@@ -201,7 +204,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         ContentResolver.cancelSync(mAccount,ConstantsManager.CONTENT_AUTHORITY);
     }
 
-    private void syncCategories(String categoriesString,boolean newIdsNeeded) {
+    private void syncCategories(String categoriesString) {
 
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
@@ -214,8 +217,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
             switch (status) {
                 case ConstantsManager.STATUS_SUCCESS:
-                    if(newIdsNeeded)
-                        setNewCategoryIds(apiCategories);
+                    setNewCategoryIds(apiCategories);
                     break;
                 default:
                     reLogInAndTryAgain();

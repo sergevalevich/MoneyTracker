@@ -55,8 +55,6 @@ public class MoneyTrackerApplication extends Application {
                 .userPassword().put(password)
                 .apply();
     }
-
-
     public static String getUserFullName() {
         return mPreferences.userFullName().get();
     }

@@ -139,25 +139,29 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
     @Subscribe
     public void onCategoriesRemoved(CategoriesRemovedEvent categoriesRemovedEvent) {
-        toggleProgressBar();
+        stopProgressBar();
         mRemoveCategoriesTask.removeCategories(categoriesRemovedEvent.getIds());
     }
 
     @Subscribe
     public void onQueryStartedEvent(QueryStartedEvent queryStartedEvent) {
-        toggleProgressBar();
+        startProgressBar();
     }
 
     @Subscribe
     public void onQueryFinished(QueryFinishedEvent queryFinishedEvent) {
-        toggleProgressBar();
+        stopProgressBar();
     }
 
-    private void toggleProgressBar() {
+    private void stopProgressBar() {
+        if(mProgressBar.getVisibility() == View.VISIBLE) {
+            mProgressBar.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private void startProgressBar() {
         if(mProgressBar.getVisibility() == View.INVISIBLE) {
             mProgressBar.setVisibility(View.VISIBLE);
-        } else {
-            mProgressBar.setVisibility(View.INVISIBLE);
         }
     }
 

@@ -112,7 +112,6 @@ public class LoginActivity extends AppCompatActivity{
         } else {
             mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
         }
-
     }
 
     @Click(R.id.signUpText)
