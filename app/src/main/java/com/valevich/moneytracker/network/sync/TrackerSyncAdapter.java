@@ -34,6 +34,7 @@ import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
 import com.valevich.moneytracker.network.rest.model.UserLogoutModel;
 import com.valevich.moneytracker.utils.ConstantsManager;
+import com.valevich.moneytracker.utils.NetworkStatusChecker;
 
 
 import org.androidannotations.annotations.AfterInject;
@@ -60,10 +61,14 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private static Account mAccount;
 
+    private NetworkStatusChecker mNetworkStatusChecker;
+
     public TrackerSyncAdapter(Context context) {
         super(context,true);
         mRestService = new RestService();
         mRestService.setRestClient(new RestClient());
+        mNetworkStatusChecker = new NetworkStatusChecker();
+        mNetworkStatusChecker.setConnectivityManager(getContext());
     }
 
     public static void syncImmediately(Context context,boolean stopAfterSync) {
@@ -130,7 +135,6 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                 syncCategories();
                 if(mNewCategoryIds != null && mNewCategoryIds.length != 0) {
                     syncExpenses();
-                    updateDbEntriesIds();
                 }
 
                 BusProvider.getInstance().post(new QueryFinishedEvent());
@@ -165,45 +169,51 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
 
-        CategoriesSyncModel apiCategories = mRestService
-                .syncCategories(categoriesString, loftToken, googleToken);
+        if(mNetworkStatusChecker.isNetworkAvailable()) {
+            CategoriesSyncModel apiCategories = mRestService
+                    .syncCategories(categoriesString, loftToken, googleToken);
 
-        String status = apiCategories.getStatus();
+            String status = apiCategories.getStatus();
 
-        switch (status) {
-            case ConstantsManager.STATUS_SUCCESS:
-                setNewCategoryIds(apiCategories);
-                break;
-            default:
-                reLogInAndTryAgain();
-                break;
+            switch (status) {
+                case ConstantsManager.STATUS_SUCCESS:
+                    setNewCategoryIds(apiCategories);
+                    break;
+                default:
+                    //reLogInAndTryAgain();
+                    break;
+            }
         }
 
     }
 
     private void reLogInAndTryAgain() {
-        UserLogoutModel userLogoutModel = mRestService.logout();
-        String status = userLogoutModel.getStatus();
-        switch (status) {
-            case ConstantsManager.STATUS_EMPTY:// TODO: 19.06.2016 Shorten
-                logIn();
-                syncImmediately(getContext(),false);
-                break;
-            case ConstantsManager.STATUS_SUCCESS:
-                logIn();
-                syncImmediately(getContext(),false);
-                break;
-            default:
-                break;
+        if(mNetworkStatusChecker.isNetworkAvailable()) {
+            UserLogoutModel userLogoutModel = mRestService.logout();
+            String status = userLogoutModel.getStatus();
+            switch (status) {
+                case ConstantsManager.STATUS_EMPTY:// TODO: 19.06.2016 Shorten
+                    logIn();
+                    syncImmediately(getContext(), false);
+                    break;
+                case ConstantsManager.STATUS_SUCCESS:
+                    logIn();
+                    syncImmediately(getContext(), false);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
     private void logIn() {
-        if(MoneyTrackerApplication_.isGoogleTokenExist()) {
-            mRestService.getGoogleInfo(MoneyTrackerApplication_.getGoogleToken());
-        } else {
-            mRestService.logIn(MoneyTrackerApplication_.getUserFullName(),
-                    MoneyTrackerApplication_.getUserPassword());
+        if(mNetworkStatusChecker.isNetworkAvailable()) {
+            if (MoneyTrackerApplication_.isGoogleTokenExist()) {
+                mRestService.getGoogleInfo(MoneyTrackerApplication_.getGoogleToken());
+            } else {
+                mRestService.logIn(MoneyTrackerApplication_.getUserFullName(),
+                        MoneyTrackerApplication_.getUserPassword());
+            }
         }
     }
 
@@ -254,7 +264,10 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
 
-        mRestService.syncExpenses(expensesString, loftToken, googleToken);
+        if(mNetworkStatusChecker.isNetworkAvailable()) {
+            mRestService.syncExpenses(expensesString, loftToken, googleToken);
+            updateDbEntriesIds();
+        }
     }
 
     @NonNull
