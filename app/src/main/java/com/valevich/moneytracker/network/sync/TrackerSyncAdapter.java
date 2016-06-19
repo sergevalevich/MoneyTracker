@@ -132,20 +132,35 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
         if(!mIsSyncStopped) {
 
-            List<ExpenseEntry> expensesDb = ExpenseEntry.getAllExpenses("");
+            notifyQueryStarted();
 
-            if (expensesDb.size() != 0) {
+            if (!areExpensesEmpty()) {
 
-                BusProvider.getInstance().post(new QueryStartedEvent());
+                syncCategories(getCategoriesString(getPreparedCategories()),true);
 
-                syncCategories();
-                if(mNewCategoryIds != null && mNewCategoryIds.length != 0) {
-                    syncExpenses();
+                if (newIdsReceived()) {
+                    syncExpenses(getExpensesString(getPreparedExpenses()));
                 }
+            } else {
+                if(!areCategoriesEmpty()) {
+                    //sync categories without expenses to remove expenses from the server
+                    syncCategories(getCategoriesString(getPreparedCategories()),false);
 
-                BusProvider.getInstance().post(new QueryFinishedEvent());
+                } else {
+                    /*
+                     Because the server doesn't allow sync of empty categories list this is
+                     needed to perform sync if the user removed everything.
+                     So we send default category to the server to remove all the other categories
+                     Everything will be fine if the network connection exists when the user removes
+                     all categories, because in this case delete category query will work.
+                     But if the user removes all data without internet, we need to perform this
+                     query when network connection is present or the user logs out.
+                     */
+                    syncCategories(getDefaultCategoryString(),false);
 
+                }
             }
+            notifyQueryFinished();
         }
 
         if(mStopAfterSync) {
@@ -161,16 +176,32 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         mIsSyncStopped = true;
     }
 
+    private boolean areExpensesEmpty() {
+        return ExpenseEntry.getAllExpenses("").size() == 0;
+    }
+
+    private boolean areCategoriesEmpty() {
+        return CategoryEntry.getAllCategories("").size() == 0;
+    }
+
+    private boolean newIdsReceived() {
+        return mNewCategoryIds != null && mNewCategoryIds.length != 0;
+    }
+
+    private void notifyQueryStarted() {
+        BusProvider.getInstance().post(new QueryStartedEvent());
+    }
+
+    private void notifyQueryFinished() {
+        BusProvider.getInstance().post(new QueryFinishedEvent());
+    }
+
     private void disableSync() {
         ContentResolver.setIsSyncable(mAccount, ConstantsManager.CONTENT_AUTHORITY, 0);
         ContentResolver.cancelSync(mAccount,ConstantsManager.CONTENT_AUTHORITY);
     }
 
-    private void syncCategories() {
-
-        mCategoriesDb = CategoryEntry.getAllCategories("");
-
-        String categoriesString = getCategoriesString();
+    private void syncCategories(String categoriesString,boolean newIdsNeeded) {
 
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
@@ -183,7 +214,8 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
             switch (status) {
                 case ConstantsManager.STATUS_SUCCESS:
-                    setNewCategoryIds(apiCategories);
+                    if(newIdsNeeded)
+                        setNewCategoryIds(apiCategories);
                     break;
                 default:
                     reLogInAndTryAgain();
@@ -274,15 +306,15 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     @NonNull
-    private String getCategoriesString() {
-        List<CategoryData> categoriesToSync = getPreparedCategories();
-
+    private String getCategoriesString(List<CategoryData> categoriesToSync) {
         Gson gson = new Gson();
 
         return gson.toJson(categoriesToSync);
     }
 
     private List<CategoryData> getPreparedCategories() {
+
+        mCategoriesDb = CategoryEntry.getAllCategories("");
 
         List<CategoryData> categoriesToSync = new ArrayList<>();
 
@@ -299,9 +331,17 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         return categoriesToSync;
     }
 
-    private void syncExpenses() {
+    private String getDefaultCategoryString() {
+        List<CategoryData> categoriesToSync = new ArrayList<>();
+        CategoryData categoryToSync = new CategoryData();
+        categoryToSync.setId(0);
+        categoryToSync.setTitle(CategoryEntry.DEFAULT_CATEGORY_NAME);
+        categoriesToSync.add(categoryToSync);
 
-        String expensesString = getExpensesString();
+        return getCategoriesString(categoriesToSync);
+    }
+
+    private void syncExpenses(String expensesString) {
 
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
@@ -313,8 +353,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     @NonNull
-    private String getExpensesString() {
-        List<ExpenseData> expensesToSync = getPreparedExpenses();
+    private String getExpensesString(List<ExpenseData> expensesToSync) {
 
         Gson gson = new Gson();
 
