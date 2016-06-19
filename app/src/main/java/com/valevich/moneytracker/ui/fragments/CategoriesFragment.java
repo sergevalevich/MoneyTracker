@@ -33,6 +33,7 @@ import com.valevich.moneytracker.adapters.CategoriesAdapter;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.eventbus.buses.BusProvider;
 import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
+import com.valevich.moneytracker.eventbus.events.CategoryAddedEvent;
 import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
 import com.valevich.moneytracker.utils.ClickListener;
 
@@ -92,6 +93,8 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     private ActionMode.Callback mActionModeCallback = new ActionModeCallback();
 
     private Dialog mDialog;
+
+    private String mCategoryName;
 
     @Override
     public void onResume() {
@@ -173,6 +176,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         mDialog.dismiss();
         loadCategories("");
         showToast(mSaveMessage);
+        BusProvider.getInstance().post(new CategoryAddedEvent(mCategoryName));
     }
 
     private class ActionModeCallback implements ActionMode.Callback {
@@ -299,7 +303,8 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
             public void onClick(View view) {
                 Editable editable = categoryNameField.getText();
                 if (!TextUtils.isEmpty(editable)) {// TODO: 19.06.2016 defaultName(do not allow)
-                    CategoryEntry.saveCategory(editable.toString()
+                    mCategoryName = editable.toString();
+                    CategoryEntry.saveCategory(mCategoryName
                             ,CategoriesFragment.this
                             ,CategoriesFragment.this);
                 }
