@@ -13,6 +13,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.android.gms.auth.GoogleAuthException;
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.gson.Gson;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Produce;
@@ -32,7 +35,9 @@ import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
 import com.valevich.moneytracker.network.rest.model.CategoryData;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
+import com.valevich.moneytracker.network.rest.model.UserLoginModel;
 import com.valevich.moneytracker.network.rest.model.UserLogoutModel;
+import com.valevich.moneytracker.ui.activities.LoginActivity;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 
@@ -41,6 +46,7 @@ import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -180,7 +186,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                     setNewCategoryIds(apiCategories);
                     break;
                 default:
-                    //reLogInAndTryAgain();
+                    reLogInAndTryAgain();
                     break;
             }
         }
@@ -194,11 +200,9 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             switch (status) {
                 case ConstantsManager.STATUS_EMPTY:// TODO: 19.06.2016 Shorten
                     logIn();
-                    syncImmediately(getContext(), false);
                     break;
                 case ConstantsManager.STATUS_SUCCESS:
                     logIn();
-                    syncImmediately(getContext(), false);
                     break;
                 default:
                     break;
@@ -209,11 +213,49 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     private void logIn() {
         if(mNetworkStatusChecker.isNetworkAvailable()) {
             if (MoneyTrackerApplication_.isGoogleTokenExist()) {
-                mRestService.getGoogleInfo(MoneyTrackerApplication_.getGoogleToken());
+                loginWithGoogle();
             } else {
-                mRestService.logIn(MoneyTrackerApplication_.getUserFullName(),
-                        MoneyTrackerApplication_.getUserPassword());
+                regularLogin();
             }
+        }
+    }
+
+    private void regularLogin() {
+        UserLoginModel userLoginModel = mRestService.logIn(MoneyTrackerApplication_.getUserFullName(),
+                MoneyTrackerApplication_.getUserPassword());
+        String status = userLoginModel.getStatus();
+        switch (status) {
+            case ConstantsManager.STATUS_SUCCESS:
+                syncImmediately(getContext(),false);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void loginWithGoogle() {
+        String token = null;
+        try {
+            String accountName = MoneyTrackerApplication_.getUserEmail();
+            token = GoogleAuthUtil.getToken(getContext(), accountName,
+                    ConstantsManager.SCOPES);
+
+        } catch(UserRecoverableAuthException | IOException userAuthEx){
+            userAuthEx.printStackTrace();
+        } catch (GoogleAuthException fatalAuthEx) {
+            fatalAuthEx.printStackTrace();
+            Log.e(LoginActivity.TAG, "Fatal Exception " + fatalAuthEx.getLocalizedMessage());
+        }
+
+        if(token != null) {
+            MoneyTrackerApplication_.saveGoogleToken(token);
+            UserGoogleInfoModel userGoogleInfoModel = mRestService.getGoogleInfo(token);
+            MoneyTrackerApplication_.saveUserInfo(
+                    userGoogleInfoModel.getName(),
+                    userGoogleInfoModel.getEmail(),
+                    userGoogleInfoModel.getPicture(),
+                    "");
+            syncImmediately(getContext(),false);
         }
     }
 
