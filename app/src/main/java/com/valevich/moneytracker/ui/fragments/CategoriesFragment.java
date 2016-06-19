@@ -1,6 +1,7 @@
 package com.valevich.moneytracker.ui.fragments;
 
 
+import android.app.Dialog;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
@@ -11,14 +12,22 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
+import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.SearchView;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.appdatasearch.Feature;
+import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.CategoriesAdapter;
 import com.valevich.moneytracker.database.data.CategoryEntry;
@@ -44,7 +53,7 @@ import java.util.List;
 
 @OptionsMenu(R.menu.search_menu)
 @EFragment(R.layout.fragment_categories)
-public class CategoriesFragment extends Fragment implements ClickListener {
+public class CategoriesFragment extends Fragment implements ClickListener, Transaction.Error, Transaction.Success {
 
     private static final String SEARCH_ID = "search_id";
     @ViewById(R.id.categories_list)
@@ -59,10 +68,20 @@ public class CategoriesFragment extends Fragment implements ClickListener {
     @StringRes(R.string.search_hint)
     String mSearchHint;
 
+    @StringRes(R.string.new_expense_cancel_warning)
+    String mCancelMessage;
+
+    @StringRes(R.string.new_expense_save_message)
+    String mSaveMessage;
+
+    @StringRes(R.string.new_expense_error_saving_message)
+    String mSaveErrorMessage;
+
     @ColorRes(R.color.colorPrimary)
     int mPrimaryColor;
 
-    public CategoriesFragment() {}
+    public CategoriesFragment() {
+    }
 
     private static final int CATEGORIES_LOADER = 1;
 
@@ -71,6 +90,8 @@ public class CategoriesFragment extends Fragment implements ClickListener {
     private ActionMode mActionMode;
 
     private ActionMode.Callback mActionModeCallback = new ActionModeCallback();
+
+    private Dialog mDialog;
 
     @Override
     public void onResume() {
@@ -98,36 +119,11 @@ public class CategoriesFragment extends Fragment implements ClickListener {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                BackgroundExecutor.cancelAll(SEARCH_ID,true);
+                BackgroundExecutor.cancelAll(SEARCH_ID, true);
                 queryCategories(newText);
                 return false;
             }
         });
-
-    }
-
-    private void customizeSearchViewOld(SearchView searchView) {
-        int searchPlateId = searchView.getContext().getResources().getIdentifier("android:id/search_plate", null, null);
-        View searchPlateView = searchView.findViewById(searchPlateId);
-
-        if (searchPlateView != null) {
-            searchPlateView.setBackgroundColor(mPrimaryColor);
-        }
-
-        int searchImgId = getResources().getIdentifier("android:id/search_button", null, null);
-        ImageView search = (ImageView) searchView.findViewById(searchImgId);
-
-        if(search != null) {
-            search.setImageResource(R.drawable.ic_action_search);
-        }
-
-        int closeImgId = getResources().getIdentifier("android:id/search_close_btn", null, null);
-        ImageView close = (ImageView) searchView.findViewById(closeImgId);
-
-        if(close != null) {
-            close.setImageResource(R.drawable.ic_clear);
-            close.setAlpha(0.4f);
-        }
 
     }
 
@@ -143,70 +139,13 @@ public class CategoriesFragment extends Fragment implements ClickListener {
     }
 
     @Click(R.id.fab)
-    void setupFab() {
-        showSnackBar();
-    }
-
-    private void showSnackBar() {
-        Snackbar.make(mRootLayout, "Hello. I am Snackbar!", Snackbar.LENGTH_SHORT)
-                .setAction("Undo", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                    }
-                })
-                .show();
-    }
-
-    private void setUpRecyclerView() {
-        mCategoriesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-    }
-
-    private void loadCategories(final String filter) {
-        getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks<List<CategoryEntry>>() {
-            @Override
-            public Loader<List<CategoryEntry>> onCreateLoader(int id, Bundle args) {
-                final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(getActivity()) {
-                    @Override
-                    public List<CategoryEntry> loadInBackground() {
-                        return CategoryEntry.getAllCategories(filter);
-                    }
-                };
-                loader.forceLoad();
-                return loader;
-            }
-
-            @Override
-            public void onLoadFinished(Loader<List<CategoryEntry>> loader, List<CategoryEntry> data) {
-                mCategoriesAdapter = (CategoriesAdapter) mCategoriesRecyclerView.getAdapter();
-                if (mCategoriesAdapter == null) {
-                    mCategoriesAdapter = new CategoriesAdapter(data,CategoriesFragment.this);
-                    mCategoriesRecyclerView.setAdapter(mCategoriesAdapter);
-                } else {
-                    mCategoriesAdapter.refresh(data);
-                }
-            }
-
-            @Override
-            public void onLoaderReset(Loader<List<CategoryEntry>> loader) {
-
-            }
-        });
-    }
-
-    private void toggleSection(int position) {
-        mCategoriesAdapter.toggleSelection(position);
-        int selectedItemsCount = mCategoriesAdapter.getSelectedItemCount();
-        if(selectedItemsCount == 0) {
-            mActionMode.finish();
-        } else {
-            mActionMode.setTitle(String.valueOf(selectedItemsCount));
-            mActionMode.invalidate();
-        }
+    void addCategory() {
+        showDialog();
     }
 
     @Override
     public boolean onItemClick(int position) {
-        if(mActionMode != null) {
+        if (mActionMode != null) {
             toggleSection(position);
             return true;
         }
@@ -223,10 +162,23 @@ public class CategoriesFragment extends Fragment implements ClickListener {
         return true;
     }
 
+    @Override
+    public void onError(Transaction transaction, Throwable error) {
+        mDialog.dismiss();
+        showToast(mSaveErrorMessage);
+    }
+
+    @Override
+    public void onSuccess(Transaction transaction) {
+        mDialog.dismiss();
+        loadCategories("");
+        showToast(mSaveMessage);
+    }
+
     private class ActionModeCallback implements ActionMode.Callback {
         @Override
         public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-            actionMode.getMenuInflater().inflate(R.menu.contextual_action_bar,menu);
+            actionMode.getMenuInflater().inflate(R.menu.contextual_action_bar, menu);
             return true;
         }
 
@@ -255,4 +207,114 @@ public class CategoriesFragment extends Fragment implements ClickListener {
             mActionMode = null;
         }
     }
+
+    private void setUpRecyclerView() {
+        mCategoriesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+    }
+
+    private void loadCategories(final String filter) {
+        getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks<List<CategoryEntry>>() {
+            @Override
+            public Loader<List<CategoryEntry>> onCreateLoader(int id, Bundle args) {
+                final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(getActivity()) {
+                    @Override
+                    public List<CategoryEntry> loadInBackground() {
+                        return CategoryEntry.getAllCategories(filter);
+                    }
+                };
+                loader.forceLoad();
+                return loader;
+            }
+
+            @Override
+            public void onLoadFinished(Loader<List<CategoryEntry>> loader, List<CategoryEntry> data) {
+                mCategoriesAdapter = (CategoriesAdapter) mCategoriesRecyclerView.getAdapter();
+                if (mCategoriesAdapter == null) {
+                    mCategoriesAdapter = new CategoriesAdapter(data, CategoriesFragment.this);
+                    mCategoriesRecyclerView.setAdapter(mCategoriesAdapter);
+                } else {
+                    mCategoriesAdapter.refresh(data);
+                }
+            }
+
+            @Override
+            public void onLoaderReset(Loader<List<CategoryEntry>> loader) {
+
+            }
+        });
+    }
+
+    private void toggleSection(int position) {
+        mCategoriesAdapter.toggleSelection(position);
+        int selectedItemsCount = mCategoriesAdapter.getSelectedItemCount();
+        if (selectedItemsCount == 0) {
+            mActionMode.finish();
+        } else {
+            mActionMode.setTitle(String.valueOf(selectedItemsCount));
+            mActionMode.invalidate();
+        }
+    }
+
+    private void customizeSearchViewOld(SearchView searchView) {
+        int searchPlateId = searchView.getContext().getResources().getIdentifier("android:id/search_plate", null, null);
+        View searchPlateView = searchView.findViewById(searchPlateId);
+
+        if (searchPlateView != null) {
+            searchPlateView.setBackgroundColor(mPrimaryColor);
+        }
+
+        int searchImgId = getResources().getIdentifier("android:id/search_button", null, null);
+        ImageView search = (ImageView) searchView.findViewById(searchImgId);
+
+        if (search != null) {
+            search.setImageResource(R.drawable.ic_action_search);
+        }
+
+        int closeImgId = getResources().getIdentifier("android:id/search_close_btn", null, null);
+        ImageView close = (ImageView) searchView.findViewById(closeImgId);
+
+        if (close != null) {
+            close.setImageResource(R.drawable.ic_clear);
+            close.setAlpha(0.4f);
+        }
+
+    }
+
+    private void showToast(String text) {
+        Toast.makeText(getActivity(),text,Toast.LENGTH_LONG).show();
+    }
+
+    private void showDialog() {
+        mDialog = new Dialog(getActivity());
+        mDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mDialog.setContentView(R.layout.dialog_add_category);
+
+
+        TextView saveCategoryButton = (TextView) mDialog.findViewById(R.id.saveCategoryButton);
+        TextView cancelButton = (TextView) mDialog.findViewById(R.id.cancelButton);
+        final AppCompatEditText categoryNameField = (AppCompatEditText) mDialog.findViewById(R.id.category_name_field);
+
+        saveCategoryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Editable editable = categoryNameField.getText();
+                if (!TextUtils.isEmpty(editable)) {// TODO: 19.06.2016 defaultName(do not allow)
+                    CategoryEntry.saveCategory(editable.toString()
+                            ,CategoriesFragment.this
+                            ,CategoriesFragment.this);
+                }
+            }
+        });
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mDialog.dismiss();
+                showToast(mCancelMessage);
+            }
+        });
+
+        mDialog.show();
+    }
+
 }
