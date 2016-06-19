@@ -10,6 +10,7 @@ import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.utils.ClickListener;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -98,7 +99,9 @@ public class CategoriesAdapter extends SelectableAdapter<CategoriesAdapter.Categ
 
     }
 
-    public void removeItems(List<Integer> positions) {
+    public List<Integer> removeItems(List<Integer> positions) {
+
+        List<Integer> removedCategoriesIds = new ArrayList<>();
 
         Collections.sort(positions, new Comparator<Integer>() {
             @Override
@@ -108,17 +111,22 @@ public class CategoriesAdapter extends SelectableAdapter<CategoriesAdapter.Categ
         });
 
         while (!positions.isEmpty()) {
-                removeItem(positions.get(0));
+                int id = removeItem(positions.get(0));
+                removedCategoriesIds.add(id);
                 positions.remove(0);
         }
+        return removedCategoriesIds;
     }
 
-    public void removeItem(int position) {
+    public int removeItem(int position) {
         CategoryEntry category = mCategories.get(position);
+        int id = 0;
         if (category!= null) {
+            id = (int) category.getId();
             category.delete();
             mCategories.remove(position);
             notifyItemRemoved(position);
         }
+        return id;
     }
 }

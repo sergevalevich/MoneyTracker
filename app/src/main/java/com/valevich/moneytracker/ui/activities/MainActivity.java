@@ -37,6 +37,7 @@ import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
 import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
 import com.valevich.moneytracker.eventbus.events.QueryStartedEvent;
 import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
@@ -47,6 +48,7 @@ import com.valevich.moneytracker.ui.fragments.SettingsFragment_;
 import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
 import com.valevich.moneytracker.ui.taskshandlers.FetchUserDataTask;
 import com.valevich.moneytracker.ui.taskshandlers.LogoutTask;
+import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
 import com.valevich.moneytracker.utils.ImageLoader;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.Preferences_;
@@ -91,6 +93,10 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     @Bean
     @NonConfigurationInstance
     LogoutTask mLogoutTask;
+
+    @NonConfigurationInstance
+    @Bean
+    RemoveCategoriesTask mRemoveCategoriesTask;
 
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
@@ -151,6 +157,12 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     @Subscribe
     public void onLastSyncFinished(SyncFinishedEvent syncFinishedEvent) {
         mLogoutTask.onSyncFinished();
+    }
+
+    @Subscribe
+    public void onCategoriesRemoved(CategoriesRemovedEvent categoriesRemovedEvent) {
+        toggleProgressBar();
+        mRemoveCategoriesTask.removeCategories(categoriesRemovedEvent.getIds());
     }
 
     @Subscribe

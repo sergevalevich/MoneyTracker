@@ -22,12 +22,17 @@ import android.widget.SearchView;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.CategoriesAdapter;
 import com.valevich.moneytracker.database.data.CategoryEntry;
+import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
+import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
 import com.valevich.moneytracker.utils.ClickListener;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.ViewById;
@@ -234,8 +239,11 @@ public class CategoriesFragment extends Fragment implements ClickListener {
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
             switch (menuItem.getItemId()) {
                 case R.id.menu_remove:
-                    mCategoriesAdapter.removeItems(mCategoriesAdapter.getSelectedItems());
+                    List<Integer> ids = mCategoriesAdapter.removeItems(mCategoriesAdapter.getSelectedItems());
                     mActionMode.finish();
+
+                    BusProvider.getInstance().post(new CategoriesRemovedEvent(ids));
+
                     return true;
             }
             return false;

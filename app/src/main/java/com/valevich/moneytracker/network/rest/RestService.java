@@ -5,6 +5,7 @@ import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.ExpensesSyncModel;
 import com.valevich.moneytracker.network.rest.model.GlobalCategoriesDataModel;
+import com.valevich.moneytracker.network.rest.model.RemovedCategoryModel;
 import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
 import com.valevich.moneytracker.network.rest.model.UserLoginModel;
 import com.valevich.moneytracker.network.rest.model.UserLogoutModel;
@@ -61,6 +62,10 @@ public class RestService {
                                         String trDate, String authToken, String googleToken) {
         return restClient.getAddExpenseApi().addExpense(sum,comment,categoryId,
                 trDate,authToken,googleToken);
+    }
+
+    public RemovedCategoryModel removeCategory(int id, String authToken, String googleToken) {
+        return restClient.getRemoveCategoryApi().removeCategory(id,authToken,googleToken);
     }
 
     public void setRestClient(RestClient restClient) {
