@@ -11,4 +11,15 @@ public final class ConstantsManager {
     public final static String EMAIL_SCOPE =
             "https://www.googleapis.com/auth/userinfo.email";
     public final static String SCOPES = G_PLUS_SCOPE + " " + USERINFO_SCOPE + " " + EMAIL_SCOPE;
+
+    //-----loftApiStatuses------//
+    public static final String STATUS_SUCCESS = "success";
+    public static final String STATUS_LOGIN_BUSY = "Login busy already";
+    public static final String STATUS_WRONG_PASSWORD = "Wrong password";
+    public static final String STATUS_WRONG_USERNAME = "Wrong login";
+    public static final String STATUS_EMPTY = "";
+
+    //-----SYNC-----------------//
+    public static final String CONTENT_AUTHORITY = "com.loftschool.loftmoneytracker";
+    public static final String SYNC_ACCOUNT_TYPE = "loftmoneytracker.loftschool.com";
 }

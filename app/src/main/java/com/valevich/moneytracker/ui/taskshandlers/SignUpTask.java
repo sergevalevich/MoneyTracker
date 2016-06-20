@@ -15,6 +15,7 @@ import com.valevich.moneytracker.ui.activities.LoginActivity;
 import com.valevich.moneytracker.ui.activities.MainActivity_;
 import com.valevich.moneytracker.ui.activities.SignUpActivity;
 import com.valevich.moneytracker.ui.activities.SignUpActivity_;
+import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.Preferences_;
 import com.valevich.moneytracker.utils.UserNotifier;
 
@@ -38,6 +39,9 @@ public class SignUpTask {
     @Bean
     UserNotifier mUserNotifier;
 
+    @Bean
+    FetchUserDataTask mFetchUserDataTask;
+
     @StringRes(R.string.login_busy_message)
     String mLoginBusyMessage;
 
@@ -58,10 +62,10 @@ public class SignUpTask {
         UserRegistrationModel userRegistrationModel = mRestService.register(userName, password);
         String status = userRegistrationModel.getStatus();
         switch (status) {
-            case UserRegistrationModel.STATUS_SUCCESS:
+            case ConstantsManager.STATUS_SUCCESS:
                 logIn(userName, password, email);
                 break;
-            case UserRegistrationModel.STATUS_LOGIN_BUSY:
+            case ConstantsManager.STATUS_LOGIN_BUSY:
                 notifyUser(mLoginBusyMessage);
                 break;
             default:
@@ -75,15 +79,15 @@ public class SignUpTask {
         UserLoginModel userLoginModel = mRestService.logIn(userName, password);
         String status = userLoginModel.getStatus();
         switch (status) {
-            case UserLoginModel.STATUS_SUCCESS:
+            case ConstantsManager.STATUS_SUCCESS:
                 MoneyTrackerApplication_.saveLoftApiToken(userLoginModel.getAuthToken());
-                MoneyTrackerApplication_.saveUserInfo(userName,email,"");
+                MoneyTrackerApplication_.saveUserInfo(userName,email,"",password);
                 navigateToMain();
                 break;
-            case UserLoginModel.STATUS_WRONG_USERNAME:
+            case ConstantsManager.STATUS_WRONG_USERNAME:
                 notifyUser(mWrongUsernameMessage);
                 break;
-            case UserLoginModel.STATUS_WRONG_PASSWORD:
+            case ConstantsManager.STATUS_WRONG_PASSWORD:
                 notifyUser(mWrongPasswordMessage);
                 break;
             default:
@@ -97,20 +101,25 @@ public class SignUpTask {
         UserLoginModel userLoginModel = mRestService.logIn(userName, password);
         String status = userLoginModel.getStatus();
         switch (status) {
-            case UserLoginModel.STATUS_SUCCESS:
+            case ConstantsManager.STATUS_SUCCESS:
                 MoneyTrackerApplication_.saveLoftApiToken(userLoginModel.getAuthToken());
-                navigateToMain();
+                MoneyTrackerApplication_.saveUserInfo(userName,"","",password);
+                fetchUserData();
                 break;
-            case UserLoginModel.STATUS_WRONG_USERNAME:
+            case ConstantsManager.STATUS_WRONG_USERNAME:
                 notifyUser(mWrongUsernameMessage);
                 break;
-            case UserLoginModel.STATUS_WRONG_PASSWORD:
+            case ConstantsManager.STATUS_WRONG_PASSWORD:
                 notifyUser(mWrongPasswordMessage);
                 break;
             default:
                 notifyUser(mGeneralErrorMessage);
                 break;
         }
+    }
+
+    private void fetchUserData() {
+        mFetchUserDataTask.fetchUserData();
     }
 
     private void navigateToMain() {

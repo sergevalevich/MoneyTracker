@@ -4,7 +4,6 @@ import com.google.gson.annotations.SerializedName;
 
 public class UserGoogleInfoModel {
 
-    public static final String STATUS_SUCCESS = "success";
 
     @SerializedName("id")
     private String id;

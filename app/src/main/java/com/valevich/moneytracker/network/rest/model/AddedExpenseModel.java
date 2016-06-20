@@ -2,13 +2,15 @@ package com.valevich.moneytracker.network.rest.model;
 
 import com.google.gson.annotations.SerializedName;
 
-public class UserRegistrationModel {
-
+/**
+ * Created by User on 18.06.2016.
+ */
+public class AddedExpenseModel {
     @SerializedName("status")
     private String status;
+
     @SerializedName("id")
     private Integer id;
-
 
     public String getStatus() {
         return status;
@@ -25,7 +27,4 @@ public class UserRegistrationModel {
     public void setId(Integer id) {
         this.id = id;
     }
-
 }
-
-
