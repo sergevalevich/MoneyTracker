@@ -22,4 +22,7 @@ public interface Preferences {
 
     @DefaultString("")
     String userPhoto();
+
+    @DefaultString("")
+    String userPassword();
 }

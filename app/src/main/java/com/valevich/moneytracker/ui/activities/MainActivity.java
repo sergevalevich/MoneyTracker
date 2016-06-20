@@ -1,15 +1,9 @@
 package com.valevich.moneytracker.ui.activities;
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -20,38 +14,47 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
-import com.raizlabs.android.dbflow.config.DatabaseDefinition;
-import com.raizlabs.android.dbflow.config.FlowManager;
-import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
+import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
-import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
+import com.valevich.moneytracker.database.data.ExpenseEntry;
+import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
+import com.valevich.moneytracker.eventbus.events.CategoryAddedEvent;
+import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
+import com.valevich.moneytracker.eventbus.events.QueryStartedEvent;
+import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
+import com.valevich.moneytracker.network.sync.TrackerSyncAdapter;
 import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
 import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
 import com.valevich.moneytracker.ui.fragments.SettingsFragment_;
 import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
+import com.valevich.moneytracker.ui.taskshandlers.AddCategoryTask;
+import com.valevich.moneytracker.ui.taskshandlers.LogoutTask;
+import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
 import com.valevich.moneytracker.utils.ImageLoader;
-import com.valevich.moneytracker.utils.Preferences_;
+import com.valevich.moneytracker.utils.NetworkStatusChecker;
+import com.valevich.moneytracker.utils.UserNotifier;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.NonConfigurationInstance;
+import org.androidannotations.annotations.OptionsItem;
+import org.androidannotations.annotations.OptionsMenu;
+import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
-import org.androidannotations.annotations.sharedpreferences.Pref;
 
 
 @EActivity
+@OptionsMenu(R.menu.menu_main)
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
-
-    private String[] mDefaultCategories = {"Одежда","Бизнес","Налоги","Еда","Дом","Образование","ToCheckSearchItem1","ToCheckSearchItem2","ToCheckSearchItem3"};
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String TOOLBAR_TITLE_KEY = "TOOLBAR_TITLE";
@@ -62,9 +65,35 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     Toolbar mToolbar;
     @ViewById(R.id.navigation_view)
     NavigationView mNavigationView;
+    @ViewById(R.id.progress_spinner)
+    ProgressBar mProgressBar;
+
+    @OptionsMenuItem(R.id.action_logout)
+    MenuItem mLogoutMenuItem;
 
     @Bean
     ImageLoader mImageLoader;
+
+    @Bean
+    @NonConfigurationInstance
+    LogoutTask mLogoutTask;
+
+    @NonConfigurationInstance
+    @Bean
+    RemoveCategoriesTask mRemoveCategoriesTask;
+
+    @NonConfigurationInstance
+    @Bean
+    AddCategoryTask mAddCategoryTask;
+
+    @Bean
+    NetworkStatusChecker mNetworkStatusChecker;
+
+    @Bean
+    UserNotifier mUserNotifier;
+
+    @StringRes(R.string.network_unavailable)
+    String mNetworkUnavailableMessage;
 
     private ActionBarDrawerToggle mToggle;
     private FragmentManager mFragmentManager;
@@ -73,10 +102,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        if(CategoryEntry.getAllCategories("").isEmpty()) {
-            saveDefaultCategories();
-        }
+        TrackerSyncAdapter.initializeSyncAdapter(this);
 
         if(savedInstanceState == null) {
             replaceFragment(new ExpensesFragment_());
@@ -84,11 +110,71 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        BusProvider.getInstance().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        BusProvider.getInstance().unregister(this);
+    }
+
     @AfterViews
     void setupViews() {
         setupActionBar();
         setupDrawerLayout();
         setupFragmentManager();
+    }
+
+    @OptionsItem(R.id.action_logout)
+    void logout() {
+        if (mNetworkStatusChecker.isNetworkAvailable()) {
+            mLogoutTask.requestSync();
+        } else {
+            mUserNotifier.notifyUser(mDrawerLayout, mNetworkUnavailableMessage);
+        }
+    }
+
+    @Subscribe
+    public void onLastSyncFinished(SyncFinishedEvent syncFinishedEvent) {
+        mLogoutTask.onSyncFinished();
+    }
+
+    @Subscribe
+    public void onCategoriesRemoved(CategoriesRemovedEvent categoriesRemovedEvent) {
+        startProgressBar();
+        mRemoveCategoriesTask.removeCategories(categoriesRemovedEvent.getIds());
+    }
+
+    @Subscribe
+    public void onCategoryAdded(CategoryAddedEvent categoryAddedEvent) {
+        startProgressBar();
+        mAddCategoryTask.addCategory(categoryAddedEvent.getTitle());
+    }
+
+    @Subscribe
+    public void onQueryStartedEvent(QueryStartedEvent queryStartedEvent) {
+        startProgressBar();
+    }
+
+    @Subscribe
+    public void onQueryFinished(QueryFinishedEvent queryFinishedEvent) {
+        stopProgressBar();
+    }
+
+    private void stopProgressBar() {
+        if(mProgressBar.getVisibility() == View.VISIBLE) {
+            mProgressBar.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private void startProgressBar() {
+        if(mProgressBar.getVisibility() == View.INVISIBLE) {
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -229,31 +315,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
             changeToolbarTitle(f.getClass().getName());
         }
 
-    }
-
-    private void saveDefaultCategories() {
-
-       final CategoryEntry[] categories = new CategoryEntry[mDefaultCategories.length];
-
-
-        DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
-
-        ProcessModelTransaction<CategoryEntry> processModelTransaction =
-                new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<CategoryEntry>() {
-                    @Override
-                    public void processModel(CategoryEntry category) {
-                    }
-                }).processListener(new ProcessModelTransaction.OnModelProcessListener<CategoryEntry>() {
-                    @Override
-                    public void onModelProcessed(long current, long total, CategoryEntry category) {
-                        category = new CategoryEntry();
-                        category.setName(mDefaultCategories[(int) current]);
-                        category.save();
-                    }
-                }).addAll(categories).build();
-
-        Transaction transaction = database.beginTransactionAsync(processModelTransaction).build();
-        transaction.execute();
     }
 }
 

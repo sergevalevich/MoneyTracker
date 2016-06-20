@@ -83,4 +83,12 @@
     <dimen name="google_btn_top_margin">32dp</dimen>
     <dimen name="sign_up_textSize">14sp</dimen>
 
+    <!--new category dialog paddings-->
+    <dimen name="dialog_title_textSize">20sp</dimen>
+    <dimen name="dialog_padding">24dp</dimen>
+    <dimen name="dialog_title_bottom_padding">20dp</dimen>
+    <dimen name="dialog_content_bottom_margin">24dp</dimen>
+    <dimen name="dialog_padding_bottom">0dp</dimen>
+    <dimen name="action_area_padding">8dp</dimen>
+
 </resources>

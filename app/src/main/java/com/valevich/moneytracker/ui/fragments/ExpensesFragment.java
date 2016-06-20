@@ -10,6 +10,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -23,6 +25,7 @@ import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.ExpenseAdapter;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.ui.activities.NewExpenseActivity_;
+import com.valevich.moneytracker.utils.ClickListener;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -39,7 +42,7 @@ import java.util.List;
 
 @OptionsMenu(R.menu.search_menu)
 @EFragment(R.layout.fragment_expenses)
-public class ExpensesFragment extends Fragment {
+public class ExpensesFragment extends Fragment implements ClickListener {
 
     private static final String SEARCH_ID = "search_id";
     @ViewById(R.id.expenseList)
@@ -56,6 +59,12 @@ public class ExpensesFragment extends Fragment {
     int mPrimaryColor;
 
     private static final int EXPENSES_LOADER = 0;
+
+    private ExpenseAdapter mExpenseAdapter;
+
+    private ActionMode mActionMode;
+
+    private ActionMode.Callback mActionModeCallback = new ActionModeCallback();
 
 
     public ExpensesFragment() {
@@ -156,11 +165,12 @@ public class ExpensesFragment extends Fragment {
 
             @Override
             public void onLoadFinished(Loader<List<ExpenseEntry>> loader, List<ExpenseEntry> data) {
-                ExpenseAdapter adapter = (ExpenseAdapter) mExpenseRecyclerView.getAdapter();
-                if(adapter == null) {
-                    mExpenseRecyclerView.setAdapter(new ExpenseAdapter(data));
+                mExpenseAdapter = (ExpenseAdapter) mExpenseRecyclerView.getAdapter();
+                if(mExpenseAdapter == null) {
+                    mExpenseAdapter = new ExpenseAdapter(data,ExpensesFragment.this);
+                    mExpenseRecyclerView.setAdapter(mExpenseAdapter);
                 } else {
-                    adapter.refresh(data);
+                    mExpenseAdapter.refresh(data);
                 }
             }
 
@@ -170,4 +180,65 @@ public class ExpensesFragment extends Fragment {
             }
         });
     }
+
+    private void toggleSection(int position) {
+        mExpenseAdapter.toggleSelection(position);
+        int selectedItemsCount = mExpenseAdapter.getSelectedItemCount();
+        if(selectedItemsCount == 0) {
+            mActionMode.finish();
+        } else {
+            mActionMode.setTitle(String.valueOf(selectedItemsCount));
+            mActionMode.invalidate();
+        }
+    }
+
+    @Override
+    public boolean onItemClick(int position) {
+        if(mActionMode != null) {
+            toggleSection(position);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onItemLongClick(int position) {
+        if (mActionMode == null) {
+            mActionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallback);
+        }
+
+        toggleSection(position);
+        return true;
+    }
+
+    private class ActionModeCallback implements ActionMode.Callback {
+        @Override
+        public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+            actionMode.getMenuInflater().inflate(R.menu.contextual_action_bar,menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+            switch (menuItem.getItemId()) {
+                case R.id.menu_remove:
+                    mExpenseAdapter.removeItems(mExpenseAdapter.getSelectedItems());
+                    mActionMode.finish();
+                    return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode actionMode) {
+            mExpenseAdapter.clearSelection();
+            mActionMode = null;
+        }
+    }
+
 }

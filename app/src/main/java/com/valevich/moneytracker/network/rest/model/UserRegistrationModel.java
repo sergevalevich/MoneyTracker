@@ -4,9 +4,6 @@ import com.google.gson.annotations.SerializedName;
 
 public class UserRegistrationModel {
 
-    public static final String STATUS_SUCCESS = "success";
-    public static final String STATUS_LOGIN_BUSY = "Login busy already";
-
     @SerializedName("status")
     private String status;
     @SerializedName("id")

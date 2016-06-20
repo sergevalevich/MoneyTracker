@@ -27,11 +27,16 @@ import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
+import com.valevich.moneytracker.ui.taskshandlers.AddExpenseTask;
+import com.valevich.moneytracker.utils.DateFormatter;
+import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
@@ -44,9 +49,18 @@ import java.util.Locale;
 
 
 @EActivity
-public class NewExpenseActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<CategoryEntry>>{
+public class NewExpenseActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<CategoryEntry>>,
+        Transaction.Success,
+        Transaction.Error {
 
     private static final int CATEGORIES_LOADER = 2;
+
+    @NonConfigurationInstance
+    @Bean
+    AddExpenseTask mAddExpenseTask;
+
+    @Bean
+    NetworkStatusChecker mNetworkStatusChecker;
 
     @ViewById(R.id.amountLabel)
     AppCompatEditText mAmountEditText;
@@ -99,6 +113,11 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     @ColorRes(R.color.colorPrimary)
     int mDatePickerColor;
 
+    private double mSum;
+    private String mDescription;
+    private int mCategoryId;
+    private String mDate;
+
 
 
     @Override
@@ -138,8 +157,9 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void setupDatePicker() {
-        SimpleDateFormat sdf = new SimpleDateFormat("d/M/yyyy",Locale.getDefault());
-        mDatePicker.setText(sdf.format(new Date()));
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy",Locale.getDefault());
+        Date date = new Date();
+        mDatePicker.setText(sdf.format(date));
     }
 
     @Click(R.id.date_picker)
@@ -161,10 +181,14 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
 
         public void onDateSet(DatePickerDialog view, int selectedYear,
                               int selectedMonth, int selectedDay) {
+            int month = selectedMonth + 1;
+            String stringMonth = String.valueOf(month);
+            if(month < 10) stringMonth = "0" + stringMonth;
+
             mDatePicker.setText(String.format(Locale.getDefault(),
-                    "%d/%d/%d",
+                    "%d-%s-%d",
                     selectedDay,
-                    selectedMonth+1,
+                    stringMonth,
                     selectedYear));
         }
     };
@@ -232,48 +256,28 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void saveExpense() {
+        CategoryEntry category = (CategoryEntry) mCategoriesPicker.getSelectedItem();
+        String amount = mAmountEditText.getText().toString();
 
-        ExpenseEntry expense = new ExpenseEntry();
+        mCategoryId = (int) category.getId();
+        mDescription = mDescriptionEditText.getText().toString();
+        mDate = DateFormatter.formatDateForDb(mDatePicker.getText().toString());
+        mSum = Double.valueOf(amount);
 
-        DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
+        ExpenseEntry.saveExpense(mDescription,amount,mDate,category,this,this);
+    }
 
-        ProcessModelTransaction<ExpenseEntry> processModelTransaction =
-                new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<ExpenseEntry>() {
-                    @Override
-                    public void processModel(ExpenseEntry expense) {
-                        expense.setDate(mDatePicker.getText().toString());
-                        expense.setDescription(mDescriptionEditText.getText().toString());
-                        expense.setPrice(mAmountEditText.getText().toString());
+    @Override
+    public void onSuccess(Transaction transaction) {
+        if(mNetworkStatusChecker.isNetworkAvailable()) {
+            mAddExpenseTask.addExpense(mSum,mDescription,mCategoryId,mDate);
+        }
+        showToast(mSaveMessage);
+        finish();
+    }
 
-                        CategoryEntry category = (CategoryEntry) mCategoriesPicker.getSelectedItem();
-
-                        expense.associateCategory(category);
-                        expense.save();
-                    }
-                }).processListener(new ProcessModelTransaction.OnModelProcessListener<ExpenseEntry>() {
-                    @Override
-                    public void onModelProcessed(long current, long total, ExpenseEntry modifiedModel) {
-
-                    }
-                }).addAll(expense).build();
-
-        Transaction transaction = database.beginTransactionAsync(processModelTransaction)
-                .success(new Transaction.Success() {
-                    @Override
-                    public void onSuccess(Transaction transaction) {
-                        showToast(mSaveMessage);
-                        finish();
-                    }
-                })
-                .error(new Transaction.Error() {
-                    @Override
-                    public void onError(Transaction transaction, Throwable error) {
-                        showSnackBar(mSaveErrorMessage);
-                    }
-                })
-                .build();
-
-        transaction.execute();
-
+    @Override
+    public void onError(Transaction transaction, Throwable error) {
+        showSnackBar(mSaveErrorMessage);
     }
 }

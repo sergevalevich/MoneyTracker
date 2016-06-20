@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="@dimen/dialog_padding"
+    android:paddingBottom="@dimen/dialog_padding_bottom"
+    android:background="@color/colorBackgroundDialog">
+
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/dialog_title_bottom_padding"
+        android:paddingLeft="@dimen/dialog_padding"
+        android:paddingRight="@dimen/dialog_padding"
+        android:textSize="@dimen/dialog_title_textSize"
+        android:text="@string/dialog_title_text"
+        android:textColor="@color/colorText"/>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/category_name_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/tile_height"
+        android:layout_marginBottom="@dimen/dialog_content_bottom_margin"
+        android:paddingLeft="@dimen/dialog_padding"
+        android:paddingRight="@dimen/dialog_padding"
+        android:layout_below="@+id/dialog_title"
+        android:theme="@style/TextLabel">
+
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/category_name_field"
+            style="@style/EditText"
+            android:maxLines="1"
+            android:maxLength="15"
+            android:hint="@string/new_category_name_hint"/>
+
+    </android.support.design.widget.TextInputLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/button_layout_height"
+        android:padding="@dimen/action_area_padding"
+        android:layout_below="@+id/category_name_layout">
+
+        <com.andexert.library.RippleView
+            android:id="@+id/save"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            app:rv_rippleDuration = "200"
+            app:rv_zoom="true"
+            app:rv_zoomScale = "1.2"
+            app:rv_type="rectangle">
+            <TextView
+                android:id="@+id/saveCategoryButton"
+                style="@style/DialogButtonStyle"
+                android:text = "@string/save_category_button_title"/>
+        </com.andexert.library.RippleView>
+
+        <com.andexert.library.RippleView
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height"
+            android:layout_toStartOf="@+id/save"
+            android:layout_toLeftOf="@+id/save"
+            android:layout_centerVertical="true"
+            app:rv_rippleDuration = "200"
+            app:rv_zoom="true"
+            app:rv_zoomScale = "1.2"
+            app:rv_type="rectangle">
+            <TextView
+                style="@style/DialogButtonStyle"
+                android:id="@+id/cancelButton"
+                android:text = "@string/cancel_button_title"/>
+        </com.andexert.library.RippleView>
+
+    </RelativeLayout>
+
+</RelativeLayout>

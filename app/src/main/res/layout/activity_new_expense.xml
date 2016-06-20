@@ -43,7 +43,7 @@
                 android:id="@+id/amountLabel"
                 style="@style/EditText"
                 android:inputType="number|numberDecimal"
-                android:maxLength="8"
+                android:maxLength="6"
                 android:hint="@string/new_expense_amount_hint">
 
                     <requestFocus/>
