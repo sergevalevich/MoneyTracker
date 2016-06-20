@@ -3,23 +3,24 @@ package com.valevich.moneytracker.utils;
 /**
  * Created by NotePad.by on 26.05.2016.
  */
-public final class ConstantsManager {
-    public final static String G_PLUS_SCOPE =
+public interface ConstantsManager {
+    String G_PLUS_SCOPE =
             "oauth2:https://www.googleapis.com/auth/plus.me";
-    public final static String USERINFO_SCOPE =
+    String USERINFO_SCOPE =
             "https://www.googleapis.com/auth/userinfo.profile";
-    public final static String EMAIL_SCOPE =
+    String EMAIL_SCOPE =
             "https://www.googleapis.com/auth/userinfo.email";
-    public final static String SCOPES = G_PLUS_SCOPE + " " + USERINFO_SCOPE + " " + EMAIL_SCOPE;
+    String SCOPES = G_PLUS_SCOPE + " " + USERINFO_SCOPE + " " + EMAIL_SCOPE;
 
     //-----loftApiStatuses------//
-    public static final String STATUS_SUCCESS = "success";
-    public static final String STATUS_LOGIN_BUSY = "Login busy already";
-    public static final String STATUS_WRONG_PASSWORD = "Wrong password";
-    public static final String STATUS_WRONG_USERNAME = "Wrong login";
-    public static final String STATUS_EMPTY = "";
+    String STATUS_SUCCESS = "success";
+    String STATUS_LOGIN_BUSY = "Login busy already";
+    String STATUS_WRONG_PASSWORD = "Wrong password";
+    String STATUS_WRONG_USERNAME = "Wrong login";
+    String STATUS_EMPTY = "";
 
     //-----SYNC-----------------//
-    public static final String CONTENT_AUTHORITY = "com.loftschool.loftmoneytracker";
-    public static final String SYNC_ACCOUNT_TYPE = "loftmoneytracker.loftschool.com";
+    String CONTENT_AUTHORITY = "com.loftschool.loftmoneytracker";
+    String SYNC_ACCOUNT_TYPE = "loftmoneytracker.loftschool.com";
+
 }

@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.common.AccountPicker;
+import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.network.rest.model.UserLoginModel;
 import com.valevich.moneytracker.ui.taskshandlers.FetchUserDataTask;
@@ -111,7 +112,6 @@ public class LoginActivity extends AppCompatActivity{
         } else {
             mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
         }
-
     }
 
     @Click(R.id.signUpText)

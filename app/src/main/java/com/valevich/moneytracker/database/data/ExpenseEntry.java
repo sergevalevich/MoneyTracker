@@ -103,6 +103,8 @@ public class ExpenseEntry extends BaseModel {
                         expense.setPrice(amount);
 
                         expense.associateCategory(category);
+
+                        category.save();
                         expense.save();
                     }
                 }).processListener(new ProcessModelTransaction.OnModelProcessListener<ExpenseEntry>() {

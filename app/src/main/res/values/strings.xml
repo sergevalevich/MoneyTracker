@@ -45,4 +45,8 @@
     <string name="sync_account_type">loftmoneytracker.loftschool.com</string>
     <string name="action_logout">Выход</string>
     <string name="logout_error_message">При выходе возникла ошибка. Попробуйте ещё раз.</string>
+    <string name="selected_action_remove">remove</string>
+    <string name="new_category_name_hint">Введите название категории</string>
+    <string name="dialog_title_text">Новая категория</string>
+    <string name="save_category_button_title">ДОБАВИТЬ</string>
 </resources>

@@ -19,6 +19,7 @@ import com.valevich.moneytracker.network.sync.TrackerSyncAdapter;
 import com.valevich.moneytracker.ui.activities.LoginActivity_;
 import com.valevich.moneytracker.ui.activities.MainActivity;
 import com.valevich.moneytracker.utils.ConstantsManager;
+import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.UserNotifier;
 
 import org.androidannotations.annotations.AfterInject;
@@ -43,6 +44,9 @@ public class LogoutTask {
 
     @Bean
     UserNotifier mUserNotifier;
+
+    @Bean
+    NetworkStatusChecker mNetworkStatusChecker;
 
     @StringRes(R.string.logout_error_message)
     String mLogoutErrorMessage;
@@ -75,7 +79,8 @@ public class LogoutTask {
     }
 
     public void onSyncFinished() {
-        logOut();
+        if(mNetworkStatusChecker.isNetworkAvailable())
+            logOut();
     }
 
     private void clearUserData() {

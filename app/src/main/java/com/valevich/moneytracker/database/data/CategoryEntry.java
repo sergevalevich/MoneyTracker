@@ -36,6 +36,9 @@ import java.util.Map;
         uniqueColumnGroups = {@UniqueGroup(groupNumber = 1, uniqueConflict = ConflictAction.IGNORE)})
 public class CategoryEntry extends BaseModel {
 
+    //----DEFAULT CATEGORY. Needed to allow sync when the user removed all items
+    public static final String DEFAULT_CATEGORY_NAME = "DEFAULT_CATEGORY";
+
     @PrimaryKey(autoincrement = true)
     long id;
 
@@ -117,22 +120,64 @@ public class CategoryEntry extends BaseModel {
                     public void onModelProcessed(long current, long total, CategoryEntry category) {
                         GlobalCategoriesDataModel fetchedCategory =
                                 globalCategoriesData.get((int) current);
-                        category = new CategoryEntry();
-                        category.setId(fetchedCategory.getId());
-                        category.setName(fetchedCategory.getTitle());
-                        category.save();
 
-                        List<ExpenseData> fetchedExpenses = fetchedCategory.getTransactions();
-                        for (ExpenseData fetchedExpense: fetchedExpenses) {
-                            ExpenseEntry expense = new ExpenseEntry();
-                            expense.setDate(fetchedExpense.getTrDate());
-                            expense.setDescription(fetchedExpense.getComment());
-                            expense.setPrice(String.valueOf(fetchedExpense.getSum()));
-                            expense.associateCategory(category);
-                            expense.save();
+                        if(!isCategoryDefault(fetchedCategory)) {
+
+                            category = new CategoryEntry();
+                            category.setId(fetchedCategory.getId());
+                            category.setName(fetchedCategory.getTitle());
+                            category.save();
+
+                            List<ExpenseData> fetchedExpenses = fetchedCategory.getTransactions();
+                            for (ExpenseData fetchedExpense : fetchedExpenses) {
+                                ExpenseEntry expense = new ExpenseEntry();
+                                expense.setDate(fetchedExpense.getTrDate());
+                                expense.setDescription(fetchedExpense.getComment());
+                                expense.setPrice(String.valueOf(fetchedExpense.getSum()));
+                                expense.associateCategory(category);
+                                expense.save();
+                            }
                         }
                     }
                 }).addAll(categories).build();
+
+
+        Transaction transaction = database
+                .beginTransactionAsync(processModelTransaction)
+                .success(successCallback)
+                .error(errorCallback)
+                .build();
+
+        transaction.execute();
+
+    }
+
+    private static boolean isCategoryDefault(GlobalCategoriesDataModel fetchedCategory) {
+        return fetchedCategory.getTitle().equals(DEFAULT_CATEGORY_NAME);
+    }
+
+
+    public static void saveCategory(final String name,
+                                    Transaction.Success successCallback,
+                                    Transaction.Error errorCallback) {
+
+        CategoryEntry category = new CategoryEntry();
+
+        DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
+
+        ProcessModelTransaction<CategoryEntry> processModelTransaction =
+                new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<CategoryEntry>() {
+                    @Override
+                    public void processModel(CategoryEntry category) {
+                        category.setName(name);
+                        category.save();
+                    }
+                }).processListener(new ProcessModelTransaction.OnModelProcessListener<CategoryEntry>() {
+                    @Override
+                    public void onModelProcessed(long current, long total, CategoryEntry category) {
+
+                    }
+                }).addAll(category).build();
 
 
         Transaction transaction = database
