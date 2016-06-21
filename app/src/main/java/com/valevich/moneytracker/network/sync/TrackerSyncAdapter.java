@@ -232,9 +232,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             UserLogoutModel userLogoutModel = mRestService.logout();
             String status = userLogoutModel.getStatus();
             switch (status) {
-                case ConstantsManager.STATUS_EMPTY:// TODO: 19.06.2016 Shorten
-                    logIn();
-                    break;
+                case ConstantsManager.STATUS_EMPTY:
                 case ConstantsManager.STATUS_SUCCESS:
                     logIn();
                     break;
@@ -260,7 +258,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String status = userLoginModel.getStatus();
         switch (status) {
             case ConstantsManager.STATUS_SUCCESS:
-                syncImmediately(getContext(),false);
+                syncImmediately(getContext(),true);
                 break;
             default:
                 break;
@@ -289,7 +287,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                     userGoogleInfoModel.getEmail(),
                     userGoogleInfoModel.getPicture(),
                     "");
-            syncImmediately(getContext(),false);
+            syncImmediately(getContext(),true);
         }
     }
 

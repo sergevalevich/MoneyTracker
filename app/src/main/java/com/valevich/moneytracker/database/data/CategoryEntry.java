@@ -39,6 +39,11 @@ public class CategoryEntry extends BaseModel {
 
     //----DEFAULT CATEGORY. Needed to allow sync when the user removed all items
     public static final String DEFAULT_CATEGORY_NAME = "DEFAULT_CATEGORY";
+    public static final String TRANSACTION_TYPE_CREATE = "CREATE";
+    public static final String TRANSACTION_TYPE_UPDATE = "UPDATE";
+
+    private static String mTransactionType;
+
 
     @PrimaryKey(autoincrement = true)
     long id;
@@ -81,6 +86,13 @@ public class CategoryEntry extends BaseModel {
                 .from(CategoryEntry.class)
                 .where(CategoryEntry_Table.name.like("%" + filter + "%"))
                 .queryList();
+    }
+
+    public static CategoryEntry getCategory(String name) {
+        return SQLite.select()
+                .from(CategoryEntry.class)
+                .where(CategoryEntry_Table.name.eq(name))
+                .querySingle();
     }
 
     public static List<CategoryEntry> updateIds(List<CategoryEntry> categories,int[] ids) {
@@ -163,8 +175,10 @@ public class CategoryEntry extends BaseModel {
                                     Transaction.Success successCallback,
                                     Transaction.Error errorCallback) {
 
+        mTransactionType = TRANSACTION_TYPE_UPDATE;
         if(category == null) {
             category = new CategoryEntry();
+            mTransactionType = TRANSACTION_TYPE_CREATE;
         }
 
         DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
@@ -174,7 +188,10 @@ public class CategoryEntry extends BaseModel {
                     @Override
                     public void processModel(CategoryEntry category) {
                         category.setName(name);
-                        category.save();
+                        if (mTransactionType.equals(TRANSACTION_TYPE_CREATE))
+                            category.insert();
+                        if(mTransactionType.equals(TRANSACTION_TYPE_UPDATE))
+                            category.update();
                     }
                 }).processListener(new ProcessModelTransaction.OnModelProcessListener<CategoryEntry>() {
                     @Override
@@ -183,13 +200,12 @@ public class CategoryEntry extends BaseModel {
                     }
                 }).addAll(category).build();
 
-
         Transaction transaction = database
                 .beginTransactionAsync(processModelTransaction)
                 .success(successCallback)
                 .error(errorCallback)
+                .name(mTransactionType)
                 .build();
-
         transaction.execute();
 
     }

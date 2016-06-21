@@ -19,25 +19,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by User on 20.06.2016.
+ * Created by User on 21.06.2016.
  */
 @EBean
-public class AddCategoryTask {
-    private static final String TAG = AddCategoryTask.class.getSimpleName();
-    @Bean
-    RestService mRestService;
-
+public class UpdateCategoryTask {
+    private static final String TAG = UpdateCategoryTask.class.getSimpleName();
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
 
+    @Bean
+    AddCategoryTask mAddCategoryTask;
+
+    @Bean
+    RestService mRestService;
+
     @Background
-    public void addCategory(String title) {
+    public void updateCategory(String newName,int id) {
         if(mNetworkStatusChecker.isNetworkAvailable()) {
-            AddedCategoryModel addedCategoryModel = mRestService.addCategory(title,getAuthToken(),getGoogleToken());
+            AddedCategoryModel addedCategoryModel = mRestService.updateCategory(newName,id,getAuthToken(),getGoogleToken());
             String status = addedCategoryModel.getStatus();
             switch (status) {
                 case ConstantsManager.STATUS_SUCCESS:
-                    updateDbIds(title,addedCategoryModel.getData().getId());
+                    updateDbIds(newName,addedCategoryModel.getData().getId());
+                    break;
+                case ConstantsManager.STATUS_WRONG_ID:
+                    mAddCategoryTask.addCategory(newName);
                     break;
                 default:
                     break;
@@ -52,15 +58,15 @@ public class AddCategoryTask {
         categoryEntries.add(category);
         List<CategoryEntry> categories = CategoryEntry.updateIds(categoryEntries,new int[] {id});
         for (CategoryEntry categoryEntry:categories) {
-            Log.d(TAG, "updateDbIdsCREATE: " + categoryEntry.getId());
+            Log.d(TAG, "updateDbIdsUPDATE: " + categoryEntry.getId());
         }
-    }
-
-    private String getGoogleToken() {
-        return MoneyTrackerApplication_.getGoogleToken();
     }
 
     private String getAuthToken() {
         return MoneyTrackerApplication_.getLoftApiToken();
+    }
+
+    private String getGoogleToken() {
+        return MoneyTrackerApplication_.getGoogleToken();
     }
 }

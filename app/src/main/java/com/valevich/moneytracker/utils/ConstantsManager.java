@@ -18,6 +18,7 @@ public interface ConstantsManager {
     String STATUS_WRONG_PASSWORD = "Wrong password";
     String STATUS_WRONG_USERNAME = "Wrong login";
     String STATUS_EMPTY = "";
+    String STATUS_WRONG_ID = "Wrong id";
 
     //-----SYNC-----------------//
     String CONTENT_AUTHORITY = "com.loftschool.loftmoneytracker";

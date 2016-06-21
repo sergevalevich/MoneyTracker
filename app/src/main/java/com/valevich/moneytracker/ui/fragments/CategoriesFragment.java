@@ -35,6 +35,7 @@ import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.eventbus.buses.BusProvider;
 import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryAddedEvent;
+import com.valevich.moneytracker.eventbus.events.CategoryUpdatedEvent;
 import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
 import com.valevich.moneytracker.utils.ClickListener;
 import com.valevich.moneytracker.utils.UserNotifier;
@@ -110,6 +111,8 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     private Dialog mDialog;
 
     private String mCategoryName;
+
+    private int mCategoryId;
 
     @Override
     public void onResume() {
@@ -193,7 +196,10 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         mDialog.dismiss();
         loadCategories("");
         showToast(mSaveMessage);
-        BusProvider.getInstance().post(new CategoryAddedEvent(mCategoryName));
+        String transactionType = transaction.name();
+        if(transactionType.equals(CategoryEntry.TRANSACTION_TYPE_UPDATE))
+            BusProvider.getInstance().post(new CategoryUpdatedEvent(mCategoryName,mCategoryId));
+        else BusProvider.getInstance().post(new CategoryAddedEvent(mCategoryName));
     }
 
     private class ActionModeCallback implements ActionMode.Callback {
@@ -305,7 +311,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         Toast.makeText(getActivity(),text,Toast.LENGTH_LONG).show();
     }
 
-    private void showDialog(String title,String text, final CategoryEntry category) {
+    private void showDialog(String title, final String text, final CategoryEntry category) {
         mDialog = new Dialog(getActivity());
         mDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         mDialog.setContentView(R.layout.dialog_add_category);
@@ -322,9 +328,10 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
             @Override
             public void onClick(View view) {
                 Editable editable = categoryNameField.getText();
-                if (!TextUtils.isEmpty(editable)) {
+                if (!TextUtils.isEmpty(editable) && !TextUtils.equals(editable,text)) {
                     mCategoryName = editable.toString();
                     if(!mCategoryName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME)) {
+                        if(category != null) mCategoryId = (int) category.getId();
                         CategoryEntry.saveCategory(category
                                 , mCategoryName
                                 , CategoriesFragment.this
