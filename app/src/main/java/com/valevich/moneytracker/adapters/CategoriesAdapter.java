@@ -55,6 +55,10 @@ public class CategoriesAdapter extends SelectableAdapter<CategoriesAdapter.Categ
         notifyDataSetChanged();
     }
 
+    public CategoryEntry getItem(int position) {
+        return mCategories.get(position);
+    }
+
     class CategoryViewHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener, View.OnLongClickListener{
 
