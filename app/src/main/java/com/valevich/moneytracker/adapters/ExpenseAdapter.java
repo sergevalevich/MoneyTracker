@@ -1,9 +1,13 @@
 package com.valevich.moneytracker.adapters;
 
+import android.content.Context;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 import com.valevich.moneytracker.R;
@@ -11,8 +15,6 @@ import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.utils.ClickListener;
 import com.valevich.moneytracker.utils.DateFormatter;
-
-import org.w3c.dom.Text;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,9 +30,14 @@ public class ExpenseAdapter extends SelectableAdapter<ExpenseAdapter.ExpenseView
 
     private ClickListener mClickListener;
 
-    public ExpenseAdapter (List<ExpenseEntry> expenses, ClickListener clickListener) {
+    private Context mContext;
+
+    private int mLastPosition = -1;//animate last position
+
+    public ExpenseAdapter (List<ExpenseEntry> expenses, ClickListener clickListener, Context context) {
         mExpenses = expenses;
         mClickListener = clickListener;
+        mContext = context;
     }
 
     @Override
@@ -67,6 +74,8 @@ public class ExpenseAdapter extends SelectableAdapter<ExpenseAdapter.ExpenseView
         TextView date;
         @Bind(R.id.category)
         TextView category;
+        @Bind(R.id.expenseCard)
+        CardView card;
 
         @Bind(R.id.selected_overlay)
         View selectedView;
@@ -91,6 +100,8 @@ public class ExpenseAdapter extends SelectableAdapter<ExpenseAdapter.ExpenseView
             selectedView.setVisibility(isSelected(getAdapterPosition())
                     ? View.VISIBLE
                     : View.INVISIBLE);
+
+            setAnimation(card,getAdapterPosition());
         }
 
         @Override
@@ -133,6 +144,14 @@ public class ExpenseAdapter extends SelectableAdapter<ExpenseAdapter.ExpenseView
             expense.delete();
             mExpenses.remove(position);
             notifyItemRemoved(position);
+        }
+    }
+
+    private void setAnimation(View view, int position) {
+        if(position > mLastPosition) {
+            Animation animation = AnimationUtils.loadAnimation(mContext, R.anim.slide_in_left);
+            view.startAnimation(animation);
+            mLastPosition = position;
         }
     }
 

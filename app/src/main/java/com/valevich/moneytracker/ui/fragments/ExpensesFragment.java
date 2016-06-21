@@ -167,7 +167,7 @@ public class ExpensesFragment extends Fragment implements ClickListener {
             public void onLoadFinished(Loader<List<ExpenseEntry>> loader, List<ExpenseEntry> data) {
                 mExpenseAdapter = (ExpenseAdapter) mExpenseRecyclerView.getAdapter();
                 if(mExpenseAdapter == null) {
-                    mExpenseAdapter = new ExpenseAdapter(data,ExpensesFragment.this);
+                    mExpenseAdapter = new ExpenseAdapter(data,ExpensesFragment.this,getActivity());
                     mExpenseRecyclerView.setAdapter(mExpenseAdapter);
                 } else {
                     mExpenseAdapter.refresh(data);
