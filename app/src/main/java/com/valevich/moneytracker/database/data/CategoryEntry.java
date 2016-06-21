@@ -22,6 +22,7 @@ import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.GlobalCategoriesDataModel;
 
 import org.androidannotations.annotations.EBean;
+import org.androidannotations.annotations.res.StringRes;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -157,11 +158,14 @@ public class CategoryEntry extends BaseModel {
     }
 
 
-    public static void saveCategory(final String name,
+    public static void saveCategory(CategoryEntry category,
+                                    final String name,
                                     Transaction.Success successCallback,
                                     Transaction.Error errorCallback) {
 
-        CategoryEntry category = new CategoryEntry();
+        if(category == null) {
+            category = new CategoryEntry();
+        }
 
         DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
 

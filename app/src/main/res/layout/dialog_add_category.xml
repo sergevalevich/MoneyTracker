@@ -17,7 +17,6 @@
         android:paddingLeft="@dimen/dialog_padding"
         android:paddingRight="@dimen/dialog_padding"
         android:textSize="@dimen/dialog_title_textSize"
-        android:text="@string/dialog_title_text"
         android:textColor="@color/colorText"/>
 
     <android.support.design.widget.TextInputLayout
