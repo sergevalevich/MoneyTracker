@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/google_button_height"
+    android:paddingStart="@dimen/google_icon_horizontal_padding"
+    android:paddingEnd="@dimen/google_icon_horizontal_padding">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true">
+
+        <ImageView
+            android:id="@+id/google_icon"
+            android:layout_width="@dimen/google_icon_size"
+            android:layout_height="@dimen/google_icon_size"
+            android:layout_marginEnd="@dimen/google_icon_end_padding"
+            android:layout_marginRight="@dimen/google_icon_end_padding"
+            android:layout_marginStart="0dp"
+            android:layout_marginLeft="0dp"
+            android:layout_centerVertical="true"
+            android:src = "@color/google_icon"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/common_signin_button_text_long"
+            android:layout_toRightOf="@id/google_icon"
+            android:layout_toEndOf="@+id/google_icon"
+            android:layout_centerVertical="true"
+            android:textSize="@dimen/google_button_textSize"
+            android:textColor="@color/colorText"/>
+
+    </RelativeLayout>
+
+</RelativeLayout>

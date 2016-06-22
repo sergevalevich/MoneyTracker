@@ -259,14 +259,16 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
 
     private void saveExpense() {
         CategoryEntry category = (CategoryEntry) mCategoriesPicker.getSelectedItem();
-        String amount = mAmountEditText.getText().toString();
+        if(category != null) {
+            String amount = mAmountEditText.getText().toString();
 
-        mCategoryId = (int) category.getId();
-        mDescription = mDescriptionEditText.getText().toString();
-        mDate = DateFormatter.formatDateForDb(mDatePicker.getText().toString());
-        mSum = Double.valueOf(amount);
+            mCategoryId = (int) category.getId();
+            mDescription = mDescriptionEditText.getText().toString();
+            mDate = DateFormatter.formatDateForDb(mDatePicker.getText().toString());
+            mSum = Double.valueOf(amount);
 
-        ExpenseEntry.saveExpense(mDescription,amount,mDate,category,this,this);
+            ExpenseEntry.saveExpense(mDescription, amount, mDate, category, this, this);
+        }
     }
 
     @Override

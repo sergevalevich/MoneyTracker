@@ -60,7 +60,6 @@
         </activity>
         <activity
             android:name=".ui.activities.SignUpActivity_"
-            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar"
             android:parentActivityName=".ui.activities.LoginActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
@@ -72,7 +71,6 @@
         </activity>
         <activity
             android:name=".ui.activities.LoginActivity_"
-            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
 

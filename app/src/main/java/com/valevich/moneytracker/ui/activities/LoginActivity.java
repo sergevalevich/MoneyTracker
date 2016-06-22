@@ -2,6 +2,8 @@ package com.valevich.moneytracker.ui.activities;
 
 import android.accounts.AccountManager;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.drawable.GradientDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
 import android.widget.Button;
@@ -86,6 +88,7 @@ public class LoginActivity extends AppCompatActivity{
 
     @AfterViews
     void loadBackground() {
+        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
         Glide.with(this)
                 .load(R.drawable.gray_bg)
                 .placeholder(R.drawable.gray_bg_placeholder)

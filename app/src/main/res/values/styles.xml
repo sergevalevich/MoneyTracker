@@ -91,6 +91,16 @@
         <item name="android:paddingBottom">@dimen/login_vertical_padding</item>
     </style>
 
+    <style name="AuthFieldContainer.Land">
+        <item name="android:layout_marginTop">@dimen/login_vertical_margin_land</item>
+        <item name="android:paddingTop">@dimen/login_vertical_padding_land</item>
+        <item name="android:paddingBottom">@dimen/login_vertical_padding_land</item>
+        <item name="android:layout_marginLeft">@dimen/activity_horizontal_margin_land</item>
+        <item name="android:layout_marginRight">@dimen/activity_horizontal_margin_land</item>
+        <item name="android:paddingLeft">@dimen/login_horizontal_padding_land</item>
+        <item name="android:paddingRight">@dimen/login_horizontal_padding_land</item>
+    </style>
+
     <style name="EditText">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -98,6 +108,10 @@
         <item name="android:textSize">@dimen/input_field_text_size</item>
         <item name="android:textColor">@android:color/primary_text_dark</item>
         <item name="android:ems">10</item>
+    </style>
+
+    <style name="EditText.Land">
+        <item name="android:layout_marginBottom">@dimen/input_text_bottom_padding_land</item>
     </style>
 
     <style name="AuthButton">
