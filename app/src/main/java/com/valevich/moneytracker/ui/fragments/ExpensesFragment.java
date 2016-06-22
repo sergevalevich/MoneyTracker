@@ -71,6 +71,11 @@ public class ExpensesFragment extends Fragment implements ClickListener {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         loadExpenses("");
@@ -135,8 +140,7 @@ public class ExpensesFragment extends Fragment implements ClickListener {
 
     @Click(R.id.fab)
     void setupFab() {
-        Intent intent = new Intent(getActivity(), NewExpenseActivity_.class);
-        startActivity(intent);
+        NewExpenseActivity_.intent(this).start().withAnimation(R.anim.enter_pull_in,R.anim.exit_fade_out);
     }
 
     private void setUpRecyclerView() {

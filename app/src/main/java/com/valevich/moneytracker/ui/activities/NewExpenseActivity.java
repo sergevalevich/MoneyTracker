@@ -280,4 +280,10 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     public void onError(Transaction transaction, Throwable error) {
         showSnackBar(mSaveErrorMessage);
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.enter_fade_in,R.anim.exit_push_out);
+    }
 }
