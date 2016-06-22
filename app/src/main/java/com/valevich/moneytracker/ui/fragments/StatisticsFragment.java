@@ -96,11 +96,14 @@ public class StatisticsFragment extends Fragment {
 
         int index = 0;
         for(CategoryEntry category:categories) {
-            Entry entry = new Entry(category.getCategoryTotal(),index);
-            String label = category.getName();
-            entries.add(entry);
-            labels.add(label);
-            index++;
+            float total = category.getCategoryTotal();
+            if(total != 0) {
+                Entry entry = new Entry(total, index);
+                String label = category.getName();
+                entries.add(entry);
+                labels.add(label);
+                index++;
+            }
         }
 
         PieDataSet pieDataSet = new PieDataSet(entries,"");

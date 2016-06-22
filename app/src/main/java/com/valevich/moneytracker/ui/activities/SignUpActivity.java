@@ -2,6 +2,7 @@ package com.valevich.moneytracker.ui.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
@@ -85,6 +86,7 @@ public class SignUpActivity extends AppCompatActivity{
 
     @AfterViews
     void loadBackground() {
+        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
         Glide.with(this)
                 .load(R.drawable.gray_bg)
                 .placeholder(R.drawable.gray_bg_placeholder)

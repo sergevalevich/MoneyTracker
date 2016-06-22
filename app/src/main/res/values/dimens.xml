@@ -99,5 +99,7 @@
     <dimen name="activity_horizontal_margin_land">32dp</dimen>
     <dimen name="login_horizontal_padding_land">0dp</dimen>
     <dimen name="login_options_margin_top_land">16dp</dimen>
+    <dimen name="tile_height_land">64dp</dimen>
+    <dimen name="signUp_activity_padding">5dp</dimen>
 
 </resources>
