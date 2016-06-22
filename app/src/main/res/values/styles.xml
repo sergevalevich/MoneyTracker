@@ -107,4 +107,14 @@
         <item name="android:textColor">@color/colorText</item>
         <item name="android:background">@color/colorPrimary</item>
     </style>
+
+    <style name="CustomAnimations"/>
+
+    <!-- Sliding animation -->
+    <style name="CustomAnimations.slide">
+        <item name="android:windowEnterAnimation">@anim/dialog_slide_down</item>
+        <item name="android:windowExitAnimation">@anim/dialog_slide_up</item>
+    </style>
+
+
 </resources>

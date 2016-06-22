@@ -1,6 +1,7 @@
 package com.valevich.moneytracker.ui.fragments;
 
 
+import android.animation.Animator;
 import android.app.Dialog;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,10 +19,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextUtils;
-import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.SearchView;
@@ -369,7 +371,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
                 showToast(mCancelMessage);
             }
         });
-
+        mDialog.getWindow().getAttributes().windowAnimations = R.style.CustomAnimations_slide;
         mDialog.show();
     }
 
