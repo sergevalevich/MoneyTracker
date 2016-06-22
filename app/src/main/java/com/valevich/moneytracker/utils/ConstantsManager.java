@@ -24,4 +24,8 @@ public interface ConstantsManager {
     String CONTENT_AUTHORITY = "com.loftschool.loftmoneytracker";
     String SYNC_ACCOUNT_TYPE = "loftmoneytracker.loftschool.com";
 
+    //-----CHART---///
+    float CHART_LABEL_SIZE = 14.0f;
+    float CHART_LABEL_CENTER_SIZE = 16.0f;
+
 }

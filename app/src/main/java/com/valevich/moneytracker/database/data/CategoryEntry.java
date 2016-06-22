@@ -234,6 +234,14 @@ public class CategoryEntry extends BaseModel {
     }
 
 
+    public float getCategoryTotal() {
+        float total = 0.f;
+        for (ExpenseEntry expense:getExpenses()) {
+            total += Float.valueOf(expense.getPrice());
+        }
+        return total;
+    }
+
     @Override
     public String toString() {
         return name;

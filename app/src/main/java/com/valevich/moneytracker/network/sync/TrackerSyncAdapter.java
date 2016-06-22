@@ -258,7 +258,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String status = userLoginModel.getStatus();
         switch (status) {
             case ConstantsManager.STATUS_SUCCESS:
-                syncImmediately(getContext(),true);
+                syncImmediately(getContext(),mStopAfterSync);
                 break;
             default:
                 break;
@@ -287,7 +287,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                     userGoogleInfoModel.getEmail(),
                     userGoogleInfoModel.getPicture(),
                     "");
-            syncImmediately(getContext(),true);
+            syncImmediately(getContext(),mStopAfterSync);
         }
     }
 
