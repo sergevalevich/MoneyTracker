@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.AppCompatEditText;
@@ -67,6 +68,9 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     @ViewById(R.id.coordinator)
     CoordinatorLayout mRootLayout;
 
+    @ViewById(R.id.swipeToRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+
     @OptionsMenuItem(R.id.action_search)
     MenuItem mSearchMenuItem;
 
@@ -95,7 +99,10 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     String mEditCategoryDialogTitle;
 
     @ColorRes(R.color.colorPrimary)
-    int mPrimaryColor;
+    int mColorPrimary;
+
+    @ColorRes(R.color.colorPrimaryDark)
+    int mColorPrimaryDark;
 
     public CategoriesFragment() {
     }
@@ -157,6 +164,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     @AfterViews
     void setupViews() {
         setUpRecyclerView();
+        setupSwipeToRefresh();
     }
 
     @Click(R.id.fab)
@@ -239,6 +247,16 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         mCategoriesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
+    private void setupSwipeToRefresh() {
+        mSwipeRefreshLayout.setColorSchemeColors(mColorPrimary,mColorPrimaryDark);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadCategories("");
+            }
+        });
+    }
+
     private void loadCategories(final String filter) {
         getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks<List<CategoryEntry>>() {
             @Override
@@ -255,6 +273,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
 
             @Override
             public void onLoadFinished(Loader<List<CategoryEntry>> loader, List<CategoryEntry> data) {
+                mSwipeRefreshLayout.setRefreshing(false);
                 mCategoriesAdapter = (CategoriesAdapter) mCategoriesRecyclerView.getAdapter();
                 if (mCategoriesAdapter == null) {
                     mCategoriesAdapter = new CategoriesAdapter(data, CategoriesFragment.this);
@@ -287,7 +306,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         View searchPlateView = searchView.findViewById(searchPlateId);
 
         if (searchPlateView != null) {
-            searchPlateView.setBackgroundColor(mPrimaryColor);
+            searchPlateView.setBackgroundColor(mColorPrimary);
         }
 
         int searchImgId = getResources().getIdentifier("android:id/search_button", null, null);

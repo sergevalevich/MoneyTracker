@@ -1,7 +1,6 @@
 package com.valevich.moneytracker.ui.fragments;
 
 
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
@@ -10,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
@@ -51,12 +51,16 @@ public class ExpensesFragment extends Fragment implements ClickListener {
     FloatingActionButton mFab;
     @ViewById(R.id.coordinator)
     CoordinatorLayout mRootLayout;
+    @ViewById(R.id.swipeToRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
     @OptionsMenuItem(R.id.action_search)
     MenuItem mSearchMenuItem;
     @StringRes(R.string.search_hint)
     String mSearchHint;
     @ColorRes(R.color.colorPrimary)
-    int mPrimaryColor;
+    int mColorPrimary;
+    @ColorRes(R.color.colorPrimaryDark)
+    int mColorPrimaryDark;
 
     private static final int EXPENSES_LOADER = 0;
 
@@ -68,11 +72,6 @@ public class ExpensesFragment extends Fragment implements ClickListener {
 
 
     public ExpensesFragment() {
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
     }
 
     @Override
@@ -113,7 +112,7 @@ public class ExpensesFragment extends Fragment implements ClickListener {
         View searchPlateView = searchView.findViewById(searchPlateId);
 
         if (searchPlateView != null) {
-            searchPlateView.setBackgroundColor(mPrimaryColor);
+            searchPlateView.setBackgroundColor(mColorPrimary);
         }
 
         int searchImgId = getResources().getIdentifier("android:id/search_button", null, null);
@@ -136,6 +135,7 @@ public class ExpensesFragment extends Fragment implements ClickListener {
     @AfterViews
     void setupViews() {
         setUpRecyclerView();
+        setupSwipeToRefresh();
     }
 
     @Click(R.id.fab)
@@ -145,6 +145,16 @@ public class ExpensesFragment extends Fragment implements ClickListener {
 
     private void setUpRecyclerView() {
         mExpenseRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+    }
+
+    private void setupSwipeToRefresh() {
+        mSwipeRefreshLayout.setColorSchemeColors(mColorPrimary,mColorPrimaryDark);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadExpenses("");
+            }
+        });
     }
 
     @Background(delay = 700, id = SEARCH_ID)
@@ -169,6 +179,7 @@ public class ExpensesFragment extends Fragment implements ClickListener {
 
             @Override
             public void onLoadFinished(Loader<List<ExpenseEntry>> loader, List<ExpenseEntry> data) {
+                mSwipeRefreshLayout.setRefreshing(false);
                 mExpenseAdapter = (ExpenseAdapter) mExpenseRecyclerView.getAdapter();
                 if(mExpenseAdapter == null) {
                     mExpenseAdapter = new ExpenseAdapter(data,ExpensesFragment.this,getActivity());

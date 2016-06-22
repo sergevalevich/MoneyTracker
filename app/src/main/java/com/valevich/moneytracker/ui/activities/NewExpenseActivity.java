@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -54,6 +55,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         Transaction.Error {
 
     private static final int CATEGORIES_LOADER = 2;
+    private static final String TAG = NewExpenseActivity.class.getSimpleName();
 
     @NonConfigurationInstance
     @Bean
