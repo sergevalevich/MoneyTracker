@@ -127,7 +127,7 @@ public class CategoriesAdapter extends SelectableAdapter<CategoriesAdapter.Categ
         int id = 0;
         if (category!= null) {
             id = (int) category.getId();
-            category.delete();
+            CategoryEntry.removeCategory(category);
             mCategories.remove(position);
             notifyItemRemoved(position);
         }

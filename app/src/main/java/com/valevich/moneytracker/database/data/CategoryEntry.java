@@ -165,6 +165,29 @@ public class CategoryEntry extends BaseModel {
 
     }
 
+    public static void removeCategory(CategoryEntry category) {
+
+        DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
+
+        ProcessModelTransaction<CategoryEntry> processModelTransaction =
+                new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<CategoryEntry>() {
+                    @Override
+                    public void processModel(CategoryEntry category) {
+                        category.delete();
+                    }
+                }).processListener(new ProcessModelTransaction.OnModelProcessListener<CategoryEntry>() {
+                    @Override
+                    public void onModelProcessed(long current, long total, CategoryEntry modifiedModel) {
+                    }
+                }).addAll(category).build();
+
+        Transaction transaction = database.beginTransactionAsync(processModelTransaction)
+                .build();
+
+        transaction.execute();
+
+    }
+
     private static boolean isCategoryDefault(GlobalCategoriesDataModel fetchedCategory) {
         return fetchedCategory.getTitle().equals(DEFAULT_CATEGORY_NAME);
     }

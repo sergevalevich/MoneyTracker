@@ -122,5 +122,29 @@ public class ExpenseEntry extends BaseModel {
         transaction.execute();
 
     }
+
+    public static void removeExpense(ExpenseEntry expense) {
+
+        DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
+
+        ProcessModelTransaction<ExpenseEntry> processModelTransaction =
+                new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<ExpenseEntry>() {
+                    @Override
+                    public void processModel(ExpenseEntry expense) {
+                        expense.delete();
+                    }
+                }).processListener(new ProcessModelTransaction.OnModelProcessListener<ExpenseEntry>() {
+                    @Override
+                    public void onModelProcessed(long current, long total, ExpenseEntry modifiedModel) {
+
+                    }
+                }).addAll(expense).build();
+
+        Transaction transaction = database.beginTransactionAsync(processModelTransaction)
+                .build();
+
+        transaction.execute();
+
+    }
 }
 

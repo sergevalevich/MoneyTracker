@@ -63,6 +63,10 @@ public class ExpenseAdapter extends SelectableAdapter<ExpenseAdapter.ExpenseView
         notifyDataSetChanged();
     }
 
+    public ExpenseEntry getExpense(int position) {
+        return mExpenses.get(position);
+    }
+
     class ExpenseViewHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener, View.OnLongClickListener{
 
@@ -133,18 +137,28 @@ public class ExpenseAdapter extends SelectableAdapter<ExpenseAdapter.ExpenseView
         });
 
         while (!positions.isEmpty()) {
-            removeItem(positions.get(0));
+            removeItemFromDbAndAdapter(positions.get(0));
             positions.remove(0);
         }
     }
 
-    public void removeItem(int position) {
+    public void removeItemFromDbAndAdapter(int position) {
         ExpenseEntry expense = mExpenses.get(position);
         if (expense != null) {
-            expense.delete();
+            ExpenseEntry.removeExpense(expense);
             mExpenses.remove(position);
             notifyItemRemoved(position);
         }
+    }
+
+    public void add(int position, ExpenseEntry story) {
+        mExpenses.add(position,story);
+        notifyItemInserted(position);
+    }
+
+    public void removeItemFromAdapter(int position) {
+        mExpenses.remove(position);
+        notifyItemRemoved(position);
     }
 
     private void setAnimation(View view, int position) {

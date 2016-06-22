@@ -147,7 +147,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                 if(!areCategoriesEmpty()) {
                     //sync categories without expenses to remove expenses from the server
                     syncCategories(getCategoriesString(getPreparedCategories()));
-                    updateDbEntriesIds();
+                    if(newIdsReceived()) updateDbEntriesIds();
 
                 } else {
                     /*

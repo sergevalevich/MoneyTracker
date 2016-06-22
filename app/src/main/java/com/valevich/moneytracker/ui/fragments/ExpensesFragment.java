@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +27,7 @@ import com.valevich.moneytracker.adapters.ExpenseAdapter;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.ui.activities.NewExpenseActivity_;
 import com.valevich.moneytracker.utils.ClickListener;
+import com.valevich.moneytracker.utils.ExpenseTouchHelper;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -69,6 +71,8 @@ public class ExpensesFragment extends Fragment implements ClickListener {
     private ActionMode mActionMode;
 
     private ActionMode.Callback mActionModeCallback = new ActionModeCallback();
+
+    private ExpenseTouchHelper mExpenseTouchHelper;
 
 
     public ExpensesFragment() {
@@ -184,6 +188,10 @@ public class ExpensesFragment extends Fragment implements ClickListener {
                 if(mExpenseAdapter == null) {
                     mExpenseAdapter = new ExpenseAdapter(data,ExpensesFragment.this,getActivity());
                     mExpenseRecyclerView.setAdapter(mExpenseAdapter);
+                    mExpenseTouchHelper = new ExpenseTouchHelper(mExpenseAdapter,getActivity(),mRootLayout);
+                    ItemTouchHelper.Callback callback = mExpenseTouchHelper;
+                    ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+                    itemTouchHelper.attachToRecyclerView(mExpenseRecyclerView);
                 } else {
                     mExpenseAdapter.refresh(data);
                 }

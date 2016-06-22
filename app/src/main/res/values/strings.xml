@@ -51,4 +51,6 @@
     <string name="dialog_title_edit_category">Изменить название</string>
     <string name="save_category_button_title">ДОБАВИТЬ</string>
     <string name="wrong_category_message">Недопустимое название категории</string>
+    <string name="expense_removed_msg">Запись удалена.</string>
+    <string name="undo_delete_action_msg">ОТМЕНИТЬ</string>
 </resources>
