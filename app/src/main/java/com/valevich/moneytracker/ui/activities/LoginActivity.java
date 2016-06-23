@@ -48,9 +48,6 @@ public class LoginActivity extends AppCompatActivity{
     @ViewById(R.id.logInButton)
     Button mLogInButton;
 
-    @ViewById(R.id.backgroundImageView)
-    ImageView mBackground;
-
     @ViewById(R.id.signUpText)
     TextView mSignUpButton;
 

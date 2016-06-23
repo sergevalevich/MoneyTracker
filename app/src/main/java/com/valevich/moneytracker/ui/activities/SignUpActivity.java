@@ -44,9 +44,6 @@ public class SignUpActivity extends AppCompatActivity{
     @ViewById(R.id.root)
     RelativeLayout mRootLayout;
 
-    @ViewById(R.id.backgroundImageView)
-    ImageView mBackground;
-
     @ViewById(R.id.userNameField)
     AppCompatEditText mUsernameField;
 
