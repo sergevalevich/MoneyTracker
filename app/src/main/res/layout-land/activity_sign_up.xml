@@ -10,6 +10,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ui.activities.SignUpActivity">
 
+    <ImageView
+        android:id="@+id/backgroundImageView"
+        tools:src = "@color/colorBackground"
+        style="@style/AuthBackgroundImage"/>
+
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

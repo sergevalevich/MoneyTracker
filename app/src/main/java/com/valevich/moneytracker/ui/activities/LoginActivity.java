@@ -86,15 +86,6 @@ public class LoginActivity extends AppCompatActivity{
     @StringRes(R.string.network_unavailable)
     String mNetworkUnavailableMessage;
 
-    @AfterViews
-    void loadBackground() {
-        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
-        Glide.with(this)
-                .load(R.drawable.gray_bg)
-                .placeholder(R.drawable.gray_bg_placeholder)
-                .crossFade()
-                .into(mBackground);
-    }
     @Click(R.id.google_login_btn)
     void pickAccount() {
         Intent intent = AccountPicker.newChooseAccountIntent(null, null, new String[]{"com.google"},

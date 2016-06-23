@@ -84,15 +84,6 @@ public class SignUpActivity extends AppCompatActivity{
     @Bean
     UserNotifier mUserNotifier;
 
-    @AfterViews
-    void loadBackground() {
-        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
-        Glide.with(this)
-                .load(R.drawable.gray_bg)
-                .placeholder(R.drawable.gray_bg_placeholder)
-                .crossFade()
-                .into(mBackground);
-    }
 
     @Click(R.id.signUpButton)
     void submitAccountInfo() {

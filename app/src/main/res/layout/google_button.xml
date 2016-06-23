@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
+    android:background="@drawable/button_round"
     android:layout_height="@dimen/google_button_height"
     android:paddingStart="@dimen/google_icon_horizontal_padding"
     android:paddingEnd="@dimen/google_icon_horizontal_padding">
@@ -10,7 +11,8 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true">
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true">
 
         <ImageView
             android:id="@+id/google_icon"
@@ -26,7 +28,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/common_signin_button_text_long"
+            android:text="@string/google_signin_button_text"
             android:layout_toRightOf="@id/google_icon"
             android:layout_toEndOf="@+id/google_icon"
             android:layout_centerVertical="true"
