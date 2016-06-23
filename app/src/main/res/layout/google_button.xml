@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:background="@drawable/button_round"
+    android:background="@color/button_auth"
     android:layout_height="@dimen/google_button_height"
     android:paddingStart="@dimen/google_icon_horizontal_padding"
     android:paddingEnd="@dimen/google_icon_horizontal_padding">

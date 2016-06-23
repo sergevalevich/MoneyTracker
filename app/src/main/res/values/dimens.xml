@@ -75,6 +75,7 @@
     <dimen name="button_corner_radius">10dp</dimen>
     <dimen name="login_option_divider">5dp</dimen>
     <dimen name="login_buttons_border_width">2dp</dimen>
+    <dimen name="sign_up_button_bottom_margin">4dp</dimen>
 
 
     <!--custom google button paddings-->

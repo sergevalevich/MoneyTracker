@@ -58,7 +58,6 @@
         android:id="@+id/logInButton"
         style="@style/AuthButton"
         android:layout_below="@id/inputFields"
-        android:background="@drawable/button_round"
         android:text="@string/login_btn_title"
         android:layout_marginLeft="@dimen/login_horizontal_margin"
         android:layout_marginRight="@dimen/login_horizontal_margin"/>
@@ -89,7 +88,7 @@
             android:layout_gravity="center"
             android:layout_marginLeft="@dimen/login_option_divider"
             android:layout_marginStart="@dimen/login_option_divider"
-            android:background="@drawable/button_round"
+            android:background="@color/button_auth"
             android:gravity="center"
             android:text="@string/sign_up_text"
             android:textColor="@color/colorText"

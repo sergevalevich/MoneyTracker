@@ -5,13 +5,9 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/bg_gradient"
     tools:context=".ui.activities.SignUpActivity">
 
-    <ImageView
-        android:id="@+id/backgroundImageView"
-        tools:src = "@color/colorBackground"
-        style="@style/AuthBackgroundImage"/>
 
     <TextView
         android:id="@+id/title"
@@ -77,25 +73,14 @@
 
     </LinearLayout>
 
-    <com.andexert.library.RippleView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft = "@dimen/activity_horizontal_margin"
-        android:layout_marginRight = "@dimen/activity_horizontal_margin"
-        android:layout_below = "@id/inputFields"
-        app:rv_rippleDuration = "200"
-        app:rv_zoom="true"
-        app:rv_zoomScale = "1.05"
-        app:rv_type="rectangle"
-        android:layout_centerHorizontal="true">
 
     <Button
         android:id="@+id/signUpButton"
         android:text="@string/create_account_btn_title"
-        style="@style/AuthButton"/>
-
-    </com.andexert.library.RippleView>
+        style="@style/AuthButton"
+        android:layout_below="@+id/inputFields"
+        android:layout_marginLeft="@dimen/login_horizontal_margin"
+        android:layout_marginRight="@dimen/login_horizontal_margin"
+        android:layout_marginBottom="@dimen/sign_up_button_bottom_margin"/>
 
 </RelativeLayout>

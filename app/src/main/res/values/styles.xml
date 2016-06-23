@@ -118,7 +118,7 @@
         <item name="android:layout_height">@dimen/login_buttons_height</item>
         <item name="android:textSize">@dimen/auth_button_textSize</item>
         <item name="android:textColor">@color/colorText</item>
-        <item name="android:background">@color/colorPrimary</item>
+        <item name="android:background">@color/button_auth</item>
     </style>
 
     <style name="CustomAnimations"/>
