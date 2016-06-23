@@ -26,7 +26,6 @@
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/tile_height"
-                android:layout_marginBottom="@dimen/input_fields_bottom_margin_land"
                 android:theme="@style/TextLabel">
 
                 <android.support.v7.widget.AppCompatEditText
@@ -44,7 +43,6 @@
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/tile_height"
-                android:layout_marginBottom="@dimen/input_fields_bottom_margin_land"
                 android:theme="@style/TextLabel">
 
                 <android.support.v7.widget.AppCompatEditText
