@@ -3,7 +3,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/drawer_header_layout_height"
                 xmlns:tools="http://schemas.android.com/tools"
-                android:background="@mipmap/header"
+                android:background="@mipmap/drawer_header_2"
                 android:orientation="vertical"
                 android:paddingTop="@dimen/drawer_status_bar_height"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">

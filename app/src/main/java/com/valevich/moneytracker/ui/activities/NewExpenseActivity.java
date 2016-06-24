@@ -115,10 +115,10 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     @ColorRes(R.color.colorPrimary)
     int mDatePickerColor;
 
-    private double mSum;
+    private String mAmount;
     private String mDescription;
-    private int mCategoryId;
     private String mDate;
+    private CategoryEntry mCategory;
 
 
 
@@ -210,15 +210,13 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
 
     @Click(R.id.saveExpenseButton) //if fields are empty show warning
     void setupSaveExenseButton() {
-        String amountText = mAmountEditText
-                .getText()
-                .toString()
-                .trim();
-        String descriptionText = mDescriptionEditText
-                .getText()
-                .toString()
-                .trim();
-        if(amountText.length() != 0 && descriptionText.length() != 0) {
+
+        mCategory = (CategoryEntry) mCategoriesPicker.getSelectedItem();
+        mAmount = mAmountEditText.getText().toString();
+        mDescription = mDescriptionEditText.getText().toString();
+        mDate = DateFormatter.formatDateForDb(mDatePicker.getText().toString());
+
+        if(mCategory != null && mAmount.trim().length() != 0 && mDescription.trim().length() != 0) {
             saveExpense();
         } else {
             showSnackBar(mEmptyFieldsWarning);
@@ -258,23 +256,16 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void saveExpense() {
-        CategoryEntry category = (CategoryEntry) mCategoriesPicker.getSelectedItem();
-        if(category != null) {
-            String amount = mAmountEditText.getText().toString();
-
-            mCategoryId = (int) category.getId();
-            mDescription = mDescriptionEditText.getText().toString();
-            mDate = DateFormatter.formatDateForDb(mDatePicker.getText().toString());
-            mSum = Double.valueOf(amount);
-
-            ExpenseEntry.saveExpense(mDescription, amount, mDate, category, this, this);
-        }
+        ExpenseEntry.saveExpense(mDescription, mAmount, mDate, mCategory, this, this);
     }
 
     @Override
     public void onSuccess(Transaction transaction) {
         if(mNetworkStatusChecker.isNetworkAvailable()) {
-            mAddExpenseTask.addExpense(mSum,mDescription,mCategoryId,mDate);
+            mAddExpenseTask.addExpense(Double.valueOf(mAmount),
+                    mDescription,
+                    (int) mCategory.getId(),
+                    mDate);
         }
         showToast(mSaveMessage);
         finish();
