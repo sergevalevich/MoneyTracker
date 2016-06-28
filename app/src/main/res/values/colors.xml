@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#424242</color>
-    <color name="colorPrimaryDark">#212121</color>
-    <color name="colorAccent">#FFFF00</color>
-    <color name="colorBackground">#616161</color>
-    <color name="colorCards">#757575</color>
+
+    <color name="colorPrimary">#212121</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorAccent">#80DEEA</color>
+    <color name="colorBackground">#424242</color>
+    <color name="colorCards">#616161</color>
     <color name="colorText">#ffffff</color>
-    <color name="colorSelectedItem">#70212121</color>
-    <color name="colorBackgroundDialog">#757575</color>
+    <color name="colorSelectedItem">#70000000</color>
+    <color name="colorBackgroundDialog">#616161</color>
+
+    <!-- chart colors-->
+
+    <color name="colorChartText">#000000</color>
+    <color name="yellow">#EF6C00</color>
+    <color name="brown">#8D6E63</color>
+    <color name="lightBlue">#0091EA</color>
+    <color name="pink">#E91E63</color>
+    <color name="blue">#9C27B0</color>
+    <color name="red">#E53935</color>
+    <color name="green">#689F38</color>
 </resources>

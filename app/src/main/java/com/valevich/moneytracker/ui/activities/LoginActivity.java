@@ -2,6 +2,8 @@ package com.valevich.moneytracker.ui.activities;
 
 import android.accounts.AccountManager;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.drawable.GradientDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
 import android.widget.Button;
@@ -46,9 +48,6 @@ public class LoginActivity extends AppCompatActivity{
     @ViewById(R.id.logInButton)
     Button mLogInButton;
 
-    @ViewById(R.id.backgroundImageView)
-    ImageView mBackground;
-
     @ViewById(R.id.signUpText)
     TextView mSignUpButton;
 
@@ -84,14 +83,6 @@ public class LoginActivity extends AppCompatActivity{
     @StringRes(R.string.network_unavailable)
     String mNetworkUnavailableMessage;
 
-    @AfterViews
-    void loadBackground() {
-        Glide.with(this)
-                .load(R.drawable.gray_bg)
-                .placeholder(R.drawable.gray_bg_placeholder)
-                .crossFade()
-                .into(mBackground);
-    }
     @Click(R.id.google_login_btn)
     void pickAccount() {
         Intent intent = AccountPicker.newChooseAccountIntent(null, null, new String[]{"com.google"},

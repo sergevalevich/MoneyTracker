@@ -3,20 +3,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/drawer_header_layout_height"
                 xmlns:tools="http://schemas.android.com/tools"
-                android:background="@mipmap/header"
+                android:background="@mipmap/drawer_header_2"
                 android:orientation="vertical"
                 android:paddingTop="@dimen/drawer_status_bar_height"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
 
-    <!--<de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/profile_image"
-        android:layout_width="@dimen/profile_image_size"
-        android:layout_height="@dimen/profile_image_size"
-        android:layout_marginStart="@dimen/profile_margin"
-        android:layout_marginLeft="@dimen/profile_margin"
-        android:layout_marginTop="@dimen/profile_margin"
-        android:src="@drawable/default_profile_img"/> -->
 
     <ImageView
         android:id="@+id/profile_image"

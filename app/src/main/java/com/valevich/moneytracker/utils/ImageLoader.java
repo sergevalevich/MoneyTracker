@@ -26,7 +26,7 @@ public class ImageLoader {
         Glide.with(mActivity)
                 .load(imageUrl)
                 .asBitmap()
-                .placeholder(R.drawable.default_profile_image)
+                .placeholder(R.drawable.dummy_profile)
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(new BitmapImageViewTarget(profileImage) {
@@ -43,7 +43,7 @@ public class ImageLoader {
         Glide.with(mActivity)
                 .load(resourceId)
                 .asBitmap()
-                .placeholder(R.drawable.default_profile_image)
+                .placeholder(R.drawable.dummy_profile)
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(new BitmapImageViewTarget(profileImage) {

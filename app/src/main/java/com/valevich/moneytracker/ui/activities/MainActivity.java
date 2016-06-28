@@ -250,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
         if(MoneyTrackerApplication_.isGoogleTokenExist()) {
             mImageLoader.loadRoundedUserImage(profileImage, imageUrl);
         } else {
-            mImageLoader.loadRoundedUserImage(profileImage,R.drawable.default_profile_image);
+            mImageLoader.loadRoundedUserImage(profileImage,R.drawable.dummy_profile);
         }
     }
 

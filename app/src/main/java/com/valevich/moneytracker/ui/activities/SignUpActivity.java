@@ -2,6 +2,7 @@ package com.valevich.moneytracker.ui.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
@@ -43,9 +44,6 @@ public class SignUpActivity extends AppCompatActivity{
     @ViewById(R.id.root)
     RelativeLayout mRootLayout;
 
-    @ViewById(R.id.backgroundImageView)
-    ImageView mBackground;
-
     @ViewById(R.id.userNameField)
     AppCompatEditText mUsernameField;
 
@@ -83,14 +81,6 @@ public class SignUpActivity extends AppCompatActivity{
     @Bean
     UserNotifier mUserNotifier;
 
-    @AfterViews
-    void loadBackground() {
-        Glide.with(this)
-                .load(R.drawable.gray_bg)
-                .placeholder(R.drawable.gray_bg_placeholder)
-                .crossFade()
-                .into(mBackground);
-    }
 
     @Click(R.id.signUpButton)
     void submitAccountInfo() {

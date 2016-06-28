@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
+    android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/bg_gradient"
     tools:context=".ui.activities.LoginActivity">
-
-    <ImageView
-        android:id="@+id/backgroundImageView"
-        tools:src = "@color/colorBackground"
-        style="@style/AuthBackgroundImage"/>
 
     <TextView
         android:id="@+id/title"
@@ -30,8 +25,8 @@
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/userNameField"
                 style="@style/EditText"
-                android:maxLength="10"
-                android:hint="@string/username_hint">
+                android:hint="@string/username_hint"
+                android:maxLength="10">
 
                 <requestFocus/>
 
@@ -48,9 +43,9 @@
             <android.support.v7.widget.AppCompatEditText
                 android:id="@+id/passwordField"
                 style="@style/EditText"
+                android:hint="@string/password_hint"
                 android:inputType="textPassword"
-                android:maxLength="10"
-                android:hint="@string/password_hint">
+                android:maxLength="10">
 
             </android.support.v7.widget.AppCompatEditText>
 
@@ -59,50 +54,43 @@
 
     </LinearLayout>
 
-    <com.andexert.library.RippleView
-        android:id="@+id/logInView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginLeft = "@dimen/activity_horizontal_margin"
-        android:layout_marginRight = "@dimen/activity_horizontal_margin"
-        android:layout_below = "@id/inputFields"
-        app:rv_rippleDuration = "200"
-        app:rv_zoom="true"
-        app:rv_zoomScale = "1.05"
-        app:rv_type="rectangle">
-
-        <Button
-            android:id="@+id/logInButton"
-            android:text="@string/login_btn_title"
-            style="@style/AuthButton"/>
-
-    </com.andexert.library.RippleView>
-
-
+    <Button
+        android:id="@+id/logInButton"
+        style="@style/AuthButton"
+        android:layout_below="@id/inputFields"
+        android:text="@string/login_btn_title"
+        android:layout_marginLeft="@dimen/login_horizontal_margin"
+        android:layout_marginRight="@dimen/login_horizontal_margin"/>
 
     <LinearLayout
+        android:id="@+id/signing_options"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/logInView"
-        android:orientation="vertical">
+        android:layout_height="@dimen/login_buttons_height"
+        android:layout_below="@id/logInButton"
+        android:layout_marginLeft="@dimen/login_horizontal_margin"
+        android:layout_marginRight="@dimen/login_horizontal_margin"
+        android:layout_marginTop="@dimen/login_options_top_margin"
+        android:orientation="horizontal">
+
         <include
-            layout="@layout/google_btn_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/google_login_btn"
+            layout="@layout/google_button"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:layout_weight="1">
         </include>
+
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/sign_up_text"
             android:id="@+id/signUpText"
-            android:gravity="start"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
+            android:layout_marginLeft="@dimen/login_option_divider"
+            android:layout_marginStart="@dimen/login_option_divider"
+            android:background="@color/button_auth"
+            android:gravity="center"
+            android:text="@string/sign_up_text"
             android:textColor="@color/colorText"
             android:textSize="@dimen/sign_up_textSize"
             android:layout_weight="1"/>

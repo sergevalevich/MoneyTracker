@@ -23,13 +23,4 @@
         <item name="android:textColor">@color/colorText</item>
         <item name="android:background">@color/button_new_category</item>
     </style>
-
-
-    <style name="AuthButton">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">@dimen/auth_button_textSize</item>
-        <item name="android:textColor">@color/colorText</item>
-        <item name="android:background">@color/button_auth</item>
-    </style>
 </resources>

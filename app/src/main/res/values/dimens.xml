@@ -62,13 +62,20 @@
 
 
     <!-- sign up screen paddings-->
-    <dimen name="login_vertical_margin">16dp</dimen>
+    <dimen name="login_horizontal_margin">16dp</dimen>
     <dimen name="login_horizontal_padding">10dp</dimen>
     <dimen name="login_vertical_padding">10dp</dimen>
-    <dimen name="auth_title_top_margin">64dp</dimen>
-    <dimen name="auth_title_textSize">48sp</dimen>
+    <dimen name="auth_title_top_margin">48dp</dimen>
+    <dimen name="auth_title_textSize">42sp</dimen>
     <dimen name="auth_subtitle_textSize">13sp</dimen>
     <dimen name="auth_button_textSize">13sp</dimen>
+    <dimen name="input_fields_log_in_vertical_margin">64dp</dimen>
+    <dimen name="login_buttons_height">48dp</dimen>
+    <dimen name="login_options_top_margin">15dp</dimen>
+    <dimen name="button_corner_radius">10dp</dimen>
+    <dimen name="login_option_divider">5dp</dimen>
+    <dimen name="login_buttons_border_width">2dp</dimen>
+    <dimen name="sign_up_button_bottom_margin">4dp</dimen>
 
 
     <!--custom google button paddings-->
@@ -88,7 +95,13 @@
     <dimen name="dialog_padding">24dp</dimen>
     <dimen name="dialog_title_bottom_padding">20dp</dimen>
     <dimen name="dialog_content_bottom_margin">24dp</dimen>
-    <dimen name="dialog_padding_bottom">0dp</dimen>
     <dimen name="action_area_padding">8dp</dimen>
+
+    <!--land paddings for login&signUp-->
+    <dimen name="activity_horizontal_margin_land">32dp</dimen>
+    <dimen name="login_options_margin_top_land">16dp</dimen>
+    <dimen name="tile_height_land">64dp</dimen>
+    <dimen name="signUp_activity_padding">5dp</dimen>
+    <dimen name="input_fields_log_in_vertical_margin_land">24dp</dimen>
 
 </resources>
