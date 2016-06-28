@@ -17,20 +17,14 @@ import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.gson.Gson;
-import com.squareup.otto.Bus;
-import com.squareup.otto.Produce;
-import com.squareup.otto.ThreadEnforcer;
-import com.valevich.moneytracker.MoneyTrackerApplication;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.eventbus.buses.BusProvider;
-import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
 import com.valevich.moneytracker.eventbus.events.QueryStartedEvent;
-import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
-import com.valevich.moneytracker.network.rest.RestClient;
+import com.valevich.moneytracker.eventbus.events.SyncBeforeExitFinishedEvent;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
 import com.valevich.moneytracker.network.rest.model.CategoryData;
@@ -42,44 +36,50 @@ import com.valevich.moneytracker.network.rest.model.UserLogoutModel;
 import com.valevich.moneytracker.ui.activities.LoginActivity;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
+import com.valevich.moneytracker.utils.NotificationUtil;
+import com.valevich.moneytracker.utils.Preferences_;
 
 
-import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
+import org.androidannotations.annotations.sharedpreferences.Pref;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@EBean
 public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private static final String TAG = TrackerSyncAdapter.class.getSimpleName();
-
-    private RestService mRestService;
 
     private int[] mNewCategoryIds;
 
     private List<CategoryEntry> mCategoriesDb;
 
-    private boolean mIsSyncStopped = false;
-
     private static boolean mStopAfterSync = false;
 
     private static Account mAccount;
 
-    private NetworkStatusChecker mNetworkStatusChecker;
+    @Bean
+    NetworkStatusChecker mNetworkStatusChecker;
+
+    @Bean
+    RestService mRestService;
+
+    @Bean
+    NotificationUtil mNotificationUtil;
+
+    @Pref
+    Preferences_ mPreferences;
 
     public TrackerSyncAdapter(Context context) {
-        super(context,true);
-        mRestService = new RestService();
-        mRestService.setRestClient(new RestClient());
-        mNetworkStatusChecker = new NetworkStatusChecker();
-        mNetworkStatusChecker.setConnectivityManager(getContext());
+        super(context, true);
     }
 
-    public static void syncImmediately(Context context,boolean stopAfterSync) {
+    public static void syncImmediately(Context context, boolean stopAfterSync) {
         mStopAfterSync = stopAfterSync;
         Bundle bundle = new Bundle();
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED,
@@ -95,8 +95,8 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                 (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
         mAccount = new Account(context.getString(R.string.app_name),
                 ConstantsManager.SYNC_ACCOUNT_TYPE);
-        ContentResolver.setIsSyncable(mAccount,ConstantsManager.CONTENT_AUTHORITY,1);
-        if ( null == accountManager.getPassword(mAccount) ) {
+        ContentResolver.setIsSyncable(mAccount, ConstantsManager.CONTENT_AUTHORITY, 1);
+        if (null == accountManager.getPassword(mAccount)) {
             if (!accountManager.addAccountExplicitly(mAccount, "", null)) {
                 return null;
             }
@@ -129,27 +129,39 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account account, Bundle extras, String authority,
                               ContentProviderClient provider, SyncResult syncResult) {
 
-
-        Log.d(TAG,"SYNC");
-
-        if(!mIsSyncStopped) {
-
+        try {
             notifyQueryStarted();
+            performSync();
+        } catch (Exception e) {
+            handleExceptions(e);
+        } finally {
+            notifyQueryFinished();
+            if (mStopAfterSync) {
+                disableSync();
+                notifySyncBeforeExitFinished();
+                mStopAfterSync = false;
+            }
+        }
 
-            if (!areExpensesEmpty()) {
+    }
 
+    private void performSync() {
+        Log.d(TAG, "SYNC STARTED");
+
+        if (!areExpensesEmpty()) {
+
+            syncCategories(getCategoriesString(getPreparedCategories()));
+
+            if (newIdsReceived()) {
+                syncExpenses(getExpensesString(getPreparedExpenses()));
+            }
+        } else {
+            if (!areCategoriesEmpty()) {
+                //sync categories without expenses to remove expenses from the server
                 syncCategories(getCategoriesString(getPreparedCategories()));
+                if (newIdsReceived()) updateDbEntriesIds();
 
-                if (newIdsReceived()) {
-                    syncExpenses(getExpensesString(getPreparedExpenses()));
-                }
             } else {
-                if(!areCategoriesEmpty()) {
-                    //sync categories without expenses to remove expenses from the server
-                    syncCategories(getCategoriesString(getPreparedCategories()));
-                    if(newIdsReceived()) updateDbEntriesIds();
-
-                } else {
                     /*
                      Because the server doesn't allow sync of empty categories list this is
                      needed to perform sync if the user removed everything.
@@ -159,24 +171,19 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                      But if the user removes all data without internet, we need to perform this
                      query when network connection is present or the user logs out.
                      */
-                    syncCategories(getDefaultCategoryString());
+                syncCategories(getDefaultCategoryString());
 
-                }
             }
-            notifyQueryFinished();
-        }
-
-        if(mStopAfterSync) {
-            disableSync();
-            BusProvider.getInstance().post(new SyncFinishedEvent());
-            mStopAfterSync = false;
         }
     }
 
-    @Override
-    public void onSyncCanceled() {
-        super.onSyncCanceled();
-        mIsSyncStopped = true;
+    private void handleExceptions(Exception e) {
+        if (e instanceof SocketTimeoutException) {
+            int count = mPreferences.exceptionsCount().get();
+            mPreferences.exceptionsCount().put(++count);
+        } else {
+            e.printStackTrace();
+        }
     }
 
     private boolean areExpensesEmpty() {
@@ -199,9 +206,17 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         BusProvider.getInstance().post(new QueryFinishedEvent());
     }
 
+    private void sendUserNotification() {
+        mNotificationUtil.updateNotification();
+    }
+
+    private void notifySyncBeforeExitFinished() {
+        BusProvider.getInstance().post(new SyncBeforeExitFinishedEvent());
+    }
+
     private void disableSync() {
         ContentResolver.setIsSyncable(mAccount, ConstantsManager.CONTENT_AUTHORITY, 0);
-        ContentResolver.cancelSync(mAccount,ConstantsManager.CONTENT_AUTHORITY);
+        ContentResolver.cancelSync(mAccount, ConstantsManager.CONTENT_AUTHORITY);
     }
 
     private void syncCategories(String categoriesString) {
@@ -209,7 +224,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
 
-        if(mNetworkStatusChecker.isNetworkAvailable()) {
+        if (mNetworkStatusChecker.isNetworkAvailable()) {
             CategoriesSyncModel apiCategories = mRestService
                     .syncCategories(categoriesString, loftToken, googleToken);
 
@@ -228,7 +243,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void reLogInAndTryAgain() {
-        if(mNetworkStatusChecker.isNetworkAvailable()) {
+        if (mNetworkStatusChecker.isNetworkAvailable()) {
             UserLogoutModel userLogoutModel = mRestService.logout();
             String status = userLogoutModel.getStatus();
             switch (status) {
@@ -243,7 +258,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void logIn() {
-        if(mNetworkStatusChecker.isNetworkAvailable()) {
+        if (mNetworkStatusChecker.isNetworkAvailable()) {
             if (MoneyTrackerApplication_.isGoogleTokenExist()) {
                 loginWithGoogle();
             } else {
@@ -258,7 +273,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String status = userLoginModel.getStatus();
         switch (status) {
             case ConstantsManager.STATUS_SUCCESS:
-                syncImmediately(getContext(),mStopAfterSync);
+                syncImmediately(getContext(), mStopAfterSync);
                 break;
             default:
                 break;
@@ -272,14 +287,14 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             token = GoogleAuthUtil.getToken(getContext(), accountName,
                     ConstantsManager.SCOPES);
 
-        } catch(UserRecoverableAuthException | IOException userAuthEx){
+        } catch (UserRecoverableAuthException | IOException userAuthEx) {
             userAuthEx.printStackTrace();
         } catch (GoogleAuthException fatalAuthEx) {
             fatalAuthEx.printStackTrace();
             Log.e(LoginActivity.TAG, "Fatal Exception " + fatalAuthEx.getLocalizedMessage());
         }
 
-        if(token != null) {
+        if (token != null) {
             MoneyTrackerApplication_.saveGoogleToken(token);
             UserGoogleInfoModel userGoogleInfoModel = mRestService.getGoogleInfo(token);
             MoneyTrackerApplication_.saveUserInfo(
@@ -287,7 +302,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                     userGoogleInfoModel.getEmail(),
                     userGoogleInfoModel.getPicture(),
                     "");
-            syncImmediately(getContext(),mStopAfterSync);
+            syncImmediately(getContext(), mStopAfterSync);
         }
     }
 
@@ -297,7 +312,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         int dataSize = categoryData.size();
         mNewCategoryIds = new int[dataSize];
 
-        for(int i = 0; i<dataSize; i++) {
+        for (int i = 0; i < dataSize; i++) {
 
             int categoryId = categoryData.get(i).getId();
             mNewCategoryIds[i] = categoryId;
@@ -318,7 +333,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
         List<CategoryData> categoriesToSync = new ArrayList<>();
 
-        for(int i = 0; i<mCategoriesDb.size(); i++) {
+        for (int i = 0; i < mCategoriesDb.size(); i++) {
             CategoryData categoryToSync = new CategoryData();
             CategoryEntry categoryDb = mCategoriesDb.get(i);
 
@@ -346,9 +361,16 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
 
-        if(mNetworkStatusChecker.isNetworkAvailable()) {
-            mRestService.syncExpenses(expensesString, loftToken, googleToken);
-            updateDbEntriesIds();
+        if (mNetworkStatusChecker.isNetworkAvailable()) {
+            ExpensesSyncModel expensesSyncModel = mRestService
+                    .syncExpenses(expensesString, loftToken, googleToken);
+            String status = expensesSyncModel.getStatus();
+            switch (status) {
+                case ConstantsManager.STATUS_SUCCESS:
+                    updateDbEntriesIds();
+                    if (!mStopAfterSync) sendUserNotification();
+                    break;
+            }
         }
     }
 
@@ -365,9 +387,9 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
         List<ExpenseData> expensesToSync = new ArrayList<>();
 
-        for(int i = 0; i< mCategoriesDb.size(); i++) {
+        for (int i = 0; i < mCategoriesDb.size(); i++) {
             CategoryEntry category = mCategoriesDb.get(i);
-            for(ExpenseEntry expenseDb:category.getExpenses()) {
+            for (ExpenseEntry expenseDb : category.getExpenses()) {
                 ExpenseData expenseToSync = new ExpenseData();
 
                 expenseToSync.setCategory_id(mNewCategoryIds[i]);
@@ -384,22 +406,22 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private void updateDbEntriesIds() {
         // FIXME: 16.06.2016 не доставать категории. Достаю их, чтобы проверить обновление id
-        List<CategoryEntry> categoryEntries = CategoryEntry.updateIds(mCategoriesDb,mNewCategoryIds);
-        for (CategoryEntry category:categoryEntries) {
-            Log.d(TAG,String.format(Locale.getDefault(),"%s = %d %n",category.getName(),category.getId()));
+        List<CategoryEntry> categoryEntries = CategoryEntry.updateIds(mCategoriesDb, mNewCategoryIds);
+        for (CategoryEntry category : categoryEntries) {
+            Log.d(TAG, String.format(Locale.getDefault(), "%s = %d %n", category.getName(), category.getId()));
         }
     }
 
     private static void onAccountCreated(Account newAccount, Context context) {
         final int SYNC_INTERVAL = 60*60;
-        final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
+        final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
         TrackerSyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
         ContentResolver.setSyncAutomatically(newAccount,
                 ConstantsManager.CONTENT_AUTHORITY, true);
         ContentResolver.addPeriodicSync(newAccount, ConstantsManager.CONTENT_AUTHORITY,
                 Bundle.EMPTY,
                 SYNC_INTERVAL);
-        syncImmediately(context,false);
+        syncImmediately(context, false);
     }
 
     private String getLoftToken() {

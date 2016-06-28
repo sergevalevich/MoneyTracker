@@ -104,4 +104,6 @@
     <dimen name="signUp_activity_padding">5dp</dimen>
     <dimen name="input_fields_log_in_vertical_margin_land">24dp</dimen>
 
+    <dimen name="preference_padding">2dp</dimen>
+
 </resources>

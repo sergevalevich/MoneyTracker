@@ -3,13 +3,13 @@
     <PreferenceCategory
         android:title="@string/pref_notification_section">
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             android:title="@string/pref_enable_notifications_label"
             android:key="@string/pref_enable_notifications_key"
             android:summaryOff="@string/pref_enable_notifications_false"
             android:summaryOn="@string/pref_enable_notifications_true"
             android:defaultValue="@string/pref_enable_notifications_default">
-        </SwitchPreference>
+        </SwitchPreferenceCompat>
 
     </PreferenceCategory>
 

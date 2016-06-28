@@ -76,9 +76,4 @@ public class RestService {
     public AddedCategoryModel updateCategory(String newTitle, int id, String authToken, String googleToken) {
         return restClient.getEditCategoryApi().updateCategory(newTitle,id,authToken,googleToken);
     }
-
-    public void setRestClient(RestClient restClient) {
-        this.restClient = restClient;
-    }
-
 }

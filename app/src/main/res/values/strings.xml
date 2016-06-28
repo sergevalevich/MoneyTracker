@@ -25,9 +25,8 @@
     <string name="search_hint">Поиск</string>
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>
-    <string name="login_subtitle">A Loftschool Project</string>
-    <string name="create_account_btn_title">CREATE ACCOUNT</string>
-    <string name="login_btn_title">SIGN IN</string>
+    <string name="create_account_btn_title">Создать аккаунт</string>
+    <string name="login_btn_title">Войти</string>
     <string name="token_key">TOKEN_KEY</string>
     <string name="network_unavailable">Сеть недоступна</string>
     <string name="wrong_auth_input">Имя пользователя и пароль должны содержать от 5 до 10 символов!</string>
@@ -35,12 +34,12 @@
     <string name="general_error_message">Упс! Возникла ошибка. Попробуйте ещё раз.</string>
     <string name="google_account_picker_error_msg">Извините. Возникла ошибка. Попробуйте ещё раз.</string>
     <string name="email_hint">Email</string>
-    <string name="invalid_username_msg">Username must contain at least 5 symbols!</string>
-    <string name="invalid_password_msg">Password must contain at least 5 symbols!</string>
-    <string name="invalid_email_msg">Invalid email!</string>
-    <string name="sign_up_text">Sign up!</string>
-    <string name="wrong_username_msg">Wrong username</string>
-    <string name="wrong_password_msg">Wrong password</string>
+    <string name="invalid_username_msg">Имя пользователя должно содержать не менее 5 символов</string>
+    <string name="invalid_password_msg">Пароль должен содержать не менее 5 символов</string>
+    <string name="invalid_email_msg">Неправильный email</string>
+    <string name="sign_up_text">Регистрация</string>
+    <string name="wrong_username_msg">Неправильное имя пользователя</string>
+    <string name="wrong_password_msg">Неправильный пароль</string>
     <string name="content_authority">com.loftschool.loftmoneytracker</string>
     <string name="sync_account_type">loftmoneytracker.loftschool.com</string>
     <string name="action_logout">Выход</string>
@@ -59,13 +58,13 @@
     <string
         name="pref_enable_notifications_key"
         translatable="false">enable_notifications</string>
-    <string name="pref_enable_notifications_label">Updates Notifications</string>
-    <string name="pref_enable_notifications_true">Enabled</string>
-    <string name="pref_enable_notifications_false">Disabled</string>
+    <string name="pref_enable_notifications_label">Уведомления при синхронизации</string>
+    <string name="pref_enable_notifications_true">Включены</string>
+    <string name="pref_enable_notifications_false">Отключены</string>
     <string
         name="pref_enable_notifications_default"
         translatable="false">true</string>
 
-    <string name="notification_message">There is a notification</string>
-    <string name="pref_notification_section">Notifications</string>
+    <string name="notification_message">Синхронизация прошла успешно</string>
+    <string name="pref_notification_section">Уведомления</string>
 </resources>

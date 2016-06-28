@@ -22,7 +22,7 @@
             android:layout_width="@dimen/splash_image_size"
             android:layout_height="@dimen/splash_image_size"
             android:id="@+id/splashImage"
-            android:src = "@drawable/ic_money"
+            android:src = "@mipmap/ic_launcher"
             android:layout_marginBottom="@dimen/default_layout_padding"/>
 
         <TextView
