@@ -2,6 +2,7 @@ package com.valevich.moneytracker.network.rest;
 
 import com.valevich.moneytracker.network.rest.requests.AddCategoryApi;
 import com.valevich.moneytracker.network.rest.requests.AddExpenseApi;
+import com.valevich.moneytracker.network.rest.requests.EditCategoryApi;
 import com.valevich.moneytracker.network.rest.requests.FetchGlobalCategoriesDataApi;
 import com.valevich.moneytracker.network.rest.requests.LoginUserApi;
 import com.valevich.moneytracker.network.rest.requests.LogoutUserApi;
@@ -31,6 +32,7 @@ public class RestClient {
     private AddExpenseApi addExpenseApi;
     private RemoveCategoryApi removeCategoryApi;
     private AddCategoryApi addCategoryApi;
+    private EditCategoryApi editCategoryApi;
 
     public RestClient() {
         RestAdapter restAdapter = new RestAdapter.Builder()
@@ -47,6 +49,7 @@ public class RestClient {
         addExpenseApi = restAdapter.create(AddExpenseApi.class);
         removeCategoryApi = restAdapter.create(RemoveCategoryApi.class);
         addCategoryApi = restAdapter.create(AddCategoryApi.class);
+        editCategoryApi = restAdapter.create(EditCategoryApi.class);
     }
     public RegisterUserApi getRegisterUserApi() {
         return registerUserApi;
@@ -82,5 +85,9 @@ public class RestClient {
 
     public AddCategoryApi getAddCategoryApi() {
         return addCategoryApi;
+    }
+
+    public EditCategoryApi getEditCategoryApi() {
+        return editCategoryApi;
     }
 }

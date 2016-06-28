@@ -1,6 +1,7 @@
 package com.valevich.moneytracker.ui.fragments;
 
 
+import android.animation.Animator;
 import android.app.Dialog;
 import android.os.Build;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.AppCompatEditText;
@@ -17,9 +19,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextUtils;
+import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.SearchView;
@@ -34,8 +38,10 @@ import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.eventbus.buses.BusProvider;
 import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryAddedEvent;
+import com.valevich.moneytracker.eventbus.events.CategoryUpdatedEvent;
 import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
 import com.valevich.moneytracker.utils.ClickListener;
+import com.valevich.moneytracker.utils.UserNotifier;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -57,14 +63,24 @@ import java.util.List;
 public class CategoriesFragment extends Fragment implements ClickListener, Transaction.Error, Transaction.Success {
 
     private static final String SEARCH_ID = "search_id";
+    private static final String TAG = CategoriesFragment.class.getSimpleName();
     @ViewById(R.id.categories_list)
     RecyclerView mCategoriesRecyclerView;
 
     @ViewById(R.id.coordinator)
     CoordinatorLayout mRootLayout;
 
+    @ViewById(R.id.swipeToRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+
     @OptionsMenuItem(R.id.action_search)
     MenuItem mSearchMenuItem;
+
+    @Bean
+    UserNotifier mUserNotifier;
+
+    @StringRes(R.string.wrong_category_message)
+    String mWrongCategoryNameMessage;
 
     @StringRes(R.string.search_hint)
     String mSearchHint;
@@ -78,8 +94,17 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     @StringRes(R.string.new_expense_error_saving_message)
     String mSaveErrorMessage;
 
+    @StringRes(R.string.dialog_title_new_category)
+    String mNewCategoryDialogTitle;
+
+    @StringRes(R.string.dialog_title_edit_category)
+    String mEditCategoryDialogTitle;
+
     @ColorRes(R.color.colorPrimary)
-    int mPrimaryColor;
+    int mColorPrimary;
+
+    @ColorRes(R.color.colorPrimaryDark)
+    int mColorPrimaryDark;
 
     public CategoriesFragment() {
     }
@@ -95,6 +120,8 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     private Dialog mDialog;
 
     private String mCategoryName;
+
+    private int mCategoryId;
 
     @Override
     public void onResume() {
@@ -139,20 +166,23 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     @AfterViews
     void setupViews() {
         setUpRecyclerView();
+        setupSwipeToRefresh();
     }
 
     @Click(R.id.fab)
     void addCategory() {
-        showDialog();
+        showDialog(mNewCategoryDialogTitle,"",null);
     }
 
     @Override
     public boolean onItemClick(int position) {
         if (mActionMode != null) {
             toggleSection(position);
-            return true;
+        } else {
+            CategoryEntry category = mCategoriesAdapter.getItem(position);
+            showDialog(mEditCategoryDialogTitle,category.getName(),category);
         }
-        return false;
+        return true;
     }
 
     @Override
@@ -176,7 +206,10 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         mDialog.dismiss();
         loadCategories("");
         showToast(mSaveMessage);
-        BusProvider.getInstance().post(new CategoryAddedEvent(mCategoryName));
+        String transactionType = transaction.name();
+        if(transactionType.equals(CategoryEntry.TRANSACTION_TYPE_UPDATE))
+            BusProvider.getInstance().post(new CategoryUpdatedEvent(mCategoryName,mCategoryId));
+        else BusProvider.getInstance().post(new CategoryAddedEvent(mCategoryName));
     }
 
     private class ActionModeCallback implements ActionMode.Callback {
@@ -216,6 +249,16 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         mCategoriesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
+    private void setupSwipeToRefresh() {
+        mSwipeRefreshLayout.setColorSchemeColors(mColorPrimary,mColorPrimaryDark);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadCategories("");
+            }
+        });
+    }
+
     private void loadCategories(final String filter) {
         getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks<List<CategoryEntry>>() {
             @Override
@@ -232,6 +275,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
 
             @Override
             public void onLoadFinished(Loader<List<CategoryEntry>> loader, List<CategoryEntry> data) {
+                mSwipeRefreshLayout.setRefreshing(false);
                 mCategoriesAdapter = (CategoriesAdapter) mCategoriesRecyclerView.getAdapter();
                 if (mCategoriesAdapter == null) {
                     mCategoriesAdapter = new CategoriesAdapter(data, CategoriesFragment.this);
@@ -264,7 +308,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         View searchPlateView = searchView.findViewById(searchPlateId);
 
         if (searchPlateView != null) {
-            searchPlateView.setBackgroundColor(mPrimaryColor);
+            searchPlateView.setBackgroundColor(mColorPrimary);
         }
 
         int searchImgId = getResources().getIdentifier("android:id/search_button", null, null);
@@ -288,7 +332,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         Toast.makeText(getActivity(),text,Toast.LENGTH_LONG).show();
     }
 
-    private void showDialog() {
+    private void showDialog(String title, final String text, final CategoryEntry category) {
         mDialog = new Dialog(getActivity());
         mDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         mDialog.setContentView(R.layout.dialog_add_category);
@@ -297,16 +341,25 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         TextView saveCategoryButton = (TextView) mDialog.findViewById(R.id.saveCategoryButton);
         TextView cancelButton = (TextView) mDialog.findViewById(R.id.cancelButton);
         final AppCompatEditText categoryNameField = (AppCompatEditText) mDialog.findViewById(R.id.category_name_field);
+        TextView titleView = (TextView) mDialog.findViewById(R.id.dialog_title);
+        titleView.setText(title);
+        categoryNameField.setText(text);
 
         saveCategoryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Editable editable = categoryNameField.getText();
-                if (!TextUtils.isEmpty(editable)) {// TODO: 19.06.2016 defaultName(do not allow)
+                if (!TextUtils.isEmpty(editable) && !TextUtils.equals(editable,text)) {
                     mCategoryName = editable.toString();
-                    CategoryEntry.saveCategory(mCategoryName
-                            ,CategoriesFragment.this
-                            ,CategoriesFragment.this);
+                    if(!mCategoryName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME)) {
+                        if(category != null) mCategoryId = (int) category.getId();
+                        CategoryEntry.saveCategory(category
+                                , mCategoryName
+                                , CategoriesFragment.this
+                                , CategoriesFragment.this);
+                    } else {
+                        mUserNotifier.notifyUser(mRootLayout,mWrongCategoryNameMessage);
+                    }
                 }
             }
         });
@@ -318,7 +371,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
                 showToast(mCancelMessage);
             }
         });
-
+        mDialog.getWindow().getAttributes().windowAnimations = R.style.CustomAnimations_slide;
         mDialog.show();
     }
 

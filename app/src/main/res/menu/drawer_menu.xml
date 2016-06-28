@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:checkableBehavior="single">
+    <group
+        android:id="@+id/group_feature"
+        android:checkableBehavior="single">
 
         <item
             android:id="@+id/drawer_expenses"
@@ -28,5 +30,15 @@
         </item>
 
 
+    </group>
+
+    <group
+        android:id="@+id/group_exit"
+        android:checkableBehavior="single">
+        <item
+            android:id = "@+id/drawer_exit"
+            android:title="@string/nav_drawer_exit"
+            android:icon="@drawable/ic_exit">
+        </item>
     </group>
 </menu>

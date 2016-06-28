@@ -1,7 +1,6 @@
 package com.valevich.moneytracker.ui.fragments;
 
 
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
@@ -10,10 +9,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +27,7 @@ import com.valevich.moneytracker.adapters.ExpenseAdapter;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.ui.activities.NewExpenseActivity_;
 import com.valevich.moneytracker.utils.ClickListener;
+import com.valevich.moneytracker.utils.ExpenseTouchHelper;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -51,12 +53,16 @@ public class ExpensesFragment extends Fragment implements ClickListener {
     FloatingActionButton mFab;
     @ViewById(R.id.coordinator)
     CoordinatorLayout mRootLayout;
+    @ViewById(R.id.swipeToRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
     @OptionsMenuItem(R.id.action_search)
     MenuItem mSearchMenuItem;
     @StringRes(R.string.search_hint)
     String mSearchHint;
     @ColorRes(R.color.colorPrimary)
-    int mPrimaryColor;
+    int mColorPrimary;
+    @ColorRes(R.color.colorPrimaryDark)
+    int mColorPrimaryDark;
 
     private static final int EXPENSES_LOADER = 0;
 
@@ -65,6 +71,8 @@ public class ExpensesFragment extends Fragment implements ClickListener {
     private ActionMode mActionMode;
 
     private ActionMode.Callback mActionModeCallback = new ActionModeCallback();
+
+    private ExpenseTouchHelper mExpenseTouchHelper;
 
 
     public ExpensesFragment() {
@@ -108,7 +116,7 @@ public class ExpensesFragment extends Fragment implements ClickListener {
         View searchPlateView = searchView.findViewById(searchPlateId);
 
         if (searchPlateView != null) {
-            searchPlateView.setBackgroundColor(mPrimaryColor);
+            searchPlateView.setBackgroundColor(mColorPrimary);
         }
 
         int searchImgId = getResources().getIdentifier("android:id/search_button", null, null);
@@ -131,16 +139,26 @@ public class ExpensesFragment extends Fragment implements ClickListener {
     @AfterViews
     void setupViews() {
         setUpRecyclerView();
+        setupSwipeToRefresh();
     }
 
     @Click(R.id.fab)
     void setupFab() {
-        Intent intent = new Intent(getActivity(), NewExpenseActivity_.class);
-        startActivity(intent);
+        NewExpenseActivity_.intent(this).start().withAnimation(R.anim.enter_pull_in,R.anim.exit_fade_out);
     }
 
     private void setUpRecyclerView() {
         mExpenseRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+    }
+
+    private void setupSwipeToRefresh() {
+        mSwipeRefreshLayout.setColorSchemeColors(mColorPrimary,mColorPrimaryDark);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadExpenses("");
+            }
+        });
     }
 
     @Background(delay = 700, id = SEARCH_ID)
@@ -165,10 +183,15 @@ public class ExpensesFragment extends Fragment implements ClickListener {
 
             @Override
             public void onLoadFinished(Loader<List<ExpenseEntry>> loader, List<ExpenseEntry> data) {
+                mSwipeRefreshLayout.setRefreshing(false);
                 mExpenseAdapter = (ExpenseAdapter) mExpenseRecyclerView.getAdapter();
                 if(mExpenseAdapter == null) {
-                    mExpenseAdapter = new ExpenseAdapter(data,ExpensesFragment.this);
+                    mExpenseAdapter = new ExpenseAdapter(data,ExpensesFragment.this,getActivity());
                     mExpenseRecyclerView.setAdapter(mExpenseAdapter);
+                    mExpenseTouchHelper = new ExpenseTouchHelper(mExpenseAdapter,getActivity(),mRootLayout);
+                    ItemTouchHelper.Callback callback = mExpenseTouchHelper;
+                    ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+                    itemTouchHelper.attachToRecyclerView(mExpenseRecyclerView);
                 } else {
                     mExpenseAdapter.refresh(data);
                 }

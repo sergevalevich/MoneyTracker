@@ -26,6 +26,7 @@ import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.eventbus.buses.BusProvider;
 import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryAddedEvent;
+import com.valevich.moneytracker.eventbus.events.CategoryUpdatedEvent;
 import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
 import com.valevich.moneytracker.eventbus.events.QueryStartedEvent;
 import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
@@ -37,6 +38,7 @@ import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
 import com.valevich.moneytracker.ui.taskshandlers.AddCategoryTask;
 import com.valevich.moneytracker.ui.taskshandlers.LogoutTask;
 import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
+import com.valevich.moneytracker.ui.taskshandlers.UpdateCategoryTask;
 import com.valevich.moneytracker.utils.ImageLoader;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.UserNotifier;
@@ -45,15 +47,11 @@ import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.NonConfigurationInstance;
-import org.androidannotations.annotations.OptionsItem;
-import org.androidannotations.annotations.OptionsMenu;
-import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
 
 
 @EActivity
-@OptionsMenu(R.menu.menu_main)
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -67,9 +65,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     NavigationView mNavigationView;
     @ViewById(R.id.progress_spinner)
     ProgressBar mProgressBar;
-
-    @OptionsMenuItem(R.id.action_logout)
-    MenuItem mLogoutMenuItem;
 
     @Bean
     ImageLoader mImageLoader;
@@ -85,6 +80,10 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     @NonConfigurationInstance
     @Bean
     AddCategoryTask mAddCategoryTask;
+
+    @NonConfigurationInstance
+    @Bean
+    UpdateCategoryTask mUpdateCategoryTask;
 
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
@@ -129,8 +128,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
         setupFragmentManager();
     }
 
-    @OptionsItem(R.id.action_logout)
-    void logout() {
+    private void logout() {
         if (mNetworkStatusChecker.isNetworkAvailable()) {
             mLogoutTask.requestSync();
         } else {
@@ -153,6 +151,12 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     public void onCategoryAdded(CategoryAddedEvent categoryAddedEvent) {
         startProgressBar();
         mAddCategoryTask.addCategory(categoryAddedEvent.getTitle());
+    }
+
+    @Subscribe
+    public void onCategoryUpdated(CategoryUpdatedEvent categoryUpdatedEvent) {
+        startProgressBar();
+        mUpdateCategoryTask.updateCategory(categoryUpdatedEvent.getNewName(),categoryUpdatedEvent.getId());
     }
 
     @Subscribe
@@ -223,6 +227,9 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
                         break;
                     case R.id.drawer_settings:
                         replaceFragment(new SettingsFragment_());
+                        break;
+                    case R.id.drawer_exit:
+                        logout();
                         break;
                 }
                 return true;
