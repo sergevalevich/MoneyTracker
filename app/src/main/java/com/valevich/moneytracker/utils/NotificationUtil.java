@@ -58,9 +58,17 @@ public class NotificationUtil {
                     PendingIntent.FLAG_UPDATE_CURRENT);
             builder.setContentIntent(pendingIntent);
             builder.setSmallIcon(R.mipmap.ic_launcher);
+
+            boolean indicatorEnabled = mPreferences.indicatorPreference().get();
+            boolean soundEnabled = mPreferences.soundPreference().get();
+            boolean vibrationEnabled = mPreferences.vibrationPreference().get();
+            if(indicatorEnabled)
             builder.setLights(Color.CYAN,300,1500);
+            if(vibrationEnabled)
             builder.setVibrate(new long[]{1000,1000,1000,1000,1000});
+            if(soundEnabled)
             builder.setSound(Settings.System.DEFAULT_NOTIFICATION_URI);
+
             builder.setAutoCancel(true);
             builder.setContentTitle(mContentTitle);
             builder.setContentText(mContentText);

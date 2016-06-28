@@ -58,11 +58,31 @@
     <string
         name="pref_enable_notifications_key"
         translatable="false">enable_notifications</string>
-    <string name="pref_enable_notifications_label">Уведомления при синхронизации</string>
-    <string name="pref_enable_notifications_true">Включены</string>
-    <string name="pref_enable_notifications_false">Отключены</string>
+    <string name="pref_enable_notifications_label">Получать уведомления</string>
+    <string name="pref_notifications_summary">Сообщать о завершении синхронизации</string>
     <string
         name="pref_enable_notifications_default"
+        translatable="false">true</string>
+
+    <string name="pref_enable_sound_key"
+            translatable="false">enable_sound</string>
+    <string name="pref_enable_sound_label">Звук</string>
+    <string
+        name="pref_enable_sound_default"
+        translatable="false">true</string>
+
+    <string name="pref_enable_indicator_key"
+                translatable="false">enable_indicator</string>
+    <string name="pref_enable_indicator_label">Индикатор</string>
+    <string
+        name="pref_enable_indicator_default"
+        translatable="false">true</string>
+
+    <string name="pref_enable_vibration_key"
+                translatable="false">enable_vibration</string>
+    <string name="pref_enable_vibration_label">Вибрация</string>
+    <string
+        name="pref_enable_vibration_default"
         translatable="false">true</string>
 
     <string name="notification_message">Синхронизация прошла успешно</string>
