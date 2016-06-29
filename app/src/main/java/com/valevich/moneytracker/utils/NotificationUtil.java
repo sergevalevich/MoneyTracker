@@ -57,7 +57,7 @@ public class NotificationUtil {
             PendingIntent pendingIntent = PendingIntent.getActivity(mContext, REQUEST_CODE,intent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
             builder.setContentIntent(pendingIntent);
-            builder.setSmallIcon(R.mipmap.ic_launcher);
+            builder.setSmallIcon(R.drawable.ic_notification);
 
             boolean indicatorEnabled = mPreferences.indicatorPreference().get();
             boolean soundEnabled = mPreferences.soundPreference().get();
