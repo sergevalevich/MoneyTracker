@@ -8,6 +8,9 @@ import android.view.ViewGroup;
 
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
+import com.valevich.moneytracker.eventbus.events.SignUpFinishedEvent;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.UserLoginModel;
 import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
@@ -67,9 +70,11 @@ public class SignUpTask {
                 break;
             case ConstantsManager.STATUS_LOGIN_BUSY:
                 notifyUser(mLoginBusyMessage);
+                notifySignUpFinished();
                 break;
             default:
                 notifyUser(mGeneralErrorMessage);
+                notifySignUpFinished();
                 break;
         }
     }
@@ -82,16 +87,20 @@ public class SignUpTask {
             case ConstantsManager.STATUS_SUCCESS:
                 MoneyTrackerApplication_.saveLoftApiToken(userLoginModel.getAuthToken());
                 MoneyTrackerApplication_.saveUserInfo(userName,email,"",password);
+                notifySignUpFinished();
                 navigateToMain();
                 break;
             case ConstantsManager.STATUS_WRONG_USERNAME:
                 notifyUser(mWrongUsernameMessage);
+                notifySignUpFinished();
                 break;
             case ConstantsManager.STATUS_WRONG_PASSWORD:
                 notifyUser(mWrongPasswordMessage);
+                notifySignUpFinished();
                 break;
             default:
                 notifyUser(mGeneralErrorMessage);
+                notifySignUpFinished();
                 break;
         }
     }
@@ -108,12 +117,15 @@ public class SignUpTask {
                 break;
             case ConstantsManager.STATUS_WRONG_USERNAME:
                 notifyUser(mWrongUsernameMessage);
+                notifyLoginFinished();
                 break;
             case ConstantsManager.STATUS_WRONG_PASSWORD:
                 notifyUser(mWrongPasswordMessage);
+                notifyLoginFinished();
                 break;
             default:
                 notifyUser(mGeneralErrorMessage);
+                notifyLoginFinished();
                 break;
         }
     }
@@ -132,5 +144,13 @@ public class SignUpTask {
     @UiThread
     void notifyUser(String message) {
         mUserNotifier.notifyUser(mActivity.findViewById(R.id.root),message);
+    }
+
+    private void notifyLoginFinished() {
+        BusProvider.getInstance().post(new LoginFinishedEvent());
+    }
+
+    private void notifySignUpFinished() {
+        BusProvider.getInstance().post(new SignUpFinishedEvent());
     }
 }

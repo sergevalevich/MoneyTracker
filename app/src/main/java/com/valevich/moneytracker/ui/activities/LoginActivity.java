@@ -109,16 +109,21 @@ public class LoginActivity extends AppCompatActivity{
 
     @Click(R.id.logInButton)
     void logIn() {
+        blockButtons();
         if(mNetworkStatusChecker.isNetworkAvailable()) {
 
             String username = mUsernameField.getText().toString();
             String password = mPasswordField.getText().toString();
 
-            if (isInputValid(username, password))
+            if (isInputValid(username, password)) {
+                showProgressDialog();
                 mSignUpTask.logIn(username, password);
-
+            } else {
+                unblockButtons();
+            }
         } else {
             mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
+            unblockButtons();
         }
     }
 
@@ -135,7 +140,10 @@ public class LoginActivity extends AppCompatActivity{
                 showProgressDialog();
                 mSignUpWithGoogleTask.logInWithGoogle(accountName);
             }
-            else mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
+            else {
+                unblockButtons();
+                mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
+            }
         } else if (resultCode != RESULT_CANCELED) {
             Toast.makeText(this, mGoogleAccountPickerErrorMessage, Toast.LENGTH_LONG).show();
         }
@@ -145,6 +153,7 @@ public class LoginActivity extends AppCompatActivity{
     public void onLoginFinished(LoginFinishedEvent loginFinishedEvent) {
         Log.d(TAG, "onLoginFinished: ");
         closeProgressDialog();
+        unblockButtons();
     }
 
     private boolean isInputValid(String username,String password) {

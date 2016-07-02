@@ -1,5 +1,6 @@
 package com.valevich.moneytracker.ui.activities;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -15,7 +16,11 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.ImageViewTarget;
+import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
+import com.valevich.moneytracker.eventbus.events.SignUpFinishedEvent;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.UserLoginModel;
 import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
@@ -81,22 +86,52 @@ public class SignUpActivity extends AppCompatActivity{
     @Bean
     UserNotifier mUserNotifier;
 
+    @StringRes(R.string.auth_dialog_message)
+    String mAuthMessage;
+
+    private ProgressDialog mProgressDialog;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        BusProvider.getInstance().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unblockButton();
+        BusProvider.getInstance().unregister(this);
+    }
 
     @Click(R.id.signUpButton)
     void submitAccountInfo() {
         Log.d(LOG_TAG,"Click");
+        blockButton();
         if(mNetworkStatusChecker.isNetworkAvailable()) {
 
             String username = mUsernameField.getText().toString();
             String password = mPasswordField.getText().toString();
             String email = mEmailField.getText().toString();
 
-            if(isInputValid(username,password,email))
-                mSignUpTask.signUp(username,password,email);
+            if(isInputValid(username,password,email)) {
+                showProgressDialog();
+                mSignUpTask.signUp(username, password, email);
+            } else {
+                unblockButton();
+            }
 
         } else {
             mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
+            unblockButton();
         }
+    }
+
+    @Subscribe
+    public void onSignUpFinished(SignUpFinishedEvent signUpFinishedEvent) {
+        Log.d(LOG_TAG, "onSignUpFinished: ");
+        closeProgressDialog();
+        unblockButton();
     }
 
     private boolean isInputValid(String username,String password,String email) {
@@ -111,5 +146,24 @@ public class SignUpActivity extends AppCompatActivity{
             return false;
         }
         return true;
+    }
+
+    private void showProgressDialog() {
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setMessage(mAuthMessage);
+        mProgressDialog.show();
+    }
+
+    private void closeProgressDialog() {
+        if(mProgressDialog != null && mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
+    }
+
+    private void blockButton() {
+        mSignUpButton.setClickable(false);
+    }
+
+    private void unblockButton() {
+        mSignUpButton.setClickable(true);
     }
 }
