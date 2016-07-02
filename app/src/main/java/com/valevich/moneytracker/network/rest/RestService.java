@@ -55,6 +55,7 @@ public class RestService {
         return restClient.getLogoutUserApi().logOut();
     }
 
+    // TODO: 29.06.2016 JsonSyntaxException при входе с нового акка гугла
     public List<GlobalCategoriesDataModel> fetchGlobalCategoriesData(String authToken, String googleToken) {
         return restClient.getFetchGlobalCategoriesDataApi().fetchGlobalCategoriesData(authToken,googleToken);
     }
