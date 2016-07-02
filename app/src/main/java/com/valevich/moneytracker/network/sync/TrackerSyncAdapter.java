@@ -129,8 +129,8 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account account, Bundle extras, String authority,
                               ContentProviderClient provider, SyncResult syncResult) {
 
+        notifyQueryStarted();
         try {
-            notifyQueryStarted();
             performSync();
         } catch (Exception e) {
             handleExceptions(e);
