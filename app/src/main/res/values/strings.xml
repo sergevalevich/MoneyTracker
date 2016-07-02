@@ -87,4 +87,5 @@
 
     <string name="notification_message">Синхронизация прошла успешно</string>
     <string name="pref_notification_section">Уведомления</string>
+    <string name="auth_dialog_message">Авторизация</string>
 </resources>

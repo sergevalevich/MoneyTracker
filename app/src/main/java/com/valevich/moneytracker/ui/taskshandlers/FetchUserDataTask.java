@@ -7,7 +7,8 @@ import android.util.Log;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.database.data.CategoryEntry;
-import com.valevich.moneytracker.database.data.ExpenseEntry;
+import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.GlobalCategoriesDataModel;
 import com.valevich.moneytracker.ui.activities.MainActivity_;
@@ -43,6 +44,7 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
                 .fetchGlobalCategoriesData(getLoftToken(),getGoogleToken());
         if(mGlobalCategoriesData != null)
             saveData(mGlobalCategoriesData);
+        else notifyLoginFinished();
     }
 
     private void saveData(List<GlobalCategoriesDataModel> globalCategoriesData) {
@@ -60,11 +62,13 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
     @Override
     public void onError(Transaction transaction, Throwable error) {
         Log.d(TAG,"ERROR SAVING DATA");
+        notifyLoginFinished();
     }
 
     @Override
     public void onSuccess(Transaction transaction) {
         Log.d(TAG,"DATA SAVED SUCCESSFULLY");
+        notifyLoginFinished();
         navigateToMain();
     }
 
@@ -74,4 +78,10 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         mActivity.startActivity(intent);
     }
+
+    private void notifyLoginFinished() {
+        Log.d(TAG, "notifyLoginFinished: ");
+        BusProvider.getInstance().post(new LoginFinishedEvent());
+    }
+
 }

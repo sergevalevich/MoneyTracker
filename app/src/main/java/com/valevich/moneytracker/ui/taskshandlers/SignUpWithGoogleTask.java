@@ -1,27 +1,22 @@
 package com.valevich.moneytracker.ui.taskshandlers;
 
-import android.content.Intent;
 import android.util.Log;
 
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
-import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
 import com.valevich.moneytracker.ui.activities.LoginActivity;
-import com.valevich.moneytracker.ui.activities.MainActivity_;
 import com.valevich.moneytracker.utils.ConstantsManager;
-import com.valevich.moneytracker.utils.Preferences_;
-import com.valevich.moneytracker.utils.UserNotifier;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
-import org.androidannotations.annotations.res.StringRes;
-import org.androidannotations.annotations.sharedpreferences.Pref;
 
 import java.io.IOException;
 
@@ -64,11 +59,17 @@ public class SignUpWithGoogleTask {
                     userGoogleInfoModel.getPicture(),
                     "");
             fetchUserData();
+        } else {
+            notifyLoginFinished();
         }
     }
 
     private void fetchUserData() {
         mFetchUserDataTask.fetchUserData();
+    }
+
+    private void notifyLoginFinished() {
+        BusProvider.getInstance().post(new LoginFinishedEvent());
     }
 
 }

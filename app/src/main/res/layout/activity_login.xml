@@ -82,7 +82,7 @@
         </include>
 
         <TextView
-            android:id="@+id/signUpText"
+            android:id="@+id/signUpButton"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"

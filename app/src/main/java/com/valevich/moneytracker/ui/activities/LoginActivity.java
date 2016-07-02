@@ -1,30 +1,28 @@
 package com.valevich.moneytracker.ui.activities;
 
 import android.accounts.AccountManager;
+import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.graphics.drawable.GradientDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.google.android.gms.common.AccountPicker;
-import com.valevich.moneytracker.MoneyTrackerApplication_;
+import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.R;
-import com.valevich.moneytracker.network.rest.model.UserLoginModel;
-import com.valevich.moneytracker.ui.taskshandlers.FetchUserDataTask;
+import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
 import com.valevich.moneytracker.ui.taskshandlers.SignUpTask;
 import com.valevich.moneytracker.ui.taskshandlers.SignUpWithGoogleTask;
 import com.valevich.moneytracker.utils.InputFieldValidator;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.UserNotifier;
 
-import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
@@ -48,7 +46,7 @@ public class LoginActivity extends AppCompatActivity{
     @ViewById(R.id.logInButton)
     Button mLogInButton;
 
-    @ViewById(R.id.signUpText)
+    @ViewById(R.id.signUpButton)
     TextView mSignUpButton;
 
     @ViewById(R.id.root)
@@ -83,8 +81,27 @@ public class LoginActivity extends AppCompatActivity{
     @StringRes(R.string.network_unavailable)
     String mNetworkUnavailableMessage;
 
+    @StringRes(R.string.auth_dialog_message)
+    String mAuthMessage;
+
+    private ProgressDialog mProgressDialog;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        BusProvider.getInstance().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unblockButtons();//when going back from SignUpActivity Buttons are blocked(preventing)
+        BusProvider.getInstance().unregister(this);
+    }
+
     @Click(R.id.google_login_btn)
     void pickAccount() {
+        blockButtons();
         Intent intent = AccountPicker.newChooseAccountIntent(null, null, new String[]{"com.google"},
                 false, null, null, null, null);
         startActivityForResult(intent, REQUEST_CODE);
@@ -105,20 +122,29 @@ public class LoginActivity extends AppCompatActivity{
         }
     }
 
-    @Click(R.id.signUpText)
+    @Click(R.id.signUpButton)
     void signUp() {
+        blockButtons();
         SignUpActivity_.intent(this).start();
     }
 
     @OnActivityResult(REQUEST_CODE)
     void onResult(int resultCode, @OnActivityResult.Extra(value = AccountManager.KEY_ACCOUNT_NAME) String accountName) {
         if (resultCode == RESULT_OK) {
-            if(mNetworkStatusChecker.isNetworkAvailable())
+            if(mNetworkStatusChecker.isNetworkAvailable()) {
+                showProgressDialog();
                 mSignUpWithGoogleTask.logInWithGoogle(accountName);
+            }
             else mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
         } else if (resultCode != RESULT_CANCELED) {
             Toast.makeText(this, mGoogleAccountPickerErrorMessage, Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Subscribe
+    public void onLoginFinished(LoginFinishedEvent loginFinishedEvent) {
+        Log.d(TAG, "onLoginFinished: ");
+        closeProgressDialog();
     }
 
     private boolean isInputValid(String username,String password) {
@@ -130,5 +156,28 @@ public class LoginActivity extends AppCompatActivity{
             return false;
         }
         return true;
+    }
+
+    private void showProgressDialog() {
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setMessage(mAuthMessage);
+        mProgressDialog.show();
+    }
+
+    private void closeProgressDialog() {
+        if(mProgressDialog != null && mProgressDialog.isShowing())
+        mProgressDialog.dismiss();
+    }
+
+    private void blockButtons() {
+        mLogInWithGoogleButton.setClickable(false);
+        mSignUpButton.setClickable(false);
+        mLogInButton.setClickable(false);
+    }
+
+    private void unblockButtons() {
+        mLogInWithGoogleButton.setClickable(true);
+        mSignUpButton.setClickable(true);
+        mLogInButton.setClickable(true);
     }
 }
