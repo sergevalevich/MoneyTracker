@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name = "chartColors">
-        <item>@color/yellow</item>
-        <item>@color/brown</item>
         <item>@color/lightBlue</item>
+        <item>@color/brown</item>
+        <item>@color/yellow</item>
         <item>@color/pink</item>
         <item>@color/green</item>
         <item>@color/red</item>

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -65,6 +66,9 @@ public class CategoriesAdapter extends SelectableAdapter<CategoriesAdapter.Categ
         @Bind(R.id.category_label)
         TextView categoryLabel;
 
+        @Bind(R.id.category_total)
+        TextView categoryTotal;
+
         @Bind(R.id.selected_overlay)
         View selectedView;
         private ClickListener clickListener;
@@ -79,6 +83,9 @@ public class CategoriesAdapter extends SelectableAdapter<CategoriesAdapter.Categ
 
         public void bindCategory(CategoryEntry category) {
             categoryLabel.setText(category.getName());
+            categoryTotal.setText(String.format(Locale.getDefault(),
+                    "%.1f%s",
+                    category.getCategoryTotal(),"$"));
             selectedView.setVisibility(isSelected(getAdapterPosition())
                     ? View.VISIBLE
                     : View.INVISIBLE);

@@ -17,19 +17,16 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
-import com.valevich.moneytracker.database.data.CategoryEntry;
-import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.eventbus.buses.BusProvider;
 import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryAddedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryUpdatedEvent;
 import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
 import com.valevich.moneytracker.eventbus.events.QueryStartedEvent;
-import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
+import com.valevich.moneytracker.eventbus.events.SyncBeforeExitFinishedEvent;
 import com.valevich.moneytracker.network.sync.TrackerSyncAdapter;
 import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
 import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
@@ -137,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     }
 
     @Subscribe
-    public void onLastSyncFinished(SyncFinishedEvent syncFinishedEvent) {
+    public void onSyncBeforeExitFinished(SyncBeforeExitFinishedEvent syncBeforeExitFinishedEvent) {
         mLogoutTask.onSyncFinished();
     }
 

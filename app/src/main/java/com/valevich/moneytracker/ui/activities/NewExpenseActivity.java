@@ -112,7 +112,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     @StringRes(R.string.new_expense_empty_fields_warning)
     String mEmptyFieldsWarning;
 
-    @ColorRes(R.color.colorPrimary)
+    @ColorRes(R.color.colorAccentDatePicker)
     int mDatePickerColor;
 
     private String mAmount;
@@ -174,6 +174,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         int day = cal.get(Calendar.DAY_OF_MONTH);
         DatePickerDialog dialog = DatePickerDialog.newInstance(mDatePickerListener,year,month,day);
         dialog.setAccentColor(mDatePickerColor);
+        dialog.setThemeDark(true);
         dialog.show(getFragmentManager(),"DatePicker");
 
     }

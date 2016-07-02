@@ -92,7 +92,7 @@ public class StatisticsFragment extends Fragment {
 
     private void fillChart(final List<CategoryEntry> categories) {
         List<Entry> entries = new ArrayList<>();
-        List<String> labels = new ArrayList<>();
+        final List<String> labels = new ArrayList<>();
 
         int index = 0;
         for(CategoryEntry category:categories) {
@@ -111,7 +111,7 @@ public class StatisticsFragment extends Fragment {
         pieDataSet.setColors(colors);
         pieDataSet.setValueFormatter(new PercentFormatter());
 
-        PieData pieData = new PieData(labels, pieDataSet);
+        final PieData pieData = new PieData(labels, pieDataSet);
         pieData.setValueTextColor(mTextColor);
         pieData.setValueTextSize(ConstantsManager.CHART_LABEL_SIZE);
 
@@ -120,7 +120,7 @@ public class StatisticsFragment extends Fragment {
             public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
                 mChart.setCenterText(String.format(Locale.getDefault(),
                         "%s %n %.1f$",
-                        categories.get(e.getXIndex()).getName(),
+                        labels.get(e.getXIndex()),
                         e.getVal()));
             }
 

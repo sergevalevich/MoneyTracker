@@ -24,9 +24,4 @@ public class NetworkStatusChecker {
         NetworkInfo activeNetwork = mConnectivityManager.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
-
-    //----------------if we are not injecting-----------//
-    public void setConnectivityManager(Context context) {
-        mConnectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-    }
 }

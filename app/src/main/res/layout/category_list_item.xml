@@ -1,31 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    tools:background = "@color/colorBackground"
     android:minHeight="@dimen/list_item_min_height">
-    <TextView
-        android:id="@+id/category_label"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:textSize="@dimen/list_item_text_size"
-        android:gravity="center_vertical"
-        android:layout_gravity="center_vertical"
-        android:textColor="@color/colorText"
-        android:paddingStart="@dimen/list_item_side_padding"
-        android:paddingEnd="@dimen/list_item_side_padding"/>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/selected_overlay"
-        android:background="@color/colorSelectedItem"
-        android:gravity="center_vertical"
-        android:layout_gravity="center_vertical"
-        android:paddingStart="@dimen/list_item_side_padding"
-        android:paddingEnd="@dimen/list_item_side_padding"
-        android:visibility="invisible"/>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="@dimen/list_item_side_padding"
+            android:paddingEnd="@dimen/list_item_side_padding">
+
+            <TextView
+                android:id="@+id/category_label"
+                android:layout_weight="6"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:textSize="@dimen/list_item_text_size"
+                android:textColor="@color/colorText"
+                tools:text = "Azazazaza"/>
+
+
+            <TextView
+                android:id="@+id/category_total"
+                android:layout_width="@dimen/list_item_price_text_width"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:maxLength="9"
+                android:paddingStart="@dimen/list_item_price_text_start_padding"
+                android:paddingLeft="@dimen/list_item_price_text_start_padding"
+                android:gravity="center"
+                android:textColor="@color/colorText"
+                android:textSize="@dimen/primary_text_size"
+                tools:text="10000000$"/>
+
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/selected_overlay"
+            android:background="@color/colorSelectedItem"
+            android:gravity="center_vertical"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/list_item_side_padding"
+            android:paddingEnd="@dimen/list_item_side_padding"
+            android:visibility="invisible"/>
 
 
 </FrameLayout>

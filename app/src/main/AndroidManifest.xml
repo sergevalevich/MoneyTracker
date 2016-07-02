@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS"/>
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
     <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -81,7 +82,7 @@
             android:exported="false"/>
 
         <service
-            android:name=".services.TrackerAuthenticatorService">
+            android:name=".services.TrackerAuthenticatorService_">
             <intent-filter>
                 <action
                     android:name="android.accounts.AccountAuthenticator" />
@@ -92,7 +93,7 @@
         </service>
 
         <service
-            android:name=".services.TrackerSyncService"
+            android:name=".services.TrackerSyncService_"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />

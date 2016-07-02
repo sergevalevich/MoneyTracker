@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/pref_notification_section">
+
+        <SwitchPreferenceCompat
+            android:title="@string/pref_enable_notifications_label"
+            android:key="@string/pref_enable_notifications_key"
+            android:summary = "@string/pref_notifications_summary"
+            android:defaultValue="@string/pref_enable_notifications_default">
+        </SwitchPreferenceCompat>
+
+        <SwitchPreferenceCompat
+            android:title="@string/pref_enable_sound_label"
+            android:key="@string/pref_enable_sound_key"
+            android:defaultValue="@string/pref_enable_sound_default">
+        </SwitchPreferenceCompat>
+
+        <SwitchPreferenceCompat
+            android:title="@string/pref_enable_vibration_label"
+            android:key="@string/pref_enable_vibration_key"
+            android:defaultValue="@string/pref_enable_vibration_default">
+        </SwitchPreferenceCompat>
+
+        <SwitchPreferenceCompat
+            android:title="@string/pref_enable_indicator_label"
+            android:key="@string/pref_enable_indicator_key"
+            android:defaultValue="@string/pref_enable_indicator_default">
+        </SwitchPreferenceCompat>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

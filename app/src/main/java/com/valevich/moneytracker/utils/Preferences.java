@@ -1,5 +1,9 @@
 package com.valevich.moneytracker.utils;
 
+import com.valevich.moneytracker.R;
+
+import org.androidannotations.annotations.sharedpreferences.DefaultBoolean;
+import org.androidannotations.annotations.sharedpreferences.DefaultInt;
 import org.androidannotations.annotations.sharedpreferences.DefaultString;
 import org.androidannotations.annotations.sharedpreferences.SharedPref;
 
@@ -25,4 +29,19 @@ public interface Preferences {
 
     @DefaultString("")
     String userPassword();
+
+    @DefaultBoolean(value = true, keyRes = R.string.pref_enable_notifications_key)
+    boolean notificationPreference();
+
+    @DefaultBoolean(value = true,keyRes = R.string.pref_enable_indicator_key)
+    boolean indicatorPreference();
+
+    @DefaultBoolean(value = true,keyRes = R.string.pref_enable_vibration_key)
+    boolean vibrationPreference();
+
+    @DefaultBoolean(value = true,keyRes = R.string.pref_enable_sound_key)
+    boolean soundPreference();
+
+    @DefaultInt(0)
+    int exceptionsCount();
 }

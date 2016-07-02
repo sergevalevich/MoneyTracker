@@ -9,6 +9,7 @@
     <color name="colorText">#ffffff</color>
     <color name="colorSelectedItem">#70000000</color>
     <color name="colorBackgroundDialog">#616161</color>
+    <color name="colorAccentDatePicker">#26C6DA</color>
 
     <!-- chart colors-->
 
