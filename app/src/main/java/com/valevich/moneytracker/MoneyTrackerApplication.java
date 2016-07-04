@@ -5,12 +5,17 @@ import android.content.Context;
 import android.os.Build;
 import android.support.multidex.MultiDex;
 
+import com.crashlytics.android.Crashlytics;
 import com.raizlabs.android.dbflow.config.FlowConfig;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.valevich.moneytracker.utils.Preferences_;
+import com.valevich.moneytracker.utils.ReleaseTree;
 
 import org.androidannotations.annotations.EApplication;
 import org.androidannotations.annotations.sharedpreferences.Pref;
+
+import io.fabric.sdk.android.Fabric;
+import timber.log.Timber;
 
 /**
  * Created by NotePad.by on 07.05.2016.
@@ -24,6 +29,18 @@ public class MoneyTrackerApplication extends Application {
         super.onCreate();
         FlowManager.init(new FlowConfig.Builder(this)
                 .openDatabasesOnInit(true).build());
+        if(BuildConfig.DEBUG) {
+            Timber.plant(new Timber.DebugTree() {
+                @Override
+                protected String createStackElementTag(StackTraceElement element) {
+                    return super.createStackElementTag(element) + ":" + element.getLineNumber();
+                }
+            });
+        } else {
+            //releaseTree
+            Fabric.with(this);
+            Timber.plant(new ReleaseTree());
+        }
     }
 
     public static void saveGoogleToken(String token) {

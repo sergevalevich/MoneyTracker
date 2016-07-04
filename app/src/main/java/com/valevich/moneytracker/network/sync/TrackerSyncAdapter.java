@@ -55,9 +55,11 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private static final String TAG = TrackerSyncAdapter.class.getSimpleName();
 
-    private int[] mNewCategoryIds;
-
     private List<CategoryEntry> mCategoriesDb;
+
+    private List<ExpenseEntry> mExpensesDb;
+
+    private int[] mNewCategoryIds;
 
     private static boolean mStopAfterSync = false;
 
@@ -90,21 +92,6 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                 ConstantsManager.CONTENT_AUTHORITY, bundle);
     }
 
-    private static Account getSyncAccount(Context context) {
-        AccountManager accountManager =
-                (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
-        mAccount = new Account(context.getString(R.string.app_name),
-                ConstantsManager.SYNC_ACCOUNT_TYPE);
-        ContentResolver.setIsSyncable(mAccount, ConstantsManager.CONTENT_AUTHORITY, 1);
-        if (null == accountManager.getPassword(mAccount)) {
-            if (!accountManager.addAccountExplicitly(mAccount, "", null)) {
-                return null;
-            }
-            onAccountCreated(mAccount, context);
-        }
-        return mAccount;
-    }
-
     public static void configurePeriodicSync(Context context, int syncInterval, int flexTime) {
         Account account = getSyncAccount(context);
         String authority = ConstantsManager.CONTENT_AUTHORITY;
@@ -129,9 +116,14 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account account, Bundle extras, String authority,
                               ContentProviderClient provider, SyncResult syncResult) {
 
+        Log.d(TAG, "SYNC STARTED");
         notifyQueryStarted();
+
+        mCategoriesDb = CategoryEntry.getAllCategories("");
+        mExpensesDb = ExpenseEntry.getAllExpenses("");
+
         try {
-            performSync();
+            syncCategories();
         } catch (Exception e) {
             handleExceptions(e);
         } finally {
@@ -143,38 +135,32 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             }
         }
 
+        //sync categories without expenses to remove expenses from the server
+        /*
+        Because the server doesn't allow sync of empty categories list this is
+        needed to perform sync if the user removed everything.
+        So we send default category to the server to remove all the other categories
+        Everything will be fine if the network connection exists when the user removes
+        all categories, because in this case delete category query will work.
+        But if the user removes all data without internet, we need to perform this
+        query when network connection is present or the user logs out.
+        */
+
     }
 
-    private void performSync() {
-        Log.d(TAG, "SYNC STARTED");
-
-        if (!areExpensesEmpty()) {
-
-            syncCategories(getCategoriesString(getPreparedCategories()));
-
-            if (newIdsReceived()) {
-                syncExpenses(getExpensesString(getPreparedExpenses()));
+    private static Account getSyncAccount(Context context) {
+        AccountManager accountManager =
+                (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
+        mAccount = new Account(context.getString(R.string.app_name),
+                ConstantsManager.SYNC_ACCOUNT_TYPE);
+        ContentResolver.setIsSyncable(mAccount, ConstantsManager.CONTENT_AUTHORITY, 1);
+        if (null == accountManager.getPassword(mAccount)) {
+            if (!accountManager.addAccountExplicitly(mAccount, "", null)) {
+                return null;
             }
-        } else {
-            if (!areCategoriesEmpty()) {
-                //sync categories without expenses to remove expenses from the server
-                syncCategories(getCategoriesString(getPreparedCategories()));
-                if (newIdsReceived()) updateDbEntriesIds();
-
-            } else {
-                    /*
-                     Because the server doesn't allow sync of empty categories list this is
-                     needed to perform sync if the user removed everything.
-                     So we send default category to the server to remove all the other categories
-                     Everything will be fine if the network connection exists when the user removes
-                     all categories, because in this case delete category query will work.
-                     But if the user removes all data without internet, we need to perform this
-                     query when network connection is present or the user logs out.
-                     */
-                syncCategories(getDefaultCategoryString());
-
-            }
+            onAccountCreated(mAccount, context);
         }
+        return mAccount;
     }
 
     private void handleExceptions(Exception e) {
@@ -187,15 +173,11 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private boolean areExpensesEmpty() {
-        return ExpenseEntry.getAllExpenses("").size() == 0;
+        return mExpensesDb.size() == 0;
     }
 
     private boolean areCategoriesEmpty() {
-        return CategoryEntry.getAllCategories("").size() == 0;
-    }
-
-    private boolean newIdsReceived() {
-        return mNewCategoryIds != null && mNewCategoryIds.length != 0;
+        return mCategoriesDb.size() == 0;
     }
 
     private void notifyQueryStarted() {
@@ -219,104 +201,54 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         ContentResolver.cancelSync(mAccount, ConstantsManager.CONTENT_AUTHORITY);
     }
 
-    private void syncCategories(String categoriesString) {
+    private void syncCategories() {
+
+        String categoriesJsonString = areCategoriesEmpty()
+                ? getCategoriesString(getPreparedDefaultCategory())
+                : getCategoriesString(getPreparedCategories());
 
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
 
         if (mNetworkStatusChecker.isNetworkAvailable()) {
             CategoriesSyncModel apiCategories = mRestService
-                    .syncCategories(categoriesString, loftToken, googleToken);
+                    .syncCategories(categoriesJsonString, loftToken, googleToken);
 
             String status = apiCategories.getStatus();
 
             switch (status) {
                 case ConstantsManager.STATUS_SUCCESS:
                     setNewCategoryIds(apiCategories);
-                    break;
-                default:
-                    reLogInAndTryAgain();
-                    break;
-            }
-        }
-
-    }
-
-    private void reLogInAndTryAgain() {
-        if (mNetworkStatusChecker.isNetworkAvailable()) {
-            UserLogoutModel userLogoutModel = mRestService.logout();
-            String status = userLogoutModel.getStatus();
-            switch (status) {
-                case ConstantsManager.STATUS_EMPTY:
-                case ConstantsManager.STATUS_SUCCESS:
-                    logIn();
-                    break;
-                default:
+                    if(!areExpensesEmpty()) {
+                        syncExpenses();
+                    }
                     break;
             }
         }
-    }
 
-    private void logIn() {
-        if (mNetworkStatusChecker.isNetworkAvailable()) {
-            if (MoneyTrackerApplication_.isGoogleTokenExist()) {
-                loginWithGoogle();
-            } else {
-                regularLogin();
-            }
-        }
-    }
-
-    private void regularLogin() {
-        UserLoginModel userLoginModel = mRestService.logIn(MoneyTrackerApplication_.getUserFullName(),
-                MoneyTrackerApplication_.getUserPassword());
-        String status = userLoginModel.getStatus();
-        switch (status) {
-            case ConstantsManager.STATUS_SUCCESS:
-                syncImmediately(getContext(), mStopAfterSync);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void loginWithGoogle() {
-        String token = null;
-        try {
-            String accountName = MoneyTrackerApplication_.getUserEmail();
-            token = GoogleAuthUtil.getToken(getContext(), accountName,
-                    ConstantsManager.SCOPES);
-
-        } catch (UserRecoverableAuthException | IOException userAuthEx) {
-            userAuthEx.printStackTrace();
-        } catch (GoogleAuthException fatalAuthEx) {
-            fatalAuthEx.printStackTrace();
-            Log.e(LoginActivity.TAG, "Fatal Exception " + fatalAuthEx.getLocalizedMessage());
-        }
-
-        if (token != null) {
-            MoneyTrackerApplication_.saveGoogleToken(token);
-            UserGoogleInfoModel userGoogleInfoModel = mRestService.getGoogleInfo(token);
-            MoneyTrackerApplication_.saveUserInfo(
-                    userGoogleInfoModel.getName(),
-                    userGoogleInfoModel.getEmail(),
-                    userGoogleInfoModel.getPicture(),
-                    "");
-            syncImmediately(getContext(), mStopAfterSync);
-        }
     }
 
     private void setNewCategoryIds(CategoriesSyncModel apiCategories) {
 
         List<CategoryData> categoryData = apiCategories.getData();
-        int dataSize = categoryData.size();
-        mNewCategoryIds = new int[dataSize];
+        String firstCategoryName = categoryData.get(0).getTitle();
 
-        for (int i = 0; i < dataSize; i++) {
+        if(!firstCategoryName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME)) {//not updating db if we get default category
 
-            int categoryId = categoryData.get(i).getId();
-            mNewCategoryIds[i] = categoryId;
+            int dataSize = categoryData.size();
+            mNewCategoryIds = new int[dataSize];
 
+            for (int i = 0; i < dataSize; i++) {
+
+                int categoryId = categoryData.get(i).getId();
+                mNewCategoryIds[i] = categoryId;
+
+            }
+            // FIXME: 16.06.2016 не доставать категории. Достаю их, чтобы проверить обновление id
+            List<CategoryEntry> categoryEntries = CategoryEntry.updateIds(mCategoriesDb, mNewCategoryIds);
+            for (CategoryEntry category : categoryEntries) {
+                Log.d(TAG, String.format(Locale.getDefault(), "%s = %d %n", category.getName(), category.getId()));
+            }
         }
     }
 
@@ -328,8 +260,6 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private List<CategoryData> getPreparedCategories() {
-
-        mCategoriesDb = CategoryEntry.getAllCategories("");
 
         List<CategoryData> categoriesToSync = new ArrayList<>();
 
@@ -346,17 +276,19 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         return categoriesToSync;
     }
 
-    private String getDefaultCategoryString() {
+    private List<CategoryData> getPreparedDefaultCategory() {
         List<CategoryData> categoriesToSync = new ArrayList<>();
         CategoryData categoryToSync = new CategoryData();
         categoryToSync.setId(0);
         categoryToSync.setTitle(CategoryEntry.DEFAULT_CATEGORY_NAME);
         categoriesToSync.add(categoryToSync);
-
-        return getCategoriesString(categoriesToSync);
+        return categoriesToSync;
     }
 
-    private void syncExpenses(String expensesString) {
+    private void syncExpenses() {
+
+        List<ExpenseData> expenses = getPreparedExpenses();
+        String expensesString = getExpensesString(expenses);
 
         String loftToken = getLoftToken();
         String googleToken = getGoogleToken();
@@ -367,7 +299,6 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             String status = expensesSyncModel.getStatus();
             switch (status) {
                 case ConstantsManager.STATUS_SUCCESS:
-                    updateDbEntriesIds();
                     if (!mStopAfterSync) sendUserNotification();
                     break;
             }
@@ -392,7 +323,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             for (ExpenseEntry expenseDb : category.getExpenses()) {
                 ExpenseData expenseToSync = new ExpenseData();
 
-                expenseToSync.setCategory_id(mNewCategoryIds[i]);
+                expenseToSync.setCategoryId(mNewCategoryIds[i]);
                 expenseToSync.setComment(expenseDb.getDescription());
                 expenseToSync.setId((int) expenseDb.getId());
                 expenseToSync.setSum(Double.valueOf(expenseDb.getPrice()));
@@ -402,14 +333,6 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             }
         }
         return expensesToSync;
-    }
-
-    private void updateDbEntriesIds() {
-        // FIXME: 16.06.2016 не доставать категории. Достаю их, чтобы проверить обновление id
-        List<CategoryEntry> categoryEntries = CategoryEntry.updateIds(mCategoriesDb, mNewCategoryIds);
-        for (CategoryEntry category : categoryEntries) {
-            Log.d(TAG, String.format(Locale.getDefault(), "%s = %d %n", category.getName(), category.getId()));
-        }
     }
 
     private static void onAccountCreated(Account newAccount, Context context) {

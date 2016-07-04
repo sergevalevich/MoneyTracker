@@ -34,7 +34,7 @@ public class ExpenseData {
         return category_id;
     }
 
-    public void setCategory_id(Integer category_id) {
+    public void setCategoryId(Integer category_id) {
         this.category_id = category_id;
     }
 

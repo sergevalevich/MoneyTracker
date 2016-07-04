@@ -110,4 +110,5 @@ dependencies {
     compile('com.crashlytics.sdk.android:crashlytics:2.6.0@aar') {
         transitive = true;
     }
+    compile 'com.jakewharton.timber:timber:4.1.2'
 }

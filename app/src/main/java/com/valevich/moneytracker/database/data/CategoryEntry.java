@@ -188,11 +188,6 @@ public class CategoryEntry extends BaseModel {
 
     }
 
-    private static boolean isCategoryDefault(GlobalCategoriesDataModel fetchedCategory) {
-        return fetchedCategory.getTitle().equals(DEFAULT_CATEGORY_NAME);
-    }
-
-
     public static void saveCategory(CategoryEntry category,
                                     final String name,
                                     Transaction.Success successCallback,
@@ -245,5 +240,9 @@ public class CategoryEntry extends BaseModel {
     @Override
     public String toString() {
         return name;
+    }
+
+    private static boolean isCategoryDefault(GlobalCategoriesDataModel fetchedCategory) {
+        return fetchedCategory.getTitle().equals(DEFAULT_CATEGORY_NAME);
     }
 }
