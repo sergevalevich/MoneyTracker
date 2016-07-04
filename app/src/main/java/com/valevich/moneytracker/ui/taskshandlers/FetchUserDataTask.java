@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.database.data.CategoryEntry;
@@ -40,14 +41,22 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
 
     @Background
     public void fetchUserData() {
+        Crashlytics.log("FetchUserData");
         mGlobalCategoriesData = mRestService
                 .fetchGlobalCategoriesData(getLoftToken(),getGoogleToken());
-        if(mGlobalCategoriesData != null)
+        if(mGlobalCategoriesData != null) {
+            Crashlytics.log(mGlobalCategoriesData.toString());
             saveData(mGlobalCategoriesData);
-        else notifyLoginFinished();
+        }
+        else {
+            Crashlytics.log("fetched data is null");
+            notifyLoginFinished();
+        }
     }
 
     private void saveData(List<GlobalCategoriesDataModel> globalCategoriesData) {
+        Crashlytics.log("saveData");
+        Crashlytics.log(globalCategoriesData.toString());
         CategoryEntry.saveCategories(globalCategoriesData,this,this);
     }
 
@@ -61,7 +70,7 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
 
     @Override
     public void onError(Transaction transaction, Throwable error) {
-        Log.d(TAG,"ERROR SAVING DATA");
+        Crashlytics.log("ERROR SAVING DATA");
         notifyLoginFinished();
     }
 

@@ -83,9 +83,11 @@ public class CategoriesAdapter extends SelectableAdapter<CategoriesAdapter.Categ
 
         public void bindCategory(CategoryEntry category) {
             categoryLabel.setText(category.getName());
-            categoryTotal.setText(String.format(Locale.getDefault(),
+            float categoryTotal = category.getCategoryTotal();
+            if(categoryTotal > 0)
+            this.categoryTotal.setText(String.format(Locale.getDefault(),
                     "%.1f%s",
-                    category.getCategoryTotal(),"$"));
+                    categoryTotal,"$"));
             selectedView.setVisibility(isSelected(getAdapterPosition())
                     ? View.VISIBLE
                     : View.INVISIBLE);

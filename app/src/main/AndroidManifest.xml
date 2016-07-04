@@ -103,6 +103,10 @@
                 android:resource="@xml/syncadapter" />
         </service>
 
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="bf1811db581bcbfaf2848ff7712325df8b70afb0" />
+
     </application>
 
 </manifest>
