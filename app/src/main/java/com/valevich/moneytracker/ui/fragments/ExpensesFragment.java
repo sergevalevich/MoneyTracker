@@ -21,16 +21,18 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.SearchView;
 
-
+import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.ExpenseAdapter;
-import com.valevich.moneytracker.database.data.ExpenseEntry;
+import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.ExpenseItemClickedEvent;
+import com.valevich.moneytracker.eventbus.events.ExpenseItemLongClickedEvent;
 import com.valevich.moneytracker.ui.activities.NewExpenseActivity_;
-import com.valevich.moneytracker.utils.ClickListener;
 import com.valevich.moneytracker.utils.ExpenseTouchHelper;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.OptionsMenu;
@@ -40,42 +42,61 @@ import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
 import org.androidannotations.api.BackgroundExecutor;
 
-import java.util.List;
-
 @OptionsMenu(R.menu.search_menu)
 @EFragment(R.layout.fragment_expenses)
-public class ExpensesFragment extends Fragment implements ClickListener {
+public class ExpensesFragment extends Fragment {
 
     private static final String SEARCH_ID = "search_id";
+
     @ViewById(R.id.expenseList)
     RecyclerView mExpenseRecyclerView;
+
     @ViewById(R.id.fab)
     FloatingActionButton mFab;
+
     @ViewById(R.id.coordinator)
     CoordinatorLayout mRootLayout;
+
     @ViewById(R.id.swipeToRefresh)
     SwipeRefreshLayout mSwipeRefreshLayout;
+
     @OptionsMenuItem(R.id.action_search)
     MenuItem mSearchMenuItem;
+
     @StringRes(R.string.search_hint)
     String mSearchHint;
+
     @ColorRes(R.color.colorPrimary)
     int mColorPrimary;
+
     @ColorRes(R.color.colorPrimaryDark)
     int mColorPrimaryDark;
 
     private static final int EXPENSES_LOADER = 0;
 
-    private ExpenseAdapter mExpenseAdapter;
+    @Bean
+    ExpenseAdapter mExpenseAdapter;
 
     private ActionMode mActionMode;
 
     private ActionMode.Callback mActionModeCallback = new ActionModeCallback();
 
-    private ExpenseTouchHelper mExpenseTouchHelper;
-
+    @Bean
+    ExpenseTouchHelper mExpenseTouchHelper;
 
     public ExpensesFragment() {
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        BusProvider.getInstance().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        BusProvider.getInstance().unregister(this);
     }
 
     @Override
@@ -142,6 +163,23 @@ public class ExpensesFragment extends Fragment implements ClickListener {
         setupSwipeToRefresh();
     }
 
+    @Subscribe
+    public void onItemClick(ExpenseItemClickedEvent event) {
+        if (mActionMode != null) {
+            toggleSelection(event.getPosition());
+        }
+    }
+
+    @Subscribe
+    public void onItemLongClick(ExpenseItemLongClickedEvent event) {
+        if (mActionMode == null) {
+            mActionMode = ((AppCompatActivity) getActivity())
+                    .startSupportActionMode(mActionModeCallback);
+        }
+
+        toggleSelection(event.getPosition());
+    }
+
     @Click(R.id.fab)
     void setupFab() {
         NewExpenseActivity_.intent(this).start().withAnimation(R.anim.enter_pull_in,R.anim.exit_fade_out);
@@ -167,14 +205,15 @@ public class ExpensesFragment extends Fragment implements ClickListener {
     }
 
     private void loadExpenses(final String filter) {
-        getLoaderManager().restartLoader(EXPENSES_LOADER, null, new LoaderManager.LoaderCallbacks<List<ExpenseEntry>>() {
+        getLoaderManager().restartLoader(EXPENSES_LOADER, null, new LoaderManager.LoaderCallbacks() {
 
             @Override
-            public Loader<List<ExpenseEntry>> onCreateLoader(int id, Bundle args) {
-                final AsyncTaskLoader<List<ExpenseEntry>> loader = new AsyncTaskLoader<List<ExpenseEntry>>(getActivity()) {
+            public Loader onCreateLoader(int id, Bundle args) {
+                final AsyncTaskLoader loader = new AsyncTaskLoader(getActivity()) {
                     @Override
-                    public List<ExpenseEntry> loadInBackground() {
-                        return ExpenseEntry.getAllExpenses(filter);
+                    public Object loadInBackground() {
+                        mExpenseAdapter.initAdapter(filter);
+                        return null;
                     }
                 };
                 loader.forceLoad();
@@ -182,29 +221,22 @@ public class ExpensesFragment extends Fragment implements ClickListener {
             }
 
             @Override
-            public void onLoadFinished(Loader<List<ExpenseEntry>> loader, List<ExpenseEntry> data) {
+            public void onLoadFinished(Loader loader, Object data) {
                 mSwipeRefreshLayout.setRefreshing(false);
-                mExpenseAdapter = (ExpenseAdapter) mExpenseRecyclerView.getAdapter();
-                if(mExpenseAdapter == null) {
-                    mExpenseAdapter = new ExpenseAdapter(data,ExpensesFragment.this,getActivity());
-                    mExpenseRecyclerView.setAdapter(mExpenseAdapter);
-                    mExpenseTouchHelper = new ExpenseTouchHelper(mExpenseAdapter,getActivity(),mRootLayout);
-                    ItemTouchHelper.Callback callback = mExpenseTouchHelper;
-                    ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
-                    itemTouchHelper.attachToRecyclerView(mExpenseRecyclerView);
-                } else {
-                    mExpenseAdapter.refresh(data);
-                }
+                mExpenseRecyclerView.setAdapter(mExpenseAdapter);
+                ItemTouchHelper.Callback callback = mExpenseTouchHelper;
+                ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+                itemTouchHelper.attachToRecyclerView(mExpenseRecyclerView);
             }
 
             @Override
-            public void onLoaderReset(Loader<List<ExpenseEntry>> loader) {
+            public void onLoaderReset(Loader loader) {
 
             }
         });
     }
 
-    private void toggleSection(int position) {
+    private void toggleSelection(int position) {
         mExpenseAdapter.toggleSelection(position);
         int selectedItemsCount = mExpenseAdapter.getSelectedItemCount();
         if(selectedItemsCount == 0) {
@@ -213,25 +245,6 @@ public class ExpensesFragment extends Fragment implements ClickListener {
             mActionMode.setTitle(String.valueOf(selectedItemsCount));
             mActionMode.invalidate();
         }
-    }
-
-    @Override
-    public boolean onItemClick(int position) {
-        if(mActionMode != null) {
-            toggleSection(position);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean onItemLongClick(int position) {
-        if (mActionMode == null) {
-            mActionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallback);
-        }
-
-        toggleSection(position);
-        return true;
     }
 
     private class ActionModeCallback implements ActionMode.Callback {
@@ -250,7 +263,7 @@ public class ExpensesFragment extends Fragment implements ClickListener {
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
             switch (menuItem.getItemId()) {
                 case R.id.menu_remove:
-                    mExpenseAdapter.removeItems(mExpenseAdapter.getSelectedItems());
+                    mExpenseAdapter.removeDbAndAdapterItems(mExpenseAdapter.getSelectedItems());
                     mActionMode.finish();
                     return true;
             }

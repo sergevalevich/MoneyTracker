@@ -3,10 +3,11 @@ package com.valevich.moneytracker.ui.activities;
 import android.accounts.AccountManager;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -30,6 +31,8 @@ import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.OnActivityResult;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
+
+import io.fabric.sdk.android.Fabric;
 
 @EActivity(R.layout.activity_login)
 public class LoginActivity extends AppCompatActivity{
@@ -72,6 +75,9 @@ public class LoginActivity extends AppCompatActivity{
     @Bean
     SignUpWithGoogleTask mSignUpWithGoogleTask;
 
+    @Bean
+    InputFieldValidator mInputFieldValidator;
+
     @StringRes(R.string.invalid_username_msg)
     String mInvalidUsernameMessage;
 
@@ -85,6 +91,12 @@ public class LoginActivity extends AppCompatActivity{
     String mAuthMessage;
 
     private ProgressDialog mProgressDialog;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Fabric.with(this);
+    }
 
     @Override
     protected void onStart() {
@@ -157,10 +169,10 @@ public class LoginActivity extends AppCompatActivity{
     }
 
     private boolean isInputValid(String username,String password) {
-        if(!InputFieldValidator.isUsernameValid(username)) {
+        if (!mInputFieldValidator.isUsernameValid(username)) {
             mUserNotifier.notifyUser(mRootLayout,mInvalidUsernameMessage);
             return false;
-        } else if(!InputFieldValidator.isPasswordValid(password)) {
+        } else if (!mInputFieldValidator.isPasswordValid(password)) {
             mUserNotifier.notifyUser(mRootLayout, mInvalidPasswordMessage);
             return false;
         }

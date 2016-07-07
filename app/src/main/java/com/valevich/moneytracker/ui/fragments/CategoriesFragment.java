@@ -1,12 +1,10 @@
 package com.valevich.moneytracker.ui.fragments;
 
 
-import android.animation.Animator;
 import android.app.Dialog;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -19,28 +17,26 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextUtils;
-import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.appdatasearch.Feature;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
+import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.CategoriesAdapter;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.eventbus.buses.BusProvider;
 import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryAddedEvent;
+import com.valevich.moneytracker.eventbus.events.CategoryItemClickedEvent;
+import com.valevich.moneytracker.eventbus.events.CategoryItemLongClickedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryUpdatedEvent;
-import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
-import com.valevich.moneytracker.utils.ClickListener;
 import com.valevich.moneytracker.utils.UserNotifier;
 
 import org.androidannotations.annotations.AfterViews;
@@ -48,7 +44,6 @@ import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
-import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.ViewById;
@@ -60,10 +55,11 @@ import java.util.List;
 
 @OptionsMenu(R.menu.search_menu)
 @EFragment(R.layout.fragment_categories)
-public class CategoriesFragment extends Fragment implements ClickListener, Transaction.Error, Transaction.Success {
+public class CategoriesFragment extends Fragment
+        implements Transaction.Error, Transaction.Success {
 
     private static final String SEARCH_ID = "search_id";
-    private static final String TAG = CategoriesFragment.class.getSimpleName();
+
     @ViewById(R.id.categories_list)
     RecyclerView mCategoriesRecyclerView;
 
@@ -106,12 +102,10 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     @ColorRes(R.color.colorPrimaryDark)
     int mColorPrimaryDark;
 
-    public CategoriesFragment() {
-    }
-
     private static final int CATEGORIES_LOADER = 1;
 
-    private CategoriesAdapter mCategoriesAdapter;
+    @Bean
+    CategoriesAdapter mCategoriesAdapter;
 
     private ActionMode mActionMode;
 
@@ -122,6 +116,21 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     private String mCategoryName;
 
     private int mCategoryId;
+
+    public CategoriesFragment() {
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        BusProvider.getInstance().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        BusProvider.getInstance().unregister(this);
+    }
 
     @Override
     public void onResume() {
@@ -174,25 +183,25 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         showDialog(mNewCategoryDialogTitle,"",null);
     }
 
-    @Override
-    public boolean onItemClick(int position) {
+    @Subscribe
+    public void onItemClick(CategoryItemClickedEvent event) {
+        int position = event.getPosition();
         if (mActionMode != null) {
             toggleSection(position);
         } else {
             CategoryEntry category = mCategoriesAdapter.getItem(position);
             showDialog(mEditCategoryDialogTitle,category.getName(),category);
         }
-        return true;
     }
 
-    @Override
-    public boolean onItemLongClick(int position) {
+    @Subscribe
+    public void onItemLongClick(CategoryItemLongClickedEvent event) {
         if (mActionMode == null) {
-            mActionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallback);
+            mActionMode = ((AppCompatActivity) getActivity())
+                    .startSupportActionMode(mActionModeCallback);
         }
 
-        toggleSection(position);
-        return true;
+        toggleSection(event.getPosition());
     }
 
     @Override
@@ -228,7 +237,8 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
             switch (menuItem.getItemId()) {
                 case R.id.menu_remove:
-                    List<Integer> ids = mCategoriesAdapter.removeItems(mCategoriesAdapter.getSelectedItems());
+                    List<Integer> ids = mCategoriesAdapter
+                            .removeDbAndAdapterItems(mCategoriesAdapter.getSelectedItems());
                     mActionMode.finish();
 
                     BusProvider.getInstance().post(new CategoriesRemovedEvent(ids));
@@ -260,13 +270,14 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     }
 
     private void loadCategories(final String filter) {
-        getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks<List<CategoryEntry>>() {
+        getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks() {
             @Override
-            public Loader<List<CategoryEntry>> onCreateLoader(int id, Bundle args) {
-                final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(getActivity()) {
+            public Loader onCreateLoader(int id, Bundle args) {
+                final AsyncTaskLoader loader = new AsyncTaskLoader(getActivity()) {
                     @Override
-                    public List<CategoryEntry> loadInBackground() {
-                        return CategoryEntry.getAllCategories(filter);
+                    public Object loadInBackground() {
+                        mCategoriesAdapter.initAdapter(filter);
+                        return null;
                     }
                 };
                 loader.forceLoad();
@@ -274,19 +285,13 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
             }
 
             @Override
-            public void onLoadFinished(Loader<List<CategoryEntry>> loader, List<CategoryEntry> data) {
+            public void onLoadFinished(Loader loader, Object data) {
                 mSwipeRefreshLayout.setRefreshing(false);
-                mCategoriesAdapter = (CategoriesAdapter) mCategoriesRecyclerView.getAdapter();
-                if (mCategoriesAdapter == null) {
-                    mCategoriesAdapter = new CategoriesAdapter(data, CategoriesFragment.this);
-                    mCategoriesRecyclerView.setAdapter(mCategoriesAdapter);
-                } else {
-                    mCategoriesAdapter.refresh(data);
-                }
+                mCategoriesRecyclerView.setAdapter(mCategoriesAdapter);
             }
 
             @Override
-            public void onLoaderReset(Loader<List<CategoryEntry>> loader) {
+            public void onLoaderReset(Loader loader) {
 
             }
         });

@@ -2,7 +2,6 @@ package com.valevich.moneytracker.database.data;
 
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.ForeignKey;
-import com.raizlabs.android.dbflow.annotation.ModelContainer;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.config.DatabaseDefinition;
@@ -13,17 +12,21 @@ import com.raizlabs.android.dbflow.structure.container.ForeignKeyContainer;
 import com.raizlabs.android.dbflow.structure.container.ModelContainerAdapter;
 import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
+import com.valevich.moneytracker.adapters.util.ExpensesFinder;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
-import com.valevich.moneytracker.network.rest.model.ExpenseData;
+import com.valevich.moneytracker.utils.formatters.PriceFormatter;
+
+import org.androidannotations.annotations.Bean;
+import org.androidannotations.annotations.EBean;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by NotePad.by on 07.05.2016.
  */
+@EBean
 @Table(database = MoneyTrackerDatabase.class)
-public class ExpenseEntry extends BaseModel {
+public class ExpenseEntry extends BaseModel implements ExpensesFinder {
 
     @PrimaryKey(autoincrement = true)
     long id;
@@ -39,6 +42,9 @@ public class ExpenseEntry extends BaseModel {
 
     @ForeignKey
     ForeignKeyContainer<CategoryEntry> category;
+
+    @Bean
+    static PriceFormatter mPriceFormatter;
 
     public long getId() {
         return id;
@@ -100,7 +106,7 @@ public class ExpenseEntry extends BaseModel {
                     public void processModel(ExpenseEntry expense) {
                         expense.setDate(date);
                         expense.setDescription(description);
-                        expense.setPrice(amount);
+                        expense.setPrice(mPriceFormatter.formatPrice(amount));
 
                         expense.associateCategory(category);
 
@@ -145,6 +151,11 @@ public class ExpenseEntry extends BaseModel {
 
         transaction.execute();
 
+    }
+
+    @Override
+    public List<ExpenseEntry> findAll(String filter) {
+        return getAllExpenses(filter);
     }
 }
 

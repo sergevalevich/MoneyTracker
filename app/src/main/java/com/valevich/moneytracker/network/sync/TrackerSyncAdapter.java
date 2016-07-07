@@ -11,11 +11,7 @@ import android.content.SyncResult;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
-import com.google.android.gms.auth.GoogleAuthException;
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.gson.Gson;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
@@ -30,30 +26,23 @@ import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
 import com.valevich.moneytracker.network.rest.model.CategoryData;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.ExpensesSyncModel;
-import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
-import com.valevich.moneytracker.network.rest.model.UserLoginModel;
-import com.valevich.moneytracker.network.rest.model.UserLogoutModel;
-import com.valevich.moneytracker.ui.activities.LoginActivity;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.NotificationUtil;
 import com.valevich.moneytracker.utils.Preferences_;
 
-
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
-import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+
+import timber.log.Timber;
 
 @EBean
 public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
-
-    private static final String TAG = TrackerSyncAdapter.class.getSimpleName();
 
     private List<CategoryEntry> mCategoriesDb;
 
@@ -116,7 +105,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account account, Bundle extras, String authority,
                               ContentProviderClient provider, SyncResult syncResult) {
 
-        Log.d(TAG, "SYNC STARTED");
+        Timber.d("SYNC STARTED");
         notifyQueryStarted();
 
         mCategoriesDb = CategoryEntry.getAllCategories("");
@@ -207,12 +196,9 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                 ? getCategoriesString(getPreparedDefaultCategory())
                 : getCategoriesString(getPreparedCategories());
 
-        String loftToken = getLoftToken();
-        String googleToken = getGoogleToken();
-
         if (mNetworkStatusChecker.isNetworkAvailable()) {
             CategoriesSyncModel apiCategories = mRestService
-                    .syncCategories(categoriesJsonString, loftToken, googleToken);
+                    .syncCategories(categoriesJsonString, getLoftToken(), getGoogleToken());
 
             String status = apiCategories.getStatus();
 
@@ -245,9 +231,11 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
             }
             // FIXME: 16.06.2016 не доставать категории. Достаю их, чтобы проверить обновление id
-            List<CategoryEntry> categoryEntries = CategoryEntry.updateIds(mCategoriesDb, mNewCategoryIds);
-            for (CategoryEntry category : categoryEntries) {
-                Log.d(TAG, String.format(Locale.getDefault(), "%s = %d %n", category.getName(), category.getId()));
+            if (!mStopAfterSync) {
+                List<CategoryEntry> categoryEntries = CategoryEntry.updateIds(mCategoriesDb, mNewCategoryIds);
+                for (CategoryEntry category : categoryEntries) {
+                    Timber.d("%s = %d %n", category.getName(), category.getId());
+                }
             }
         }
     }
@@ -290,12 +278,9 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         List<ExpenseData> expenses = getPreparedExpenses();
         String expensesString = getExpensesString(expenses);
 
-        String loftToken = getLoftToken();
-        String googleToken = getGoogleToken();
-
         if (mNetworkStatusChecker.isNetworkAvailable()) {
             ExpensesSyncModel expensesSyncModel = mRestService
-                    .syncExpenses(expensesString, loftToken, googleToken);
+                    .syncExpenses(expensesString, getLoftToken(), getGoogleToken());
             String status = expensesSyncModel.getStatus();
             switch (status) {
                 case ConstantsManager.STATUS_SUCCESS:

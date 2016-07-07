@@ -24,6 +24,8 @@
     <dimen name="default_card_supporting_text_padding">16dp</dimen>
     <dimen name="default_card_supporting_text_bottom_padding">20dp</dimen>
     <dimen name="card_minHeight">88dp</dimen>
+    <dimen name="card_side_margin">4dp</dimen>
+    <dimen name="list_vertical_padding">3dp</dimen>
 
     <dimen name="list_item_price_text_start_padding">48dp</dimen>
     <dimen name="list_item_price_text_width">100dp</dimen>

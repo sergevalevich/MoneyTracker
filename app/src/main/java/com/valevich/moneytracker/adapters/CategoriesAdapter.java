@@ -1,118 +1,50 @@
 package com.valevich.moneytracker.adapters;
 
-import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
+import android.content.Context;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
-import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.adapters.util.CategoriesFinder;
+import com.valevich.moneytracker.adapters.views.CategoryItemView;
+import com.valevich.moneytracker.adapters.views.CategoryItemView_;
 import com.valevich.moneytracker.database.data.CategoryEntry;
+import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.events.CategoryItemClickedEvent;
+import com.valevich.moneytracker.eventbus.events.CategoryItemLongClickedEvent;
 import com.valevich.moneytracker.utils.ClickListener;
+
+import org.androidannotations.annotations.Bean;
+import org.androidannotations.annotations.EBean;
+import org.androidannotations.annotations.RootContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
-
-import butterknife.Bind;
-import butterknife.ButterKnife;
 
 /**
  * Created by NotePad.by on 20.04.2016.
  */
-public class CategoriesAdapter extends SelectableAdapter<CategoriesAdapter.CategoryViewHolder>  {
+@EBean(scope = EBean.Scope.Singleton)
+public class CategoriesAdapter
+        extends SelectableAdapter<CategoryEntry, CategoryItemView>
+        implements ClickListener {
 
-    private List<CategoryEntry> mCategories;
+    @RootContext
+    Context mContext;
 
-    private ClickListener mClickListener;
+    @Bean(CategoryEntry.class)
+    CategoriesFinder mCategoriesFinder;
 
-    public CategoriesAdapter (List<CategoryEntry> categories, ClickListener clickListener) {
-        mCategories = categories;
-        mClickListener = clickListener;
+    public void initAdapter(String filter) {
+        mItems = mCategoriesFinder.findAll(filter);
     }
 
     @Override
-    public CategoryViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).
-                inflate(R.layout.category_list_item,parent,false);
-        return new CategoryViewHolder(view,mClickListener);
+    protected CategoryItemView onCreateItemView(ViewGroup parent, int viewType) {
+        return CategoryItemView_.build(mContext);
     }
 
-    @Override
-    public void onBindViewHolder(CategoryViewHolder holder, int position) {
-        holder.bindCategory(mCategories.get(position));
-    }
-
-    @Override
-    public int getItemCount() {
-        return mCategories.size();
-    }
-
-    public void refresh(List<CategoryEntry> data) {
-        mCategories.clear();
-        mCategories.addAll(data);
-        notifyDataSetChanged();
-    }
-
-    public CategoryEntry getItem(int position) {
-        return mCategories.get(position);
-    }
-
-    class CategoryViewHolder extends RecyclerView.ViewHolder
-            implements View.OnClickListener, View.OnLongClickListener{
-
-        @Bind(R.id.category_label)
-        TextView categoryLabel;
-
-        @Bind(R.id.category_total)
-        TextView categoryTotal;
-
-        @Bind(R.id.selected_overlay)
-        View selectedView;
-        private ClickListener clickListener;
-
-        public CategoryViewHolder(View itemView, ClickListener clickListener) {
-            super(itemView);
-            ButterKnife.bind(this,itemView);
-            itemView.setOnClickListener(this);
-            itemView.setOnLongClickListener(this);
-            this.clickListener = clickListener;
-        }
-
-        public void bindCategory(CategoryEntry category) {
-            categoryLabel.setText(category.getName());
-            float categoryTotal = category.getCategoryTotal();
-            if(categoryTotal > 0)
-            this.categoryTotal.setText(String.format(Locale.getDefault(),
-                    "%.1f%s",
-                    categoryTotal,"$"));
-            selectedView.setVisibility(isSelected(getAdapterPosition())
-                    ? View.VISIBLE
-                    : View.INVISIBLE);
-        }
-
-        @Override
-        public void onClick(View v) {
-            if (clickListener != null) {
-                clickListener.onItemClick(getAdapterPosition());
-            }
-        }
-
-        @Override
-        public boolean onLongClick(View v) {
-            if (clickListener != null) {
-                clickListener.onItemLongClick(getAdapterPosition());
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-    }
-
-    public List<Integer> removeItems(List<Integer> positions) {
+    public List<Integer> removeDbAndAdapterItems(List<Integer> positions) {
 
         List<Integer> removedCategoriesIds = new ArrayList<>();
 
@@ -124,22 +56,36 @@ public class CategoriesAdapter extends SelectableAdapter<CategoriesAdapter.Categ
         });
 
         while (!positions.isEmpty()) {
-                int id = removeItem(positions.get(0));
+            int id = removeItemFromDbAndAdapter(positions.get(0));
                 removedCategoriesIds.add(id);
                 positions.remove(0);
         }
         return removedCategoriesIds;
     }
 
-    public int removeItem(int position) {
-        CategoryEntry category = mCategories.get(position);
+    public int removeItemFromDbAndAdapter(int position) {
+        CategoryEntry category = mItems.get(position);
         int id = 0;
         if (category!= null) {
             id = (int) category.getId();
             CategoryEntry.removeCategory(category);
-            mCategories.remove(position);
+            mItems.remove(position);
             notifyItemRemoved(position);
         }
         return id;
+    }
+
+    //Using eventBus here because AndroidAnnotations does not provide good solution for RecyclerView
+    //click events
+    @Override
+    public boolean onItemClick(int position) {
+        BusProvider.getInstance().post(new CategoryItemClickedEvent(position));
+        return true;
+    }
+
+    @Override
+    public boolean onItemLongClick(int position) {
+        BusProvider.getInstance().post(new CategoryItemLongClickedEvent(position));
+        return true;
     }
 }

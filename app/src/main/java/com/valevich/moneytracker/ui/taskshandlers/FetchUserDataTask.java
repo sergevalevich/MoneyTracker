@@ -2,9 +2,7 @@ package com.valevich.moneytracker.ui.taskshandlers;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.database.data.CategoryEntry;
@@ -22,12 +20,14 @@ import org.androidannotations.annotations.RootContext;
 
 import java.util.List;
 
+import timber.log.Timber;
+
 /**
  * Created by User on 16.06.2016.
  */
 @EBean
 public class FetchUserDataTask implements Transaction.Error, Transaction.Success {
-    private static final String TAG = FetchUserDataTask.class.getSimpleName();//restartLoaderWhenComplete
+
     @RootContext
     Activity mActivity;
 
@@ -41,22 +41,17 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
 
     @Background
     public void fetchUserData() {
-        Crashlytics.log("FetchUserData");
         mGlobalCategoriesData = mRestService
                 .fetchGlobalCategoriesData(getLoftToken(),getGoogleToken());
         if(mGlobalCategoriesData != null) {
-            Crashlytics.log(mGlobalCategoriesData.toString());
             saveData(mGlobalCategoriesData);
         }
         else {
-            Crashlytics.log("fetched data is null");
             notifyLoginFinished();
         }
     }
 
     private void saveData(List<GlobalCategoriesDataModel> globalCategoriesData) {
-        Crashlytics.log("saveData");
-        Crashlytics.log(globalCategoriesData.toString());
         CategoryEntry.saveCategories(globalCategoriesData,this,this);
     }
 
@@ -70,13 +65,12 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
 
     @Override
     public void onError(Transaction transaction, Throwable error) {
-        Crashlytics.log("ERROR SAVING DATA");
         notifyLoginFinished();
     }
 
     @Override
     public void onSuccess(Transaction transaction) {
-        Log.d(TAG,"DATA SAVED SUCCESSFULLY");
+        Timber.d("DATA SAVED SUCCESSFULLY");
         notifyLoginFinished();
         navigateToMain();
     }
@@ -89,7 +83,7 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
     }
 
     private void notifyLoginFinished() {
-        Log.d(TAG, "notifyLoginFinished: ");
+        Timber.d("notifyLoginFinished: ");
         BusProvider.getInstance().post(new LoginFinishedEvent());
     }
 

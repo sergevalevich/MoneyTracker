@@ -1,45 +1,31 @@
 package com.valevich.moneytracker.ui.activities;
 
 import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.Configuration;
-import android.support.design.widget.Snackbar;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
 import android.util.Log;
-import android.view.Gravity;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.ImageViewTarget;
 import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.eventbus.buses.BusProvider;
-import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
 import com.valevich.moneytracker.eventbus.events.SignUpFinishedEvent;
-import com.valevich.moneytracker.network.rest.RestService;
-import com.valevich.moneytracker.network.rest.model.UserLoginModel;
-import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
 import com.valevich.moneytracker.ui.taskshandlers.SignUpTask;
 import com.valevich.moneytracker.utils.InputFieldValidator;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.UserNotifier;
 
-import org.androidannotations.annotations.AfterInject;
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
-import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.NonConfigurationInstance;
-import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
+
+import io.fabric.sdk.android.Fabric;
 
 
 @EActivity(R.layout.activity_sign_up)
@@ -86,10 +72,19 @@ public class SignUpActivity extends AppCompatActivity{
     @Bean
     UserNotifier mUserNotifier;
 
+    @Bean
+    InputFieldValidator mInputFieldValidator;
+
     @StringRes(R.string.auth_dialog_message)
     String mAuthMessage;
 
     private ProgressDialog mProgressDialog;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Fabric.with(this);
+    }
 
     @Override
     protected void onStart() {
@@ -135,13 +130,13 @@ public class SignUpActivity extends AppCompatActivity{
     }
 
     private boolean isInputValid(String username,String password,String email) {
-        if(!InputFieldValidator.isUsernameValid(username)) {
+        if (!mInputFieldValidator.isUsernameValid(username)) {
             mUserNotifier.notifyUser(mRootLayout,mInvalidUsernameMessage);
             return false;
-        } else if(!InputFieldValidator.isPasswordValid(password)) {
+        } else if (!mInputFieldValidator.isPasswordValid(password)) {
             mUserNotifier.notifyUser(mRootLayout,mInvalidPasswordMessage);
             return false;
-        } else if(!InputFieldValidator.isEmailValid(email)) {
+        } else if (!mInputFieldValidator.isEmailValid(email)) {
             mUserNotifier.notifyUser(mRootLayout,mInvalidEmailMessage);
             return false;
         }

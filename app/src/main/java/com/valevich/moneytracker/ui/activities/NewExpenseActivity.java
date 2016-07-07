@@ -1,36 +1,33 @@
 package com.valevich.moneytracker.ui.activities;
 
 
-import android.support.v4.app.LoaderManager;
+import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.raizlabs.android.dbflow.config.DatabaseDefinition;
-import com.raizlabs.android.dbflow.config.FlowManager;
-import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.R;
-import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.ui.taskshandlers.AddExpenseTask;
-import com.valevich.moneytracker.utils.DateFormatter;
+import com.valevich.moneytracker.utils.InputFieldValidator;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
+import com.valevich.moneytracker.utils.formatters.DateFormatter;
+import com.valevich.moneytracker.utils.formatters.PriceFormatter;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import org.androidannotations.annotations.AfterViews;
@@ -48,6 +45,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import io.fabric.sdk.android.Fabric;
+
 
 @EActivity
 public class NewExpenseActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<CategoryEntry>>,
@@ -55,7 +54,6 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         Transaction.Error {
 
     private static final int CATEGORIES_LOADER = 2;
-    private static final String TAG = NewExpenseActivity.class.getSimpleName();
 
     @NonConfigurationInstance
     @Bean
@@ -63,6 +61,12 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
 
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
+
+    @Bean
+    InputFieldValidator mInputFieldValidator;
+
+    @Bean
+    DateFormatter mDateFormatter;
 
     @ViewById(R.id.amountLabel)
     AppCompatEditText mAmountEditText;
@@ -126,6 +130,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_expense);
+        Fabric.with(this);
     }
 
     @Override
@@ -138,6 +143,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     void setupViews() {
         setupActionBar();
         setupDatePicker();
+        setUpAmountEditText();
     }
 
     private void setupActionBar() {
@@ -162,6 +168,32 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy",Locale.getDefault());
         Date date = new Date();
         mDatePicker.setText(sdf.format(date));
+    }
+
+    private void setUpAmountEditText() {
+        mAmountEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            //not allowing to enter more than 2 digits after dot
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                String text = charSequence.toString();
+                int dotIndex = text.indexOf(PriceFormatter.POINT);
+                if (dotIndex != -1) {
+                    if (text.substring(dotIndex + 1).length() > 2) {
+                        mAmountEditText.setText(text.substring(0, text.length() - 1));
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
     }
 
     @Click(R.id.date_picker)
@@ -215,9 +247,11 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         mCategory = (CategoryEntry) mCategoriesPicker.getSelectedItem();
         mAmount = mAmountEditText.getText().toString();
         mDescription = mDescriptionEditText.getText().toString();
-        mDate = DateFormatter.formatDateForDb(mDatePicker.getText().toString());
+        mDate = mDateFormatter.formatDateForDb(mDatePicker.getText().toString());
 
-        if(mCategory != null && mAmount.trim().length() != 0 && mDescription.trim().length() != 0) {
+        if (mCategory != null
+                && mInputFieldValidator.isAmountValid(mAmount)
+                && mInputFieldValidator.isDescriptionValid(mDescription)) {
             saveExpense();
         } else {
             showSnackBar(mEmptyFieldsWarning);

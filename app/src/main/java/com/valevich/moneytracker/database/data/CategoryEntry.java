@@ -1,10 +1,7 @@
 package com.valevich.moneytracker.database.data;
 
-import android.util.Log;
-
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.ConflictAction;
-import com.raizlabs.android.dbflow.annotation.Database;
 import com.raizlabs.android.dbflow.annotation.ModelContainer;
 import com.raizlabs.android.dbflow.annotation.OneToMany;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
@@ -17,27 +14,25 @@ import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
+import com.valevich.moneytracker.adapters.util.CategoriesFinder;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.GlobalCategoriesDataModel;
 
 import org.androidannotations.annotations.EBean;
-import org.androidannotations.annotations.res.StringRes;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 /**
  * Created by NotePad.by on 07.05.2016.
  */
+@EBean
 @ModelContainer
 @Table(database = MoneyTrackerDatabase.class,
         uniqueColumnGroups = {@UniqueGroup(groupNumber = 1, uniqueConflict = ConflictAction.IGNORE)})
-public class CategoryEntry extends BaseModel {
+public class CategoryEntry extends BaseModel implements CategoriesFinder {
 
-    //----DEFAULT CATEGORY. Needed to allow sync when the user removed all items
+    //----DEFAULT CATEGORY. Needed to allow sync when the user removed all mItems
     public static final String DEFAULT_CATEGORY_NAME = "DEFAULT_CATEGORY";
     public static final String TRANSACTION_TYPE_CREATE = "CREATE";
     public static final String TRANSACTION_TYPE_UPDATE = "UPDATE";
@@ -95,9 +90,9 @@ public class CategoryEntry extends BaseModel {
                 .querySingle();
     }
 
-    public static List<CategoryEntry> updateIds(List<CategoryEntry> categories,int[] ids) {
+    public static List<CategoryEntry> updateIds(List<CategoryEntry> categories, int[] ids) {
 
-        for(int i = 0; i < ids.length; i++) {
+        for (int i = 0; i < ids.length; i++) {
             CategoryEntry category = categories.get(i);
             int newId = ids[i];
             long oldId = category.getId();
@@ -116,8 +111,8 @@ public class CategoryEntry extends BaseModel {
     }
 
     public static void saveCategories(final List<GlobalCategoriesDataModel> globalCategoriesData,
-                                      Transaction.Success successCallback,
-                                      Transaction.Error errorCallback) {
+                                      final Transaction.Success successCallback,
+                                      final Transaction.Error errorCallback) {
 
         final CategoryEntry[] categories = new CategoryEntry[globalCategoriesData.size()];
 
@@ -134,7 +129,7 @@ public class CategoryEntry extends BaseModel {
                         GlobalCategoriesDataModel fetchedCategory =
                                 globalCategoriesData.get((int) current);
 
-                        if(!isCategoryDefault(fetchedCategory)) {
+                        if (!isCategoryDefault(fetchedCategory)) {
 
                             category = new CategoryEntry();
                             category.setId(fetchedCategory.getId());
@@ -143,12 +138,18 @@ public class CategoryEntry extends BaseModel {
 
                             List<ExpenseData> fetchedExpenses = fetchedCategory.getTransactions();
                             for (ExpenseData fetchedExpense : fetchedExpenses) {
-                                ExpenseEntry expense = new ExpenseEntry();
-                                expense.setDate(fetchedExpense.getTrDate());
-                                expense.setDescription(fetchedExpense.getComment());
-                                expense.setPrice(String.valueOf(fetchedExpense.getSum()));
-                                expense.associateCategory(category);
-                                expense.save();
+                                ExpenseEntry.saveExpense(fetchedExpense.getComment(),
+                                        String.valueOf(fetchedExpense.getSum()),
+                                        fetchedExpense.getTrDate(),
+                                        category,
+                                        successCallback,
+                                        errorCallback);
+//                                ExpenseEntry expense = new ExpenseEntry();
+//                                expense.setDate(fetchedExpense.getTrDate());
+//                                expense.setDescription(fetchedExpense.getComment());
+//                                expense.setPrice(String.valueOf(fetchedExpense.getSum()));
+//                                expense.associateCategory(category);
+//                                expense.save();
                             }
                         }
                     }
@@ -194,7 +195,7 @@ public class CategoryEntry extends BaseModel {
                                     Transaction.Error errorCallback) {
 
         mTransactionType = TRANSACTION_TYPE_UPDATE;
-        if(category == null) {
+        if (category == null) {
             category = new CategoryEntry();
             mTransactionType = TRANSACTION_TYPE_CREATE;
         }
@@ -208,7 +209,7 @@ public class CategoryEntry extends BaseModel {
                         category.setName(name);
                         if (mTransactionType.equals(TRANSACTION_TYPE_CREATE))
                             category.insert();
-                        if(mTransactionType.equals(TRANSACTION_TYPE_UPDATE))
+                        if (mTransactionType.equals(TRANSACTION_TYPE_UPDATE))
                             category.update();
                     }
                 }).processListener(new ProcessModelTransaction.OnModelProcessListener<CategoryEntry>() {
@@ -242,7 +243,13 @@ public class CategoryEntry extends BaseModel {
         return name;
     }
 
+    @Override
+    public List<CategoryEntry> findAll(String filter) {
+        return getAllCategories(filter);
+    }
+
     private static boolean isCategoryDefault(GlobalCategoriesDataModel fetchedCategory) {
         return fetchedCategory.getTitle().equals(DEFAULT_CATEGORY_NAME);
     }
+
 }
