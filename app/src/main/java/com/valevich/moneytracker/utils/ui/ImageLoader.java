@@ -1,4 +1,4 @@
-package com.valevich.moneytracker.utils;
+package com.valevich.moneytracker.utils.ui;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -10,7 +10,6 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.valevich.moneytracker.R;
-import com.valevich.moneytracker.ui.activities.MainActivity;
 
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;

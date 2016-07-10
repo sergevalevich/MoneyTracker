@@ -1,23 +1,27 @@
 package com.valevich.moneytracker.eventbus.events;
 
+import com.valevich.moneytracker.database.data.CategoryEntry;
+
 /**
  * Created by User on 21.06.2016.
  */
 public class CategoryUpdatedEvent {
-    private String mNewName;
 
-    private int mId;
+    private CategoryEntry mCategory;
 
-    public CategoryUpdatedEvent(String newName, int id) {
-        mNewName = newName;
-        mId = id;
+    public CategoryUpdatedEvent(CategoryEntry category) {
+        mCategory = category;
     }
 
     public String getNewName() {
-        return mNewName;
+        String name = "";
+        if (mCategory != null) name = mCategory.getName();
+        return name;
     }
 
     public int getId() {
-        return mId;
+        int id = 0;
+        if (mCategory != null) id = (int) mCategory.getId();
+        return id;
     }
 }

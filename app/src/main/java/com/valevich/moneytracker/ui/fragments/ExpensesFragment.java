@@ -17,18 +17,20 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ImageView;
 import android.widget.SearchView;
 
 import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.ExpenseAdapter;
-import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.ActionItemClickedEvent;
+import com.valevich.moneytracker.eventbus.events.ActionModeDestroyedEvent;
 import com.valevich.moneytracker.eventbus.events.ExpenseItemClickedEvent;
 import com.valevich.moneytracker.eventbus.events.ExpenseItemLongClickedEvent;
 import com.valevich.moneytracker.ui.activities.NewExpenseActivity_;
-import com.valevich.moneytracker.utils.ExpenseTouchHelper;
+import com.valevich.moneytracker.utils.ui.ActionModeHandler;
+import com.valevich.moneytracker.utils.ui.ExpenseTouchHelper;
+import com.valevich.moneytracker.utils.ui.ViewCustomizer;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -47,6 +49,7 @@ import org.androidannotations.api.BackgroundExecutor;
 public class ExpensesFragment extends Fragment {
 
     private static final String SEARCH_ID = "search_id";
+    private static final int EXPENSES_LOADER = 0;
 
     @ViewById(R.id.expenseList)
     RecyclerView mExpenseRecyclerView;
@@ -67,36 +70,35 @@ public class ExpensesFragment extends Fragment {
     String mSearchHint;
 
     @ColorRes(R.color.colorPrimary)
-    int mColorPrimary;
+    int mRefreshColor;
 
-    @ColorRes(R.color.colorPrimaryDark)
-    int mColorPrimaryDark;
-
-    private static final int EXPENSES_LOADER = 0;
+    @Bean
+    ViewCustomizer mViewCustomizer;
 
     @Bean
     ExpenseAdapter mExpenseAdapter;
 
-    private ActionMode mActionMode;
-
-    private ActionMode.Callback mActionModeCallback = new ActionModeCallback();
+    @Bean
+    ActionModeHandler mActionModeHandler;
 
     @Bean
     ExpenseTouchHelper mExpenseTouchHelper;
 
-    public ExpensesFragment() {
-    }
+    @Bean
+    OttoBus mEventBus;
+
+    private ActionMode mActionMode;
 
     @Override
     public void onStart() {
         super.onStart();
-        BusProvider.getInstance().register(this);
+        mEventBus.register(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        BusProvider.getInstance().unregister(this);
+        mEventBus.unregister(this);
     }
 
     @Override
@@ -110,9 +112,9 @@ public class ExpensesFragment extends Fragment {
         super.onPrepareOptionsMenu(menu);
         SearchView searchView = (SearchView) mSearchMenuItem.getActionView();
 
-        //customize default searchview style for pre L devices because it looks ugly
+        //customize default searchView style for pre L devices because it looks ugly
         if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            customizeSearchViewOld(searchView);
+            mViewCustomizer.customizeSearchView(searchView);
         }
 
 
@@ -132,31 +134,6 @@ public class ExpensesFragment extends Fragment {
         });
     }
 
-    private void customizeSearchViewOld(SearchView searchView) {
-        int searchPlateId = searchView.getContext().getResources().getIdentifier("android:id/search_plate", null, null);
-        View searchPlateView = searchView.findViewById(searchPlateId);
-
-        if (searchPlateView != null) {
-            searchPlateView.setBackgroundColor(mColorPrimary);
-        }
-
-        int searchImgId = getResources().getIdentifier("android:id/search_button", null, null);
-        ImageView search = (ImageView) searchView.findViewById(searchImgId);
-
-        if(search != null) {
-            search.setImageResource(R.drawable.ic_action_search);
-        }
-
-        int closeImgId = getResources().getIdentifier("android:id/search_close_btn", null, null);
-        ImageView close = (ImageView) searchView.findViewById(closeImgId);
-
-        if(close != null) {
-            close.setImageResource(R.drawable.ic_clear);
-            close.setAlpha(0.4f);
-        }
-
-    }
-
     @AfterViews
     void setupViews() {
         setUpRecyclerView();
@@ -174,10 +151,25 @@ public class ExpensesFragment extends Fragment {
     public void onItemLongClick(ExpenseItemLongClickedEvent event) {
         if (mActionMode == null) {
             mActionMode = ((AppCompatActivity) getActivity())
-                    .startSupportActionMode(mActionModeCallback);
+                    .startSupportActionMode(mActionModeHandler);
         }
 
         toggleSelection(event.getPosition());
+    }
+
+    @Subscribe
+    public void onActionItemClicked(ActionItemClickedEvent actionItemClickedEvent) {
+        switch (actionItemClickedEvent.getMenuItem().getItemId()) {
+            case R.id.menu_remove:
+                mExpenseAdapter.removeDbAndAdapterItems(mExpenseAdapter.getSelectedItems());
+                mActionMode.finish();
+        }
+    }
+
+    @Subscribe
+    public void onDestroyActionMode(ActionModeDestroyedEvent event) {
+        mExpenseAdapter.clearSelection();
+        mActionMode = null;
     }
 
     @Click(R.id.fab)
@@ -185,12 +177,13 @@ public class ExpensesFragment extends Fragment {
         NewExpenseActivity_.intent(this).start().withAnimation(R.anim.enter_pull_in,R.anim.exit_fade_out);
     }
 
-    private void setUpRecyclerView() {
-        mExpenseRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+    @Background(delay = 700, id = SEARCH_ID)
+    void queryExpenses(String filter) {
+        loadExpenses(filter);
     }
 
     private void setupSwipeToRefresh() {
-        mSwipeRefreshLayout.setColorSchemeColors(mColorPrimary,mColorPrimaryDark);
+        mSwipeRefreshLayout.setColorSchemeColors(mRefreshColor);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -199,9 +192,8 @@ public class ExpensesFragment extends Fragment {
         });
     }
 
-    @Background(delay = 700, id = SEARCH_ID)
-    void queryExpenses(String filter) {
-        loadExpenses(filter);
+    private void setUpRecyclerView() {
+        mExpenseRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
     private void loadExpenses(final String filter) {
@@ -244,36 +236,6 @@ public class ExpensesFragment extends Fragment {
         } else {
             mActionMode.setTitle(String.valueOf(selectedItemsCount));
             mActionMode.invalidate();
-        }
-    }
-
-    private class ActionModeCallback implements ActionMode.Callback {
-        @Override
-        public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-            actionMode.getMenuInflater().inflate(R.menu.contextual_action_bar,menu);
-            return true;
-        }
-
-        @Override
-        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
-            return false;
-        }
-
-        @Override
-        public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
-            switch (menuItem.getItemId()) {
-                case R.id.menu_remove:
-                    mExpenseAdapter.removeDbAndAdapterItems(mExpenseAdapter.getSelectedItems());
-                    mActionMode.finish();
-                    return true;
-            }
-            return false;
-        }
-
-        @Override
-        public void onDestroyActionMode(ActionMode actionMode) {
-            mExpenseAdapter.clearSelection();
-            mActionMode = null;
         }
     }
 

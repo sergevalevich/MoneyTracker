@@ -5,18 +5,17 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
-import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.R;
-import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.eventbus.events.SignUpFinishedEvent;
 import com.valevich.moneytracker.ui.taskshandlers.SignUpTask;
 import com.valevich.moneytracker.utils.InputFieldValidator;
-import com.valevich.moneytracker.utils.NetworkStatusChecker;
-import com.valevich.moneytracker.utils.UserNotifier;
+import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
@@ -29,9 +28,8 @@ import io.fabric.sdk.android.Fabric;
 
 
 @EActivity(R.layout.activity_sign_up)
-public class SignUpActivity extends AppCompatActivity{
+public class SignUpActivity extends AppCompatActivity {
 
-    private static final String LOG_TAG = SignUpActivity.class.getSimpleName();
     @ViewById(R.id.root)
     RelativeLayout mRootLayout;
 
@@ -46,9 +44,6 @@ public class SignUpActivity extends AppCompatActivity{
 
     @ViewById(R.id.signUpButton)
     Button mSignUpButton;
-
-    @StringRes(R.string.network_unavailable)
-    String mNetworkUnavailableMessage;
 
     @StringRes(R.string.wrong_auth_input)
     String mWrongInputMessage;
@@ -67,13 +62,13 @@ public class SignUpActivity extends AppCompatActivity{
     SignUpTask mSignUpTask;
 
     @Bean
-    NetworkStatusChecker mNetworkStatusChecker;
-
-    @Bean
     UserNotifier mUserNotifier;
 
     @Bean
     InputFieldValidator mInputFieldValidator;
+
+    @Bean
+    OttoBus mEventBus;
 
     @StringRes(R.string.auth_dialog_message)
     String mAuthMessage;
@@ -89,55 +84,51 @@ public class SignUpActivity extends AppCompatActivity{
     @Override
     protected void onStart() {
         super.onStart();
-        BusProvider.getInstance().register(this);
+        mEventBus.register(this);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         unblockButton();
-        BusProvider.getInstance().unregister(this);
+        mEventBus.unregister(this);
     }
 
     @Click(R.id.signUpButton)
     void submitAccountInfo() {
-        Log.d(LOG_TAG,"Click");
         blockButton();
-        if(mNetworkStatusChecker.isNetworkAvailable()) {
 
-            String username = mUsernameField.getText().toString();
-            String password = mPasswordField.getText().toString();
-            String email = mEmailField.getText().toString();
+        String username = mUsernameField.getText().toString();
+        String password = mPasswordField.getText().toString();
+        String email = mEmailField.getText().toString();
 
-            if(isInputValid(username,password,email)) {
-                showProgressDialog();
-                mSignUpTask.signUp(username, password, email);
-            } else {
-                unblockButton();
-            }
-
+        if (isInputValid(username, password, email)) {
+            showProgressDialog();
+            mSignUpTask.signUp(username, password, email);
         } else {
-            mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
             unblockButton();
         }
     }
 
     @Subscribe
     public void onSignUpFinished(SignUpFinishedEvent signUpFinishedEvent) {
-        Log.d(LOG_TAG, "onSignUpFinished: ");
         closeProgressDialog();
         unblockButton();
     }
 
-    private boolean isInputValid(String username,String password,String email) {
+    public View getRootView() {
+        return mRootLayout;
+    }
+
+    private boolean isInputValid(String username, String password, String email) {
         if (!mInputFieldValidator.isUsernameValid(username)) {
-            mUserNotifier.notifyUser(mRootLayout,mInvalidUsernameMessage);
+            mUserNotifier.notifyUser(mRootLayout, mInvalidUsernameMessage);
             return false;
         } else if (!mInputFieldValidator.isPasswordValid(password)) {
-            mUserNotifier.notifyUser(mRootLayout,mInvalidPasswordMessage);
+            mUserNotifier.notifyUser(mRootLayout, mInvalidPasswordMessage);
             return false;
         } else if (!mInputFieldValidator.isEmailValid(email)) {
-            mUserNotifier.notifyUser(mRootLayout,mInvalidEmailMessage);
+            mUserNotifier.notifyUser(mRootLayout, mInvalidEmailMessage);
             return false;
         }
         return true;
@@ -150,7 +141,7 @@ public class SignUpActivity extends AppCompatActivity{
     }
 
     private void closeProgressDialog() {
-        if(mProgressDialog != null && mProgressDialog.isShowing())
+        if (mProgressDialog != null && mProgressDialog.isShowing())
             mProgressDialog.dismiss();
     }
 

@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
-import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -16,13 +16,12 @@ import android.widget.Toast;
 import com.google.android.gms.common.AccountPicker;
 import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.R;
-import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
-import com.valevich.moneytracker.ui.taskshandlers.SignUpTask;
+import com.valevich.moneytracker.ui.taskshandlers.LoginTask;
 import com.valevich.moneytracker.ui.taskshandlers.SignUpWithGoogleTask;
 import com.valevich.moneytracker.utils.InputFieldValidator;
-import com.valevich.moneytracker.utils.NetworkStatusChecker;
-import com.valevich.moneytracker.utils.UserNotifier;
+import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
@@ -33,12 +32,12 @@ import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
 
 import io.fabric.sdk.android.Fabric;
+import timber.log.Timber;
 
 @EActivity(R.layout.activity_login)
-public class LoginActivity extends AppCompatActivity{
+public class LoginActivity extends AppCompatActivity {
 
     public final static int REQUEST_CODE = 100;
-    public final static String TAG = LoginActivity.class.getSimpleName();
 
     @StringRes(R.string.google_account_picker_error_msg)
     String mGoogleAccountPickerErrorMessage;
@@ -63,29 +62,26 @@ public class LoginActivity extends AppCompatActivity{
 
     @NonConfigurationInstance
     @Bean
-    SignUpTask mSignUpTask;
-
-    @Bean
-    UserNotifier mUserNotifier;
-
-    @Bean
-    NetworkStatusChecker mNetworkStatusChecker;
+    LoginTask mLoginTask;
 
     @NonConfigurationInstance
     @Bean
     SignUpWithGoogleTask mSignUpWithGoogleTask;
 
     @Bean
+    UserNotifier mUserNotifier;
+
+    @Bean
     InputFieldValidator mInputFieldValidator;
+
+    @Bean
+    OttoBus mEventBus;
 
     @StringRes(R.string.invalid_username_msg)
     String mInvalidUsernameMessage;
 
     @StringRes(R.string.invalid_password_msg)
     String mInvalidPasswordMessage;
-
-    @StringRes(R.string.network_unavailable)
-    String mNetworkUnavailableMessage;
 
     @StringRes(R.string.auth_dialog_message)
     String mAuthMessage;
@@ -101,14 +97,14 @@ public class LoginActivity extends AppCompatActivity{
     @Override
     protected void onStart() {
         super.onStart();
-        BusProvider.getInstance().register(this);
+        mEventBus.register(this);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         unblockButtons();//when going back from SignUpActivity Buttons are blocked(preventing)
-        BusProvider.getInstance().unregister(this);
+        mEventBus.unregister(this);
     }
 
     @Click(R.id.google_login_btn)
@@ -122,21 +118,17 @@ public class LoginActivity extends AppCompatActivity{
     @Click(R.id.logInButton)
     void logIn() {
         blockButtons();
-        if(mNetworkStatusChecker.isNetworkAvailable()) {
 
-            String username = mUsernameField.getText().toString();
-            String password = mPasswordField.getText().toString();
+        String username = mUsernameField.getText().toString();
+        String password = mPasswordField.getText().toString();
 
-            if (isInputValid(username, password)) {
-                showProgressDialog();
-                mSignUpTask.logIn(username, password);
-            } else {
-                unblockButtons();
-            }
+        if (isInputValid(username, password)) {
+            showProgressDialog();
+            mLoginTask.logIn(username, password);
         } else {
-            mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
             unblockButtons();
         }
+
     }
 
     @Click(R.id.signUpButton)
@@ -148,14 +140,8 @@ public class LoginActivity extends AppCompatActivity{
     @OnActivityResult(REQUEST_CODE)
     void onResult(int resultCode, @OnActivityResult.Extra(value = AccountManager.KEY_ACCOUNT_NAME) String accountName) {
         if (resultCode == RESULT_OK) {
-            if(mNetworkStatusChecker.isNetworkAvailable()) {
-                showProgressDialog();
-                mSignUpWithGoogleTask.logInWithGoogle(accountName);
-            }
-            else {
-                unblockButtons();
-                mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
-            }
+            showProgressDialog();
+            mSignUpWithGoogleTask.logInWithGoogle(accountName);
         } else if (resultCode != RESULT_CANCELED) {
             Toast.makeText(this, mGoogleAccountPickerErrorMessage, Toast.LENGTH_LONG).show();
         }
@@ -163,14 +149,18 @@ public class LoginActivity extends AppCompatActivity{
 
     @Subscribe
     public void onLoginFinished(LoginFinishedEvent loginFinishedEvent) {
-        Log.d(TAG, "onLoginFinished: ");
+        Timber.d("onLoginFinished: ");
         closeProgressDialog();
         unblockButtons();
     }
 
-    private boolean isInputValid(String username,String password) {
+    public View getRootView() {
+        return mRootLayout;
+    }
+
+    private boolean isInputValid(String username, String password) {
         if (!mInputFieldValidator.isUsernameValid(username)) {
-            mUserNotifier.notifyUser(mRootLayout,mInvalidUsernameMessage);
+            mUserNotifier.notifyUser(mRootLayout, mInvalidUsernameMessage);
             return false;
         } else if (!mInputFieldValidator.isPasswordValid(password)) {
             mUserNotifier.notifyUser(mRootLayout, mInvalidPasswordMessage);
@@ -186,8 +176,8 @@ public class LoginActivity extends AppCompatActivity{
     }
 
     private void closeProgressDialog() {
-        if(mProgressDialog != null && mProgressDialog.isShowing())
-        mProgressDialog.dismiss();
+        if (mProgressDialog != null && mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 
     private void blockButtons() {

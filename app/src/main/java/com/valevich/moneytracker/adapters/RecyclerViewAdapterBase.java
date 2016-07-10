@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 
 import com.valevich.moneytracker.adapters.util.ViewBinder;
 import com.valevich.moneytracker.adapters.wrappers.ViewWrapper;
-import com.valevich.moneytracker.utils.ClickListener;
+import com.valevich.moneytracker.utils.ui.ClickListener;
 
 import java.util.ArrayList;
 import java.util.List;

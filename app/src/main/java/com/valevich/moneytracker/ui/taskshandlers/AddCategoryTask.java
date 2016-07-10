@@ -1,11 +1,8 @@
 package com.valevich.moneytracker.ui.taskshandlers;
 
-import android.util.Log;
-
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.database.data.CategoryEntry;
-import com.valevich.moneytracker.eventbus.buses.BusProvider;
-import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.AddedCategoryModel;
 import com.valevich.moneytracker.utils.ConstantsManager;
@@ -18,17 +15,22 @@ import org.androidannotations.annotations.EBean;
 import java.util.ArrayList;
 import java.util.List;
 
+import timber.log.Timber;
+
 /**
  * Created by User on 20.06.2016.
  */
 @EBean
 public class AddCategoryTask {
-    private static final String TAG = AddCategoryTask.class.getSimpleName();
+
     @Bean
     RestService mRestService;
 
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
+
+    @Bean
+    OttoBus mEventBus;
 
     @Background
     public void addCategory(String title) {
@@ -43,7 +45,6 @@ public class AddCategoryTask {
                     break;
             }
         }
-        BusProvider.getInstance().post(new QueryFinishedEvent());
     }
 
     private void updateDbIds(String title, int id) {
@@ -52,7 +53,7 @@ public class AddCategoryTask {
         categoryEntries.add(category);
         List<CategoryEntry> categories = CategoryEntry.updateIds(categoryEntries,new int[] {id});
         for (CategoryEntry categoryEntry:categories) {
-            Log.d(TAG, "updateDbIdsCREATE: " + categoryEntry.getId());
+            Timber.d("updateDbIdsCREATE: %d", categoryEntry.getId());
         }
     }
 

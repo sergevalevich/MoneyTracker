@@ -12,15 +12,16 @@ import com.valevich.moneytracker.adapters.views.ExpenseItemView;
 import com.valevich.moneytracker.adapters.views.ExpenseItemView_;
 import com.valevich.moneytracker.adapters.wrappers.ViewWrapper;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
-import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.eventbus.events.ExpenseItemClickedEvent;
 import com.valevich.moneytracker.eventbus.events.ExpenseItemLongClickedEvent;
-import com.valevich.moneytracker.utils.ClickListener;
+import com.valevich.moneytracker.utils.ui.ClickListener;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -35,6 +36,9 @@ public class ExpenseAdapter
 
     @Bean(ExpenseEntry.class)
     ExpensesFinder mExpensesFinder;
+
+    @Bean
+    OttoBus mEventBus;
 
     public void initAdapter(String filter) {
         mItems = mExpensesFinder.findAll(filter);
@@ -56,6 +60,8 @@ public class ExpenseAdapter
 
     public void removeDbAndAdapterItems(List<Integer> positions) {
 
+        List<ExpenseEntry> expensesToRemove = new ArrayList<>();
+
         Collections.sort(positions, new Comparator<Integer>() {
             @Override
             public int compare(Integer lhs, Integer rhs) {
@@ -64,31 +70,29 @@ public class ExpenseAdapter
         });
 
         while (!positions.isEmpty()) {
-            removeItemFromDbAndAdapter(positions.get(0));
+            int position = positions.get(0);
+            ExpenseEntry expense = mItems.get(position);
+            if (expense != null) {
+                expensesToRemove.add(expense);
+                mItems.remove(position);
+                notifyItemRemoved(position);
+            }
             positions.remove(0);
         }
-    }
-
-    public void removeItemFromDbAndAdapter(int position) {
-        ExpenseEntry expense = mItems.get(position);
-        if (expense != null) {
-            ExpenseEntry.removeExpense(expense);
-            mItems.remove(position);
-            notifyItemRemoved(position);
-        }
+        ExpenseEntry.delete(expensesToRemove, null, null);
     }
 
     //Using eventBus here because AndroidAnnotations does not provide good solution for RecyclerView
     //click events
     @Override
     public boolean onItemClick(int position) {
-        BusProvider.getInstance().post(new ExpenseItemClickedEvent(position));
+        mEventBus.post(new ExpenseItemClickedEvent(position));
         return true;
     }
 
     @Override
     public boolean onItemLongClick(int position) {
-        BusProvider.getInstance().post(new ExpenseItemLongClickedEvent(position));
+        mEventBus.post(new ExpenseItemLongClickedEvent(position));
         return true;
     }
 

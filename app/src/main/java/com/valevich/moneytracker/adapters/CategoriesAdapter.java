@@ -7,10 +7,10 @@ import com.valevich.moneytracker.adapters.util.CategoriesFinder;
 import com.valevich.moneytracker.adapters.views.CategoryItemView;
 import com.valevich.moneytracker.adapters.views.CategoryItemView_;
 import com.valevich.moneytracker.database.data.CategoryEntry;
-import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.eventbus.events.CategoryItemClickedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryItemLongClickedEvent;
-import com.valevich.moneytracker.utils.ClickListener;
+import com.valevich.moneytracker.utils.ui.ClickListener;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
@@ -35,6 +35,9 @@ public class CategoriesAdapter
     @Bean(CategoryEntry.class)
     CategoriesFinder mCategoriesFinder;
 
+    @Bean
+    OttoBus mEventBus;
+
     public void initAdapter(String filter) {
         mItems = mCategoriesFinder.findAll(filter);
     }
@@ -47,6 +50,7 @@ public class CategoriesAdapter
     public List<Integer> removeDbAndAdapterItems(List<Integer> positions) {
 
         List<Integer> removedCategoriesIds = new ArrayList<>();
+        List<CategoryEntry> categoriesToRemove = new ArrayList<>();
 
         Collections.sort(positions, new Comparator<Integer>() {
             @Override
@@ -56,36 +60,33 @@ public class CategoriesAdapter
         });
 
         while (!positions.isEmpty()) {
-            int id = removeItemFromDbAndAdapter(positions.get(0));
-                removedCategoriesIds.add(id);
-                positions.remove(0);
+            int position = positions.get(0);
+            int id = 0;
+            CategoryEntry category = mItems.get(position);
+            if (category != null) {
+                id = (int) category.getId();
+                categoriesToRemove.add(category);
+                mItems.remove(position);
+                notifyItemRemoved(position);
+            }
+            removedCategoriesIds.add(id);
+            positions.remove(0);
         }
+        CategoryEntry.delete(categoriesToRemove, null, null);
         return removedCategoriesIds;
-    }
-
-    public int removeItemFromDbAndAdapter(int position) {
-        CategoryEntry category = mItems.get(position);
-        int id = 0;
-        if (category!= null) {
-            id = (int) category.getId();
-            CategoryEntry.removeCategory(category);
-            mItems.remove(position);
-            notifyItemRemoved(position);
-        }
-        return id;
     }
 
     //Using eventBus here because AndroidAnnotations does not provide good solution for RecyclerView
     //click events
     @Override
     public boolean onItemClick(int position) {
-        BusProvider.getInstance().post(new CategoryItemClickedEvent(position));
+        mEventBus.post(new CategoryItemClickedEvent(position));
         return true;
     }
 
     @Override
     public boolean onItemLongClick(int position) {
-        BusProvider.getInstance().post(new CategoryItemLongClickedEvent(position));
+        mEventBus.post(new CategoryItemLongClickedEvent(position));
         return true;
     }
 }

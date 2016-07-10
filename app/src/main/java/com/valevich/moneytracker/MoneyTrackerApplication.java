@@ -7,10 +7,10 @@ import android.support.multidex.MultiDex;
 
 import com.raizlabs.android.dbflow.config.FlowConfig;
 import com.raizlabs.android.dbflow.config.FlowManager;
-import com.squareup.leakcanary.LeakCanary;
 import com.valevich.moneytracker.utils.Preferences_;
 import com.valevich.moneytracker.utils.ReleaseTree;
 
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EApplication;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
@@ -21,8 +21,13 @@ import timber.log.Timber;
  */
 @EApplication
 public class MoneyTrackerApplication extends Application {
+
     @Pref
     static Preferences_ mPreferences;
+
+    @Bean
+    ReleaseTree mReleaseTree;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -41,10 +46,8 @@ public class MoneyTrackerApplication extends Application {
             });
         } else {
             //releaseTree
-            Timber.plant(new ReleaseTree());
+            Timber.plant(mReleaseTree);
         }
-        //LeakCanary
-        LeakCanary.install(this);
     }
 
     public static void saveGoogleToken(String token) {
@@ -86,10 +89,6 @@ public class MoneyTrackerApplication extends Application {
 
     public static String getUserPhoto() {
         return mPreferences.userPhoto().get();
-    }
-
-    public static String getUserPassword() {
-        return mPreferences.userPassword().get();
     }
 
     @Override

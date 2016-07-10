@@ -4,19 +4,16 @@ import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.ForeignKey;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
-import com.raizlabs.android.dbflow.config.DatabaseDefinition;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 import com.raizlabs.android.dbflow.structure.container.ForeignKeyContainer;
 import com.raizlabs.android.dbflow.structure.container.ModelContainerAdapter;
-import com.raizlabs.android.dbflow.structure.database.transaction.ProcessModelTransaction;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.adapters.util.ExpensesFinder;
 import com.valevich.moneytracker.database.MoneyTrackerDatabase;
-import com.valevich.moneytracker.utils.formatters.PriceFormatter;
+import com.valevich.moneytracker.database.TransactionExecutor;
 
-import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
 import java.util.List;
@@ -43,8 +40,8 @@ public class ExpenseEntry extends BaseModel implements ExpensesFinder {
     @ForeignKey
     ForeignKeyContainer<CategoryEntry> category;
 
-    @Bean
-    static PriceFormatter mPriceFormatter;
+    private static final TransactionExecutor<ExpenseEntry> mTransactionExecutor
+            = new TransactionExecutor<>();
 
     public long getId() {
         return id;
@@ -79,7 +76,8 @@ public class ExpenseEntry extends BaseModel implements ExpensesFinder {
     }
 
     public void associateCategory(CategoryEntry categoryEntry) {
-        ModelContainerAdapter<CategoryEntry> adapter = FlowManager.getContainerAdapter(CategoryEntry.class);
+        ModelContainerAdapter<CategoryEntry> adapter = FlowManager
+                .getContainerAdapter(CategoryEntry.class);
         category = adapter.toForeignKeyContainer(categoryEntry);// convenience conversion
     }
 
@@ -90,67 +88,16 @@ public class ExpenseEntry extends BaseModel implements ExpensesFinder {
                 .queryList();
     }
 
-    public static void saveExpense(final String description,
-                                   final String amount,
-                                   final String date,
-                                   final CategoryEntry category,
-                                   Transaction.Success successCallback,
-                                   Transaction.Error errorCallback) {
-        ExpenseEntry expense = new ExpenseEntry();
-
-        DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
-
-        ProcessModelTransaction<ExpenseEntry> processModelTransaction =
-                new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<ExpenseEntry>() {
-                    @Override
-                    public void processModel(ExpenseEntry expense) {
-                        expense.setDate(date);
-                        expense.setDescription(description);
-                        expense.setPrice(mPriceFormatter.formatPrice(amount));
-
-                        expense.associateCategory(category);
-
-                        category.save();
-                        expense.save();
-                    }
-                }).processListener(new ProcessModelTransaction.OnModelProcessListener<ExpenseEntry>() {
-                    @Override
-                    public void onModelProcessed(long current, long total, ExpenseEntry modifiedModel) {
-
-                    }
-                }).addAll(expense).build();
-
-        Transaction transaction = database.beginTransactionAsync(processModelTransaction)
-                .success(successCallback)
-                .error(errorCallback)
-                .build();
-
-        transaction.execute();
-
+    public static void create(List<ExpenseEntry> expensesToProcess,
+                              Transaction.Success successCallback,
+                              Transaction.Error errorCallback) {
+        mTransactionExecutor.create(expensesToProcess, successCallback, errorCallback);
     }
 
-    public static void removeExpense(ExpenseEntry expense) {
-
-        DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
-
-        ProcessModelTransaction<ExpenseEntry> processModelTransaction =
-                new ProcessModelTransaction.Builder<>(new ProcessModelTransaction.ProcessModel<ExpenseEntry>() {
-                    @Override
-                    public void processModel(ExpenseEntry expense) {
-                        expense.delete();
-                    }
-                }).processListener(new ProcessModelTransaction.OnModelProcessListener<ExpenseEntry>() {
-                    @Override
-                    public void onModelProcessed(long current, long total, ExpenseEntry modifiedModel) {
-
-                    }
-                }).addAll(expense).build();
-
-        Transaction transaction = database.beginTransactionAsync(processModelTransaction)
-                .build();
-
-        transaction.execute();
-
+    public static void delete(List<ExpenseEntry> expensesToProcess,
+                              Transaction.Success successCallback,
+                              Transaction.Error errorCallback) {
+        mTransactionExecutor.delete(expensesToProcess, successCallback, errorCallback);
     }
 
     @Override

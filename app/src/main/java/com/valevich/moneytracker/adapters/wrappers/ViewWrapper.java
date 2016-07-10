@@ -3,7 +3,7 @@ package com.valevich.moneytracker.adapters.wrappers;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-import com.valevich.moneytracker.utils.ClickListener;
+import com.valevich.moneytracker.utils.ui.ClickListener;
 
 /**
  * Created by User on 05.07.2016.

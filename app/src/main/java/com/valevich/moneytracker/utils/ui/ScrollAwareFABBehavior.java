@@ -1,4 +1,4 @@
-package com.valevich.moneytracker.utils;
+package com.valevich.moneytracker.utils.ui;
 
 import android.content.Context;
 import android.support.design.widget.CoordinatorLayout;
@@ -11,6 +11,7 @@ import android.view.View;
  * Created by NotePad.by on 22.04.2016.
  */
 public class ScrollAwareFABBehavior extends FloatingActionButton.Behavior {
+
     public ScrollAwareFABBehavior(Context context, AttributeSet attrs) {
         super();
     }

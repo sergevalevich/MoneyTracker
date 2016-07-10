@@ -71,7 +71,6 @@
 
             </LinearLayout>
 
-
             <Button
                 android:id="@+id/signUpButton"
                 style="@style/AuthButton"

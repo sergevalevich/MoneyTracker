@@ -1,6 +1,5 @@
-package com.valevich.moneytracker.utils;
+package com.valevich.moneytracker.utils.ui;
 
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,10 +10,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.ui.activities.MainActivity_;
+import com.valevich.moneytracker.utils.Preferences_;
 
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
@@ -29,7 +28,6 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 public class NotificationUtil {
 
     private final static int REQUEST_CODE = 0;
-    private static final String TAG = NotificationUtil.class.getSimpleName();
 
     @RootContext
     Context mContext;

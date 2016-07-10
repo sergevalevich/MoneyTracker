@@ -13,14 +13,13 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import com.google.gson.Gson;
+import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
-import com.valevich.moneytracker.eventbus.buses.BusProvider;
-import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
-import com.valevich.moneytracker.eventbus.events.QueryStartedEvent;
-import com.valevich.moneytracker.eventbus.events.SyncBeforeExitFinishedEvent;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
 import com.valevich.moneytracker.network.rest.model.CategoryData;
@@ -28,8 +27,8 @@ import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.ExpensesSyncModel;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
-import com.valevich.moneytracker.utils.NotificationUtil;
 import com.valevich.moneytracker.utils.Preferences_;
+import com.valevich.moneytracker.utils.ui.NotificationUtil;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
@@ -62,6 +61,9 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Bean
     NotificationUtil mNotificationUtil;
+
+    @Bean
+    OttoBus mEventBus;
 
     @Pref
     Preferences_ mPreferences;
@@ -106,7 +108,6 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                               ContentProviderClient provider, SyncResult syncResult) {
 
         Timber.d("SYNC STARTED");
-        notifyQueryStarted();
 
         mCategoriesDb = CategoryEntry.getAllCategories("");
         mExpensesDb = ExpenseEntry.getAllExpenses("");
@@ -116,10 +117,9 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         } catch (Exception e) {
             handleExceptions(e);
         } finally {
-            notifyQueryFinished();
+            notifySyncFinished();
             if (mStopAfterSync) {
                 disableSync();
-                notifySyncBeforeExitFinished();
                 mStopAfterSync = false;
             }
         }
@@ -169,20 +169,12 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         return mCategoriesDb.size() == 0;
     }
 
-    private void notifyQueryStarted() {
-        BusProvider.getInstance().post(new QueryStartedEvent());
-    }
-
-    private void notifyQueryFinished() {
-        BusProvider.getInstance().post(new QueryFinishedEvent());
-    }
-
     private void sendUserNotification() {
         mNotificationUtil.updateNotification();
     }
 
-    private void notifySyncBeforeExitFinished() {
-        BusProvider.getInstance().post(new SyncBeforeExitFinishedEvent());
+    private void notifySyncFinished() {
+        mEventBus.post(new SyncFinishedEvent(mStopAfterSync));
     }
 
     private void disableSync() {
@@ -232,12 +224,30 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             }
             // FIXME: 16.06.2016 не доставать категории. Достаю их, чтобы проверить обновление id
             if (!mStopAfterSync) {
-                List<CategoryEntry> categoryEntries = CategoryEntry.updateIds(mCategoriesDb, mNewCategoryIds);
-                for (CategoryEntry category : categoryEntries) {
+                updateIds();
+//                List<CategoryEntry> categoryEntries = CategoryEntry.updateIds(mCategoriesDb, mNewCategoryIds);
+//                for (CategoryEntry category : categoryEntries) {
+//                    Timber.d("%s = %d %n", category.getName(), category.getId());
+//                }
+            }
+        }
+    }
+
+    private void updateIds() {
+        List<CategoryEntry> categoriesToProcess = new ArrayList<>();
+        for (int i = 0; i < mCategoriesDb.size(); i++) {
+            CategoryEntry category = mCategoriesDb.get(i);
+            category.setId(mNewCategoryIds[i]);
+            categoriesToProcess.add(category);
+        }
+        CategoryEntry.update(categoriesToProcess, new Transaction.Success() {
+            @Override
+            public void onSuccess(Transaction transaction) {
+                for (CategoryEntry category : CategoryEntry.getAllCategories("")) {
                     Timber.d("%s = %d %n", category.getName(), category.getId());
                 }
             }
-        }
+        }, null);
     }
 
     @NonNull
@@ -321,7 +331,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private static void onAccountCreated(Account newAccount, Context context) {
-        final int SYNC_INTERVAL = 60*60;
+        final int SYNC_INTERVAL = 60;
         final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
         TrackerSyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
         ContentResolver.setSyncAutomatically(newAccount,

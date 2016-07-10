@@ -1,8 +1,7 @@
 package com.valevich.moneytracker.ui.taskshandlers;
 
 import com.valevich.moneytracker.MoneyTrackerApplication_;
-import com.valevich.moneytracker.eventbus.buses.BusProvider;
-import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 
@@ -17,18 +16,21 @@ import java.util.List;
  */
 @EBean
 public class RemoveCategoriesTask {
+
     @Bean
     RestService mRestService;
 
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
 
+    @Bean
+    OttoBus mEventBus;
+
     @Background
     public void removeCategories(List<Integer> categoriesIds) {
         for (int id: categoriesIds) {
             removeCategory(id);
         }
-        BusProvider.getInstance().post(new QueryFinishedEvent());
     }
 
     private void removeCategory(int id) {

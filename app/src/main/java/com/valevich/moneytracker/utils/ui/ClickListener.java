@@ -1,4 +1,4 @@
-package com.valevich.moneytracker.utils;
+package com.valevich.moneytracker.utils.ui;
 
 /**
  * Created by User on 18.06.2016.

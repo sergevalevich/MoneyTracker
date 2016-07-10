@@ -1,11 +1,8 @@
 package com.valevich.moneytracker.ui.taskshandlers;
 
-import android.util.Log;
-
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.database.data.CategoryEntry;
-import com.valevich.moneytracker.eventbus.buses.BusProvider;
-import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.AddedCategoryModel;
 import com.valevich.moneytracker.utils.ConstantsManager;
@@ -18,17 +15,19 @@ import org.androidannotations.annotations.EBean;
 import java.util.ArrayList;
 import java.util.List;
 
+import timber.log.Timber;
+
 /**
  * Created by User on 21.06.2016.
  */
 @EBean
 public class UpdateCategoryTask {
-    private static final String TAG = UpdateCategoryTask.class.getSimpleName();
+
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
 
     @Bean
-    AddCategoryTask mAddCategoryTask;
+    OttoBus mEventBus;
 
     @Bean
     RestService mRestService;
@@ -42,14 +41,10 @@ public class UpdateCategoryTask {
                 case ConstantsManager.STATUS_SUCCESS:
                     updateDbIds(newName,addedCategoryModel.getData().getId());
                     break;
-                case ConstantsManager.STATUS_WRONG_ID:
-                    mAddCategoryTask.addCategory(newName);
-                    break;
                 default:
                     break;
             }
         }
-        BusProvider.getInstance().post(new QueryFinishedEvent());
     }
 
     private void updateDbIds(String title, int id) {
@@ -58,7 +53,7 @@ public class UpdateCategoryTask {
         categoryEntries.add(category);
         List<CategoryEntry> categories = CategoryEntry.updateIds(categoryEntries,new int[] {id});
         for (CategoryEntry categoryEntry:categories) {
-            Log.d(TAG, "updateDbIdsUPDATE: " + categoryEntry.getId());
+            Timber.d("updateDbIdsUPDATE: %d", categoryEntry.getId());
         }
     }
 

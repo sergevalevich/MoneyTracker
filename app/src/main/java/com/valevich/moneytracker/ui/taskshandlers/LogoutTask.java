@@ -14,7 +14,7 @@ import com.valevich.moneytracker.ui.activities.LoginActivity_;
 import com.valevich.moneytracker.ui.activities.MainActivity;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
-import com.valevich.moneytracker.utils.UserNotifier;
+import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -44,13 +44,18 @@ public class LogoutTask {
     @StringRes(R.string.logout_error_message)
     String mLogoutErrorMessage;
 
+    @StringRes(R.string.network_unavailable)
+    String mNetworkUnavailableMessage;
+
     @UiThread
     void notifyUser(String message) {
         mUserNotifier.notifyUser(mActivity.findViewById(R.id.drawer_layout),message);
     }
 
     public void requestSync() {
-        TrackerSyncAdapter.syncImmediately(mActivity,true);
+        if (mNetworkStatusChecker.isNetworkAvailable())
+            TrackerSyncAdapter.syncImmediately(mActivity, true);
+        else mUserNotifier.notifyUser(mActivity.getRootView(), mNetworkUnavailableMessage);
     }
 
     @Background
@@ -88,7 +93,7 @@ public class LogoutTask {
         Delete.tables(ExpenseEntry.class, CategoryEntry.class);
     }
 
-    private void navigateToLogIn() {//check back press after logout
+    private void navigateToLogIn() {
         Intent intent = new Intent(mActivity,LoginActivity_.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);

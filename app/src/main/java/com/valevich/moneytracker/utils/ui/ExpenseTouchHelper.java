@@ -1,4 +1,4 @@
-package com.valevich.moneytracker.utils;
+package com.valevich.moneytracker.utils.ui;
 
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
@@ -13,6 +13,9 @@ import com.valevich.moneytracker.ui.activities.MainActivity;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by User on 22.06.2016.
@@ -41,7 +44,9 @@ public class ExpenseTouchHelper extends ItemTouchHelper.SimpleCallback {
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
         //Remove item
         final int itemPosition = viewHolder.getAdapterPosition();
+        final List<ExpenseEntry> expensesToRemove = new ArrayList<>(1);
         final ExpenseEntry expenseToRemove = mExpenseAdapter.getItem(itemPosition);
+        expensesToRemove.add(expenseToRemove);
         mExpenseAdapter.removeItemFromAdapter(itemPosition);
 
         Snackbar snackbar = Snackbar.make(mActivity.getRootView(), mActivity.getString(R.string.expense_removed_msg), Snackbar.LENGTH_LONG)
@@ -56,7 +61,7 @@ public class ExpenseTouchHelper extends ItemTouchHelper.SimpleCallback {
             @Override
             public void onDismissed(Snackbar snackbar, int event) {
                 if(event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
-                    ExpenseEntry.removeExpense(expenseToRemove);
+                    ExpenseEntry.delete(expensesToRemove, null, null);
                 }
             }
         });

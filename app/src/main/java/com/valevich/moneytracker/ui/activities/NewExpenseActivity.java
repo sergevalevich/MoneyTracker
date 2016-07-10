@@ -25,7 +25,6 @@ import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.ui.taskshandlers.AddExpenseTask;
 import com.valevich.moneytracker.utils.InputFieldValidator;
-import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.formatters.DateFormatter;
 import com.valevich.moneytracker.utils.formatters.PriceFormatter;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
@@ -40,6 +39,7 @@ import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -60,13 +60,13 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     AddExpenseTask mAddExpenseTask;
 
     @Bean
-    NetworkStatusChecker mNetworkStatusChecker;
-
-    @Bean
     InputFieldValidator mInputFieldValidator;
 
     @Bean
     DateFormatter mDateFormatter;
+
+    @Bean
+    PriceFormatter mPriceFormatter;
 
     @ViewById(R.id.amountLabel)
     AppCompatEditText mAmountEditText;
@@ -125,7 +125,6 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     private CategoryEntry mCategory;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -149,7 +148,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     private void setupActionBar() {
         setSupportActionBar(mToolbar);
         ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null) {
+        if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(mActivityTitle);
         }
@@ -165,7 +164,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void setupDatePicker() {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy",Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
         Date date = new Date();
         mDatePicker.setText(sdf.format(date));
     }
@@ -204,10 +203,10 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH);
         int day = cal.get(Calendar.DAY_OF_MONTH);
-        DatePickerDialog dialog = DatePickerDialog.newInstance(mDatePickerListener,year,month,day);
+        DatePickerDialog dialog = DatePickerDialog.newInstance(mDatePickerListener, year, month, day);
         dialog.setAccentColor(mDatePickerColor);
         dialog.setThemeDark(true);
-        dialog.show(getFragmentManager(),"DatePicker");
+        dialog.show(getFragmentManager(), "DatePicker");
 
     }
 
@@ -218,7 +217,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
                               int selectedMonth, int selectedDay) {
             int month = selectedMonth + 1;
             String stringMonth = String.valueOf(month);
-            if(month < 10) stringMonth = "0" + stringMonth;
+            if (month < 10) stringMonth = "0" + stringMonth;
 
             mDatePicker.setText(String.format(Locale.getDefault(),
                     "%d-%s-%d",
@@ -238,10 +237,11 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void showToast(String text) {
-        Toast.makeText(this,text,Toast.LENGTH_LONG).show();
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show();
     }
 
-    @Click(R.id.saveExpenseButton) //if fields are empty show warning
+    @Click(R.id.saveExpenseButton)
+        //if fields are empty show warning
     void setupSaveExenseButton() {
 
         mCategory = (CategoryEntry) mCategoriesPicker.getSelectedItem();
@@ -265,7 +265,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void loadCategories() {
-        getSupportLoaderManager().restartLoader(CATEGORIES_LOADER,null,this);
+        getSupportLoaderManager().restartLoader(CATEGORIES_LOADER, null, this);
     }
 
     @Override
@@ -291,17 +291,23 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void saveExpense() {
-        ExpenseEntry.saveExpense(mDescription, mAmount, mDate, mCategory, this, this);
+        List<ExpenseEntry> expensesToAdd = new ArrayList<>(1);
+        ExpenseEntry expense = new ExpenseEntry();
+        expense.setDate(mDate);
+        expense.setDescription(mDescription);
+        expense.setPrice(mPriceFormatter.formatPrice(mAmount));
+        expense.associateCategory(mCategory);
+        expensesToAdd.add(expense);
+
+        ExpenseEntry.create(expensesToAdd, this, this);
     }
 
     @Override
     public void onSuccess(Transaction transaction) {
-        if(mNetworkStatusChecker.isNetworkAvailable()) {
-            mAddExpenseTask.addExpense(Double.valueOf(mAmount),
-                    mDescription,
-                    (int) mCategory.getId(),
-                    mDate);
-        }
+        mAddExpenseTask.addExpense(Double.valueOf(mAmount),
+                mDescription,
+                (int) mCategory.getId(),
+                mDate);
         showToast(mSaveMessage);
         finish();
     }
@@ -314,6 +320,6 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        overridePendingTransition(R.anim.enter_fade_in,R.anim.exit_push_out);
+        overridePendingTransition(R.anim.enter_fade_in, R.anim.exit_push_out);
     }
 }

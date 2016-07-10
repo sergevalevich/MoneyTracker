@@ -1,8 +1,7 @@
-package com.valevich.moneytracker.utils;
+package com.valevich.moneytracker.utils.ui;
 
 import android.support.design.widget.Snackbar;
 import android.view.View;
-import android.view.ViewGroup;
 
 import org.androidannotations.annotations.EBean;
 

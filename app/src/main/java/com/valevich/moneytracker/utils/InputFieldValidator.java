@@ -1,5 +1,6 @@
 package com.valevich.moneytracker.utils;
 
+import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.utils.formatters.PriceFormatter;
 
 import org.androidannotations.annotations.EBean;
@@ -33,7 +34,6 @@ public class InputFieldValidator {
 
     //New ExpenseScreen validation
     public boolean isAmountValid(String amount) {
-        amount = amount.trim();
         int length = amount.length();
         return length != 0
                 && amount.charAt(0) != PriceFormatter.POINT
@@ -43,6 +43,12 @@ public class InputFieldValidator {
     }
 
     public boolean isDescriptionValid(String description) {
-        return description.trim().length() != 0;
+        return !description.trim().isEmpty();
+    }
+
+    public boolean isCategoryNameValid(String newName, String oldName) {
+        return !newName.trim().isEmpty()
+                && !newName.equals(oldName)
+                && !newName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME);
     }
 }

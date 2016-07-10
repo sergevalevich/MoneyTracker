@@ -14,19 +14,16 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
-import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryAddedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryUpdatedEvent;
-import com.valevich.moneytracker.eventbus.events.QueryFinishedEvent;
-import com.valevich.moneytracker.eventbus.events.QueryStartedEvent;
-import com.valevich.moneytracker.eventbus.events.SyncBeforeExitFinishedEvent;
+import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
 import com.valevich.moneytracker.network.sync.TrackerSyncAdapter;
 import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
 import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
@@ -36,22 +33,21 @@ import com.valevich.moneytracker.ui.taskshandlers.AddCategoryTask;
 import com.valevich.moneytracker.ui.taskshandlers.LogoutTask;
 import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
 import com.valevich.moneytracker.ui.taskshandlers.UpdateCategoryTask;
-import com.valevich.moneytracker.utils.ImageLoader;
-import com.valevich.moneytracker.utils.NetworkStatusChecker;
-import com.valevich.moneytracker.utils.UserNotifier;
+import com.valevich.moneytracker.utils.ui.ImageLoader;
+import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.ViewById;
-import org.androidannotations.annotations.res.StringRes;
 
 import io.fabric.sdk.android.Fabric;
 
 
 @EActivity
-public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
+public class MainActivity extends AppCompatActivity
+        implements FragmentManager.OnBackStackChangedListener {
 
     private static final String TOOLBAR_TITLE_KEY = "TOOLBAR_TITLE";
 
@@ -63,9 +59,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
     @ViewById(R.id.navigation_view)
     NavigationView mNavigationView;
-
-    @ViewById(R.id.progress_spinner)
-    ProgressBar mProgressBar;
 
     @Bean
     ImageLoader mImageLoader;
@@ -87,13 +80,10 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     UpdateCategoryTask mUpdateCategoryTask;
 
     @Bean
-    NetworkStatusChecker mNetworkStatusChecker;
-
-    @Bean
     UserNotifier mUserNotifier;
 
-    @StringRes(R.string.network_unavailable)
-    String mNetworkUnavailableMessage;
+    @Bean
+    OttoBus mEventBus;
 
     private FragmentManager mFragmentManager;
 
@@ -113,13 +103,13 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     @Override
     protected void onStart() {
         super.onStart();
-        BusProvider.getInstance().register(this);
+        mEventBus.register(this);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        BusProvider.getInstance().unregister(this);
+        mEventBus.unregister(this);
     }
 
     @Override
@@ -143,36 +133,24 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     }
 
     @Subscribe
-    public void onSyncBeforeExitFinished(SyncBeforeExitFinishedEvent syncBeforeExitFinishedEvent) {
-        mLogoutTask.onSyncFinished();
+    public void onSyncFinished(SyncFinishedEvent syncFinishedEvent) {
+        if (syncFinishedEvent.isStopAfterSync())
+            mLogoutTask.onSyncFinished();
     }
 
     @Subscribe
     public void onCategoriesRemoved(CategoriesRemovedEvent categoriesRemovedEvent) {
-        startProgressBar();
         mRemoveCategoriesTask.removeCategories(categoriesRemovedEvent.getIds());
     }
 
     @Subscribe
     public void onCategoryAdded(CategoryAddedEvent categoryAddedEvent) {
-        startProgressBar();
         mAddCategoryTask.addCategory(categoryAddedEvent.getTitle());
     }
 
     @Subscribe
     public void onCategoryUpdated(CategoryUpdatedEvent categoryUpdatedEvent) {
-        startProgressBar();
         mUpdateCategoryTask.updateCategory(categoryUpdatedEvent.getNewName(),categoryUpdatedEvent.getId());
-    }
-
-    @Subscribe
-    public void onQueryStartedEvent(QueryStartedEvent queryStartedEvent) {
-        startProgressBar();
-    }
-
-    @Subscribe
-    public void onQueryFinished(QueryFinishedEvent queryFinishedEvent) {
-        stopProgressBar();
     }
 
     @Override
@@ -203,24 +181,8 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
         return mRootLayout;
     }
 
-    private void stopProgressBar() {
-        if(mProgressBar.getVisibility() == View.VISIBLE) {
-            mProgressBar.setVisibility(View.INVISIBLE);
-        }
-    }
-
-    private void startProgressBar() {
-        if(mProgressBar.getVisibility() == View.INVISIBLE) {
-            mProgressBar.setVisibility(View.VISIBLE);
-        }
-    }
-
     private void logout() {
-        if (mNetworkStatusChecker.isNetworkAvailable()) {
-            mLogoutTask.requestSync();
-        } else {
-            mUserNotifier.notifyUser(mRootLayout, mNetworkUnavailableMessage);
-        }
+        mLogoutTask.requestSync();
     }
 
     private void setupNavigationContent(final NavigationView navigationView) {

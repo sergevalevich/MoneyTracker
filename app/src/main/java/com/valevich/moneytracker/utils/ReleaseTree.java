@@ -4,11 +4,14 @@ import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 
+import org.androidannotations.annotations.EBean;
+
 import timber.log.Timber;
 
 /**
  * Created by User on 04.07.2016.
  */
+@EBean
 public class ReleaseTree extends Timber.Tree {
 
     private static int MAX_LOG_LENGTH = 4000;
