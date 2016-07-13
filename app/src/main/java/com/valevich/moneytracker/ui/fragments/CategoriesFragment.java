@@ -3,7 +3,9 @@ package com.valevich.moneytracker.ui.fragments;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -34,10 +36,11 @@ import com.valevich.moneytracker.eventbus.events.CategoryItemLongClickedEvent;
 import com.valevich.moneytracker.eventbus.events.CategorySaveButtonClickedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryUpdatedEvent;
 import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
+import com.valevich.moneytracker.ui.fragments.dialogs.EditCategoryDialogFragment;
+import com.valevich.moneytracker.ui.fragments.dialogs.EditCategoryDialogFragment_;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.InputFieldValidator;
 import com.valevich.moneytracker.utils.ui.ActionModeHandler;
-import com.valevich.moneytracker.utils.ui.UserNotifier;
 import com.valevich.moneytracker.utils.ui.ViewCustomizer;
 
 import org.androidannotations.annotations.AfterViews;
@@ -63,6 +66,8 @@ public class CategoriesFragment extends Fragment
 
     private static final String SEARCH_ID = "search_id";
     private static final int CATEGORIES_LOADER = 1;
+    private static final String CATEGORY_NAME_KEY = "CATEGORY_NAME";
+    private static final String SELECTED_ITEMS_KEY = "SELECTED_ITEMS";
 
     @ViewById(R.id.categories_list)
     RecyclerView mCategoriesRecyclerView;
@@ -72,6 +77,9 @@ public class CategoriesFragment extends Fragment
 
     @ViewById(R.id.swipeToRefresh)
     SwipeRefreshLayout mSwipeRefreshLayout;
+
+    @ViewById(R.id.fab)
+    FloatingActionButton mFab;
 
     @OptionsMenuItem(R.id.action_search)
     MenuItem mSearchMenuItem;
@@ -95,9 +103,6 @@ public class CategoriesFragment extends Fragment
     int mRefreshColor;
 
     @Bean
-    UserNotifier mUserNotifier;
-
-    @Bean
     CategoriesAdapter mCategoriesAdapter;
 
     @Bean
@@ -116,7 +121,6 @@ public class CategoriesFragment extends Fragment
 
     private ActionMode mActionMode;
 
-    @InstanceState
     CategoryEntry mCategory;
 
     //needed to update category if sync happened when the dialog is shown
@@ -139,6 +143,32 @@ public class CategoriesFragment extends Fragment
     public void onResume() {
         super.onResume();
         loadCategories("");
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mCategory != null)
+            outState.putString(CATEGORY_NAME_KEY, mCategory.getName());
+
+        //save selected items when screen rotates
+        outState.putIntegerArrayList(SELECTED_ITEMS_KEY
+                , (ArrayList<Integer>) mCategoriesAdapter.getSelectedItems());
+        onDestroyActionMode(null);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mCategory = CategoryEntry
+                    .getCategory(savedInstanceState.getString(CATEGORY_NAME_KEY));
+            List<Integer> selectedItems = savedInstanceState.getIntegerArrayList(SELECTED_ITEMS_KEY);
+            if (selectedItems != null && selectedItems.size() != 0) {
+                startActionMode();
+                for (int position : selectedItems) toggleSelection(position);
+            }
+        }
     }
 
     @Override
@@ -191,7 +221,7 @@ public class CategoriesFragment extends Fragment
     public void onItemClick(CategoryItemClickedEvent event) {
         mCategoryPosition = event.getPosition();
         if (mActionMode != null) {
-            toggleSection(mCategoryPosition);
+            toggleSelection(mCategoryPosition);
         } else {
             mCategory = mCategoriesAdapter.getItem(mCategoryPosition);
             showDialog(mEditCategoryDialogTitle);
@@ -200,17 +230,13 @@ public class CategoriesFragment extends Fragment
 
     @Subscribe
     public void onItemLongClick(CategoryItemLongClickedEvent event) {
-        if (mActionMode == null) {
-            mActionMode = ((AppCompatActivity) getActivity())
-                    .startSupportActionMode(mActionModeHandler);
-        }
-
-        toggleSection(event.getPosition());
+        startActionMode();
+        toggleSelection(event.getPosition());
     }
 
     @Subscribe
     public void onSyncFinished(SyncFinishedEvent syncFinishedEvent) {
-        if (!syncFinishedEvent.isStopAfterSync())
+        if (!syncFinishedEvent.isSyncBeforeExit())
             loadCategories("");
     }
 
@@ -237,7 +263,7 @@ public class CategoriesFragment extends Fragment
                 List<Integer> ids = mCategoriesAdapter
                         .removeDbAndAdapterItems(mCategoriesAdapter.getSelectedItems());
                 mActionMode.finish();
-
+                if (!mFab.isShown()) mFab.show();//to prevent accidentally  hiding fab
                 notifyCategoryRemoved(ids);
         }
     }
@@ -291,6 +317,13 @@ public class CategoriesFragment extends Fragment
         });
     }
 
+    private void startActionMode() {
+        if (mActionMode == null) {
+            mActionMode = ((AppCompatActivity) getActivity())
+                    .startSupportActionMode(mActionModeHandler);
+        }
+    }
+
     private void loadCategories(final String filter) {
         getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks() {
             @Override
@@ -319,7 +352,7 @@ public class CategoriesFragment extends Fragment
         });
     }
 
-    private void toggleSection(int position) {
+    private void toggleSelection(int position) {
         mCategoriesAdapter.toggleSelection(position);
         int selectedItemsCount = mCategoriesAdapter.getSelectedItemCount();
         if (selectedItemsCount == 0) {

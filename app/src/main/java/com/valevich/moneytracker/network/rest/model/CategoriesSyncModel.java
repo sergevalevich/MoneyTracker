@@ -15,6 +15,13 @@ public class CategoriesSyncModel {
     @SerializedName("data")
     private List<CategoryData> data = new ArrayList<CategoryData>();
 
+    @SerializedName("code")
+    int code;
+
+    public int getCode() {
+        return code;
+    }
+
     public String getStatus() {
         return status;
     }

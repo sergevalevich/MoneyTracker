@@ -22,6 +22,8 @@ public class PriceFormatter {
 
     public static final char ZERO = '0';
 
+    private static final String DEFAULT_CURRENCY_SYMBOL = " p.";
+
     @StringRes(R.string.max_value_msg)
     String mMaxValueMessage;
 
@@ -37,22 +39,26 @@ public class PriceFormatter {
 
 
     static {
-        SUFFIXES.put(1000000.f, "Млн");
-        SUFFIXES.put(1000000000.f, "Млр");
-        SUFFIXES.put(1000000000000.f, "Трл");
-        SUFFIXES.put(1000000000000000.f, "Квд");
-        SUFFIXES.put(1000000000000000000.f, "Квт");
+        SUFFIXES.put(1000000.f, " Млн");
+        SUFFIXES.put(1000000000.f, " Млр");
+        SUFFIXES.put(1000000000000.f, " Трл");
+        SUFFIXES.put(1000000000000000.f, " Квд");
+        SUFFIXES.put(1000000000000000000.f, " Квт");
     }
 
 
     //don't show ".0000" if price is an Integer
-    public String formatPrice(String priceString) {
+    public String formatPriceForDb(String priceString) {
         float price = Float.valueOf(priceString);
         if (price % 1 == 0) {
             priceString = getDecimalFormatter(UNNECESSARY_DECIMAL_REPLACEMENT_FORMAT)
                     .format(price);
         }
         return priceString;
+    }
+
+    public String formatPriceFromDb(String priceString) {
+        return priceString + DEFAULT_CURRENCY_SYMBOL;
     }
 
     //for CategoriesFragment list
@@ -73,7 +79,7 @@ public class PriceFormatter {
                     getDecimalFormatter(UNNECESSARY_DECIMAL_REPLACEMENT_FORMAT) :
                     getDecimalFormatter(CATEGORY_TOTAL_FORMAT);
 
-            totalString = decimalFormat.format(total) + suffix;
+            totalString = decimalFormat.format(total) + suffix + DEFAULT_CURRENCY_SYMBOL;
         }
         return totalString;
     }

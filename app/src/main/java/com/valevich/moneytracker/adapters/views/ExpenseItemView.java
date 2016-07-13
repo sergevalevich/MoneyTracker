@@ -10,6 +10,7 @@ import com.valevich.moneytracker.adapters.util.ViewBinder;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.utils.formatters.DateFormatter;
+import com.valevich.moneytracker.utils.formatters.PriceFormatter;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EViewGroup;
@@ -40,13 +41,16 @@ public class ExpenseItemView extends RelativeLayout implements ViewBinder<Expens
     @Bean
     DateFormatter mDateFormatter;
 
+    @Bean
+    PriceFormatter mPriceFormatter;
+
     public ExpenseItemView(Context context) {
         super(context);
     }
 
     @Override
     public void bind(ExpenseEntry expense, boolean isSelected) {
-        price.setText(expense.getPrice());
+        price.setText(mPriceFormatter.formatPriceFromDb(expense.getPrice()));
         description.setText(expense.getDescription());
         date.setText(mDateFormatter.formatDateFromDb(expense.getDate()));
         CategoryEntry categoryDb = expense.getCategory();

@@ -15,7 +15,6 @@ import com.valevich.moneytracker.database.TransactionExecutor;
 
 import org.androidannotations.annotations.EBean;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -24,7 +23,7 @@ import java.util.List;
 @EBean
 @ModelContainer
 @Table(database = MoneyTrackerDatabase.class)
-public class CategoryEntry extends BaseModel implements CategoriesFinder, Serializable {
+public class CategoryEntry extends BaseModel implements CategoriesFinder {
 
     //----DEFAULT CATEGORY. Needed to allow sync when the user removed all mItems
     public static final String DEFAULT_CATEGORY_NAME = "DEFAULT_CATEGORY";
@@ -35,8 +34,8 @@ public class CategoryEntry extends BaseModel implements CategoriesFinder, Serial
     @PrimaryKey(autoincrement = true)
     long id;
 
-//    @Column
-//    private int serverId;
+    @Column
+    private int serverId;
 
     @Unique(unique = true)
     @Column
@@ -63,21 +62,13 @@ public class CategoryEntry extends BaseModel implements CategoriesFinder, Serial
         this.name = name;
     }
 
-    public long getId() {
-        return id;
+    public int getServerId() {
+        return serverId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setServerId(int serverId) {
+        this.serverId = serverId;
     }
-
-//    public int getServerId() {
-//        return serverId;
-//    }
-//
-//    public void setServerId(int serverId) {
-//        this.serverId = serverId;
-//    }
 
     public static List<CategoryEntry> getAllCategories(String filter) {//query
         return SQLite.select()
@@ -91,26 +82,6 @@ public class CategoryEntry extends BaseModel implements CategoriesFinder, Serial
                 .from(CategoryEntry.class)
                 .where(CategoryEntry_Table.name.eq(name))
                 .querySingle();
-    }
-
-    public static List<CategoryEntry> updateIds(List<CategoryEntry> categories, int[] ids) {
-
-        for (int i = 0; i < ids.length; i++) {
-            CategoryEntry category = categories.get(i);
-            int newId = ids[i];
-            long oldId = category.getId();
-            SQLite.update(CategoryEntry.class)
-                    .set(CategoryEntry_Table.id.eq(newId))
-                    .where(CategoryEntry_Table.id.eq(oldId))
-                    .execute();
-            SQLite.update(ExpenseEntry.class)
-                    .set(ExpenseEntry_Table.category_id.eq(newId))
-                    .where(ExpenseEntry_Table.category_id.eq(oldId))
-                    .execute();
-        }
-
-        return getAllCategories("");
-
     }
 
     public static void create(List<CategoryEntry> categoriesToProcess,

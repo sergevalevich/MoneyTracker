@@ -17,6 +17,13 @@ public class ExpensesSyncModel {
     @SerializedName("data")
     private List<ExpenseData> data = new ArrayList<ExpenseData>();
 
+    @SerializedName("code")
+    int code;
+
+    public int getCode() {
+        return code;
+    }
+
     public String getStatus() {
         return status;
     }

@@ -34,13 +34,14 @@ import com.valevich.moneytracker.ui.taskshandlers.LogoutTask;
 import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
 import com.valevich.moneytracker.ui.taskshandlers.UpdateCategoryTask;
 import com.valevich.moneytracker.utils.ui.ImageLoader;
-import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.InstanceState;
 import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.ViewById;
+import org.androidannotations.annotations.res.StringRes;
 
 import io.fabric.sdk.android.Fabric;
 
@@ -49,10 +50,23 @@ import io.fabric.sdk.android.Fabric;
 public class MainActivity extends AppCompatActivity
         implements FragmentManager.OnBackStackChangedListener {
 
-    private static final String TOOLBAR_TITLE_KEY = "TOOLBAR_TITLE";
+    @InstanceState
+    String mToolbarTitle;
+
+    @StringRes(R.string.nav_drawer_expenses)
+    String mExpensesTitle;
+
+    @StringRes(R.string.nav_drawer_categories)
+    String mCategoriesTitle;
+
+    @StringRes(R.string.nav_drawer_statistics)
+    String mStatisticsTitle;
+
+    @StringRes(R.string.nav_drawer_settings)
+    String mSettingsTitle;
 
     @ViewById(R.id.drawer_layout)
-    DrawerLayout mRootLayout;
+    DrawerLayout mDrawerLayout;
 
     @ViewById(R.id.toolbar)
     Toolbar mToolbar;
@@ -80,10 +94,10 @@ public class MainActivity extends AppCompatActivity
     UpdateCategoryTask mUpdateCategoryTask;
 
     @Bean
-    UserNotifier mUserNotifier;
+    OttoBus mEventBus;
 
     @Bean
-    OttoBus mEventBus;
+    TrackerSyncAdapter mTrackerSyncAdapter;
 
     private FragmentManager mFragmentManager;
 
@@ -92,7 +106,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Fabric.with(this);
-        TrackerSyncAdapter.initializeSyncAdapter(this);
+        mTrackerSyncAdapter.initializeSyncAdapter(this);
 
         if(savedInstanceState == null) {
             replaceFragment(new ExpensesFragment_());
@@ -112,19 +126,6 @@ public class MainActivity extends AppCompatActivity
         mEventBus.unregister(this);
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putString(TOOLBAR_TITLE_KEY, String.valueOf(getTitle()));
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        String toolBarTitle = savedInstanceState.getString(TOOLBAR_TITLE_KEY, getString(R.string.app_name));
-        setTitle(toolBarTitle);
-    }
-
     @AfterViews
     void setupViews() {
         setupActionBar();
@@ -134,8 +135,8 @@ public class MainActivity extends AppCompatActivity
 
     @Subscribe
     public void onSyncFinished(SyncFinishedEvent syncFinishedEvent) {
-        if (syncFinishedEvent.isStopAfterSync())
-            mLogoutTask.onSyncFinished();
+        if (syncFinishedEvent.isSyncBeforeExit())
+            mLogoutTask.onSyncFinished(syncFinishedEvent.isSuccessful());
     }
 
     @Subscribe
@@ -150,13 +151,15 @@ public class MainActivity extends AppCompatActivity
 
     @Subscribe
     public void onCategoryUpdated(CategoryUpdatedEvent categoryUpdatedEvent) {
-        mUpdateCategoryTask.updateCategory(categoryUpdatedEvent.getNewName(),categoryUpdatedEvent.getId());
+        int id = categoryUpdatedEvent.getId();
+        if (id != 0)
+            mUpdateCategoryTask.updateCategory(categoryUpdatedEvent.getNewName(), id);
     }
 
     @Override
     public void onBackPressed() {
-        if (mRootLayout.isDrawerOpen(GravityCompat.START)) {
-            mRootLayout.closeDrawer(GravityCompat.START);
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
         } else if (mFragmentManager.getBackStackEntryCount() == 1) {
             finish();
         } else {
@@ -178,7 +181,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public View getRootView() {
-        return mRootLayout;
+        return mDrawerLayout;
     }
 
     private void logout() {
@@ -189,8 +192,8 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
-                if (mRootLayout != null) {
-                    mRootLayout.closeDrawer(GravityCompat.START);
+                if (mDrawerLayout != null) {
+                    mDrawerLayout.closeDrawer(GravityCompat.START);
                 }
                 int itemId = item.getItemId();
                 switch (itemId) {
@@ -234,29 +237,34 @@ public class MainActivity extends AppCompatActivity
 
     private void changeToolbarTitle(String backStackEntryName) {
         if(backStackEntryName.equals(ExpensesFragment_.class.getName())) {
-            setTitle(getString(R.string.nav_drawer_expenses));
+            setTitle(mExpensesTitle);
+            mToolbarTitle = mExpensesTitle;
             mNavigationView.setCheckedItem(R.id.drawer_expenses);
         } else if(backStackEntryName.equals(CategoriesFragment_.class.getName())) {
-            setTitle(getString(R.string.nav_drawer_categories));
+            setTitle(mCategoriesTitle);
+            mToolbarTitle = mCategoriesTitle;
             mNavigationView.setCheckedItem(R.id.drawer_categories);
         } else if(backStackEntryName.equals(SettingsFragment_.class.getName())) {
-            setTitle(getString(R.string.nav_drawer_settings));
+            setTitle(mSettingsTitle);
+            mToolbarTitle = mSettingsTitle;
             mNavigationView.setCheckedItem(R.id.drawer_settings);
         } else {
-            setTitle(getString(R.string.nav_drawer_statistics));
+            setTitle(mStatisticsTitle);
+            mToolbarTitle = mStatisticsTitle;
             mNavigationView.setCheckedItem(R.id.drawer_statistics);
         }
     }
 
     private void setupDrawerLayout() {
         setupNavigationContent(mNavigationView);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mRootLayout
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout
                 , mToolbar
                 , R.string.navigation_drawer_open
                 , R.string.navigation_drawer_close);
         toggle.syncState();
-        mRootLayout.addDrawerListener(toggle);
-        setTitle(R.string.app_name);
+        mDrawerLayout.addDrawerListener(toggle);
+        if (mToolbarTitle != null)
+            setTitle(mToolbarTitle);
     }
 
     private void setupActionBar() {

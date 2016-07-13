@@ -11,8 +11,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
@@ -34,6 +32,7 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.NonConfigurationInstance;
+import org.androidannotations.annotations.TextChange;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
@@ -46,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 
 import io.fabric.sdk.android.Fabric;
+import timber.log.Timber;
 
 
 @EActivity
@@ -95,9 +95,6 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     @StringRes(R.string.new_expense_activity_title)
     String mActivityTitle;
 
-    @StringRes(R.string.spinner_categories_title)
-    String mCategoriesPickerTitle;
-
     @StringRes(R.string.categories_picker_positive)
     String mCategoriesPickerPositive;
 
@@ -115,6 +112,15 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
 
     @StringRes(R.string.new_expense_empty_fields_warning)
     String mEmptyFieldsWarning;
+
+    @StringRes(R.string.empty_categories_picker)
+    String mEmptyCategoriesText;
+
+    @StringRes(R.string.add_categories_prompt)
+    String mAddCategoriesPrompt;
+
+    @StringRes(R.string.add_category_positive)
+    String mAddCategoryActionText;
 
     @ColorRes(R.color.colorAccentDatePicker)
     int mDatePickerColor;
@@ -142,7 +148,6 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     void setupViews() {
         setupActionBar();
         setupDatePicker();
-        setUpAmountEditText();
     }
 
     private void setupActionBar() {
@@ -155,11 +160,17 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void setupCategoriesPicker(List<CategoryEntry> data) {
-        ArrayAdapter<CategoryEntry> adapter = new ArrayAdapter<>(this, R.layout.spinner_item_foreground, data);
-        adapter.setDropDownViewResource(R.layout.spinner_item);
-
-        mCategoriesPicker.setAdapter(adapter);
-        mCategoriesPicker.setPrompt(mCategoriesPickerTitle);
+        if (data.size() != 0) {
+            ArrayAdapter<CategoryEntry> adapter = new ArrayAdapter<>(this, R.layout.spinner_item_foreground, data);
+            adapter.setDropDownViewResource(R.layout.spinner_item);
+            mCategoriesPicker.setAdapter(adapter);
+        } else {
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(this
+                    , R.layout.spinner_item_foreground,
+                    new String[]{mEmptyCategoriesText});
+            adapter.setDropDownViewResource(R.layout.spinner_item);
+            mCategoriesPicker.setAdapter(adapter);
+        }
         mCategoriesPicker.setSelection(0);
     }
 
@@ -169,30 +180,17 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         mDatePicker.setText(sdf.format(date));
     }
 
-    private void setUpAmountEditText() {
-        mAmountEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
+    //not allowing to enter more than 2 digits after dot
+    @TextChange(R.id.amountLabel)
+    void setUpAmountEditText(CharSequence charSequence) {
+        String text = charSequence.toString();
+        Timber.d(text);
+        int dotIndex = text.indexOf(PriceFormatter.POINT);
+        if (dotIndex != -1) {
+            if (text.substring(dotIndex + 1).length() > 2) {
+                mAmountEditText.setText(text.substring(0, text.length() - 1));
             }
-
-            //not allowing to enter more than 2 digits after dot
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                String text = charSequence.toString();
-                int dotIndex = text.indexOf(PriceFormatter.POINT);
-                if (dotIndex != -1) {
-                    if (text.substring(dotIndex + 1).length() > 2) {
-                        mAmountEditText.setText(text.substring(0, text.length() - 1));
-                    }
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-
-            }
-        });
+        }
     }
 
     @Click(R.id.date_picker)
@@ -232,7 +230,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         mDescriptionEditText.setText("");
     }
 
-    private void showSnackBar(String text) {
+    private void notifyUser(String text) {
         Snackbar.make(mRootLayout, text, Snackbar.LENGTH_SHORT).show();
     }
 
@@ -241,27 +239,30 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     @Click(R.id.saveExpenseButton)
-        //if fields are empty show warning
-    void setupSaveExenseButton() {
-
-        mCategory = (CategoryEntry) mCategoriesPicker.getSelectedItem();
-        mAmount = mAmountEditText.getText().toString();
-        mDescription = mDescriptionEditText.getText().toString();
-        mDate = mDateFormatter.formatDateForDb(mDatePicker.getText().toString());
-
-        if (mCategory != null
-                && mInputFieldValidator.isAmountValid(mAmount)
-                && mInputFieldValidator.isDescriptionValid(mDescription)) {
-            saveExpense();
+    void setupSaveExpenseButton() {
+        Object selectedItem = mCategoriesPicker.getSelectedItem();
+        if (selectedItem instanceof String) {
+            notifyUser(mAddCategoriesPrompt);
         } else {
-            showSnackBar(mEmptyFieldsWarning);
+            mCategory = (CategoryEntry) selectedItem;
+            mAmount = mAmountEditText.getText().toString();
+            mDescription = mDescriptionEditText.getText().toString();
+            mDate = mDateFormatter.formatDateForDb(mDatePicker.getText().toString());
+
+            if (mCategory != null
+                    && mInputFieldValidator.isAmountValid(mAmount)
+                    && mInputFieldValidator.isDescriptionValid(mDescription)) {
+                saveExpense();
+            } else {
+                notifyUser(mEmptyFieldsWarning);
+            }
         }
     }
 
     @Click(R.id.cancelButton)
     void setupCancelButton() {
         dropFields();
-        showSnackBar(mCancelMessage);
+        notifyUser(mCancelMessage);
     }
 
     private void loadCategories() {
@@ -295,7 +296,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         ExpenseEntry expense = new ExpenseEntry();
         expense.setDate(mDate);
         expense.setDescription(mDescription);
-        expense.setPrice(mPriceFormatter.formatPrice(mAmount));
+        expense.setPrice(mPriceFormatter.formatPriceForDb(mAmount));
         expense.associateCategory(mCategory);
         expensesToAdd.add(expense);
 
@@ -304,9 +305,11 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
 
     @Override
     public void onSuccess(Transaction transaction) {
+        int serverId = mCategory.getServerId();
+        if (serverId != 0)
         mAddExpenseTask.addExpense(Double.valueOf(mAmount),
                 mDescription,
-                (int) mCategory.getId(),
+                serverId,
                 mDate);
         showToast(mSaveMessage);
         finish();
@@ -314,7 +317,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
 
     @Override
     public void onError(Transaction transaction, Throwable error) {
-        showSnackBar(mSaveErrorMessage);
+        notifyUser(mSaveErrorMessage);
     }
 
     @Override
@@ -322,4 +325,5 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         super.onBackPressed();
         overridePendingTransition(R.anim.enter_fade_in, R.anim.exit_push_out);
     }
+
 }

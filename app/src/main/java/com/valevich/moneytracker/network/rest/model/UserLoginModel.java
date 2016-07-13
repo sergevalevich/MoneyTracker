@@ -1,6 +1,5 @@
 package com.valevich.moneytracker.network.rest.model;
 
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class UserLoginModel {
@@ -12,6 +11,12 @@ public class UserLoginModel {
     private Integer id;
     @SerializedName("auth_token")
     private String authToken;
+    @SerializedName("code")
+    int code;
+
+    public int getCode() {
+        return code;
+    }
 
     public String getStatus() {
         return status;

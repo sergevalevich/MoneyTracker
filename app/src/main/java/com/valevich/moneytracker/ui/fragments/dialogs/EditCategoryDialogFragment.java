@@ -1,4 +1,4 @@
-package com.valevich.moneytracker.ui.fragments;
+package com.valevich.moneytracker.ui.fragments.dialogs;
 
 import android.app.Dialog;
 import android.os.Bundle;

@@ -10,6 +10,12 @@ public class AddedCategoryModel {
     String status;
     @SerializedName("data")
     CategoryData data;
+    @SerializedName("code")
+    int code;
+
+    public int getCode() {
+        return code;
+    }
 
     public String getStatus() {
         return status;

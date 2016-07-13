@@ -1,9 +1,8 @@
 package com.valevich.moneytracker.network.rest.requests;
 
 import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
-import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
 
-import retrofit.http.GET;
+import retrofit.Callback;
 import retrofit.http.POST;
 import retrofit.http.Query;
 
@@ -12,5 +11,6 @@ import retrofit.http.Query;
  */
 public interface SubmitGoogleTokenApi {
     @POST("/gjson")
-    UserGoogleInfoModel submitGoogleToken(@Query("google_token") String token);
+    void submitGoogleToken(@Query("google_token") String token,
+                           Callback<UserGoogleInfoModel> callback);
 }

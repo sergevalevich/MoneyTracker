@@ -11,7 +11,6 @@
     <string name="new_expense_amount_hint">Сумма</string>
     <string name="new_expense_description_hint">Описание</string>
     <string name="new_expense_activity_title">Добавить трату</string>
-    <string name="spinner_categories_title">Выберите категорию</string>
     <string name="date_picker_title">Выберите дату</string>
     <string name="categories_picker_positive">OK</string>
     <string name="categories_picker_negative">ОТМЕНА</string>
@@ -50,11 +49,13 @@
     <string name="dialog_title_edit_category">Изменить название</string>
     <string name="save_category_button_title">ДОБАВИТЬ</string>
     <string name="wrong_category_message">Недопустимое название категории</string>
-    <string name="expense_removed_msg">Запись удалена!</string>
+    <string name="expense_removed_msg">Запись будет удалена!</string>
     <string name="undo_delete_action_msg">ОТМЕНИТЬ</string>
     <string name="nav_drawer_exit">Выход</string>
     <string name="chart_total_center_text">Всего</string>
     <string name="google_sign_in_button_text">Google</string>
+
+    <!-- notification preferences -->
     <string
         name="pref_enable_notifications_key"
         translatable="false">enable_notifications</string>
@@ -72,21 +73,30 @@
         translatable="false">true</string>
 
     <string name="pref_enable_indicator_key"
-                translatable="false">enable_indicator</string>
+            translatable="false">enable_indicator</string>
     <string name="pref_enable_indicator_label">Индикатор</string>
     <string
         name="pref_enable_indicator_default"
         translatable="false">true</string>
 
     <string name="pref_enable_vibration_key"
-                translatable="false">enable_vibration</string>
+            translatable="false">enable_vibration</string>
     <string name="pref_enable_vibration_label">Вибрация</string>
     <string
         name="pref_enable_vibration_default"
         translatable="false">true</string>
 
-    <string name="notification_message">Синхронизация прошла успешно</string>
     <string name="pref_notification_section">Уведомления</string>
+
+    <string name="notification_message">Синхронизация прошла успешно</string>
+
     <string name="auth_dialog_message">Авторизация</string>
     <string name="max_value_msg">Максимум!</string>
+    <string name="empty_categories_picker">Список категорий пуст</string>
+    <string name="add_categories_prompt">Добавьте категории!</string>
+    <string name="add_category_positive">Добавить</string>
+    <string name="error_network">Проблемы с сетью</string>
+    <string name="error_no_response">Нет ответа</string>
+    <string name="error_network_http">Ошибка</string>
+    <string name="error_unknown">Неизвестная ошибка</string>
 </resources>

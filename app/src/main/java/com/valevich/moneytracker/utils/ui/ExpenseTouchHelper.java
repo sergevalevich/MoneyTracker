@@ -1,21 +1,13 @@
 package com.valevich.moneytracker.utils.ui;
 
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.view.View;
 
-import com.valevich.moneytracker.R;
-import com.valevich.moneytracker.adapters.ExpenseAdapter;
-import com.valevich.moneytracker.database.data.ExpenseEntry;
-import com.valevich.moneytracker.ui.activities.MainActivity;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.ItemSwipedEvent;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
-import org.androidannotations.annotations.RootContext;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by User on 22.06.2016.
@@ -24,10 +16,7 @@ import java.util.List;
 public class ExpenseTouchHelper extends ItemTouchHelper.SimpleCallback {
 
     @Bean
-    ExpenseAdapter mExpenseAdapter;
-
-    @RootContext
-    MainActivity mActivity;
+    OttoBus mEventBus;
 
     public ExpenseTouchHelper() {
         super(ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT,
@@ -42,32 +31,7 @@ public class ExpenseTouchHelper extends ItemTouchHelper.SimpleCallback {
 
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-        //Remove item
-        final int itemPosition = viewHolder.getAdapterPosition();
-        final List<ExpenseEntry> expensesToRemove = new ArrayList<>(1);
-        final ExpenseEntry expenseToRemove = mExpenseAdapter.getItem(itemPosition);
-        expensesToRemove.add(expenseToRemove);
-        mExpenseAdapter.removeItemFromAdapter(itemPosition);
-
-        Snackbar snackbar = Snackbar.make(mActivity.getRootView(), mActivity.getString(R.string.expense_removed_msg), Snackbar.LENGTH_LONG)
-                .setAction(mActivity.getString(R.string.undo_delete_action_msg), new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mExpenseAdapter.add(itemPosition, expenseToRemove);
-                    }
-                });
-
-        snackbar.setCallback(new Snackbar.Callback() {
-            @Override
-            public void onDismissed(Snackbar snackbar, int event) {
-                if(event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
-                    ExpenseEntry.delete(expensesToRemove, null, null);
-                }
-            }
-        });
-
-        snackbar.show();
-
+        mEventBus.post(new ItemSwipedEvent(viewHolder.getAdapterPosition()));
     }
 
 }

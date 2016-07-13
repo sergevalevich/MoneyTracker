@@ -64,11 +64,12 @@ public class CategoriesAdapter
             int id = 0;
             CategoryEntry category = mItems.get(position);
             if (category != null) {
-                id = (int) category.getId();
+                id = category.getServerId();
                 categoriesToRemove.add(category);
                 mItems.remove(position);
                 notifyItemRemoved(position);
             }
+            if (id != 0)
             removedCategoriesIds.add(id);
             positions.remove(0);
         }

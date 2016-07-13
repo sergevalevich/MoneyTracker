@@ -28,16 +28,20 @@ import com.valevich.moneytracker.network.rest.model.ExpensesSyncModel;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.Preferences_;
+import com.valevich.moneytracker.utils.TriesCounter;
+import com.valevich.moneytracker.utils.errorHandlers.ApiErrorHandler;
 import com.valevich.moneytracker.utils.ui.NotificationUtil;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
-import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 import timber.log.Timber;
 
 @EBean
@@ -47,9 +51,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private List<ExpenseEntry> mExpensesDb;
 
-    private int[] mNewCategoryIds;
-
-    private static boolean mStopAfterSync = false;
+    private static boolean mIsSyncBeforeExit = false;
 
     private static Account mAccount;
 
@@ -63,17 +65,26 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     NotificationUtil mNotificationUtil;
 
     @Bean
+    ApiErrorHandler mApiErrorHandler;
+
+    @Bean
     OttoBus mEventBus;
 
     @Pref
     Preferences_ mPreferences;
 
+    @Bean
+    TriesCounter mApiErrorTriesCounter;
+
+    @Bean
+    TriesCounter mNetworkErrorTriesCounter;
+
     public TrackerSyncAdapter(Context context) {
         super(context, true);
     }
 
-    public static void syncImmediately(Context context, boolean stopAfterSync) {
-        mStopAfterSync = stopAfterSync;
+    public void syncImmediately(Context context, boolean stopAfterSync) {
+        mIsSyncBeforeExit = stopAfterSync;
         Bundle bundle = new Bundle();
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED,
                 true);
@@ -83,7 +94,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                 ConstantsManager.CONTENT_AUTHORITY, bundle);
     }
 
-    public static void configurePeriodicSync(Context context, int syncInterval, int flexTime) {
+    public void configurePeriodicSync(Context context, int syncInterval, int flexTime) {
         Account account = getSyncAccount(context);
         String authority = ConstantsManager.CONTENT_AUTHORITY;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -99,7 +110,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
-    public static void initializeSyncAdapter(Context context) {
+    public void initializeSyncAdapter(Context context) {
         getSyncAccount(context);
     }
 
@@ -112,17 +123,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         mCategoriesDb = CategoryEntry.getAllCategories("");
         mExpensesDb = ExpenseEntry.getAllExpenses("");
 
-        try {
-            syncCategories();
-        } catch (Exception e) {
-            handleExceptions(e);
-        } finally {
-            notifySyncFinished();
-            if (mStopAfterSync) {
-                disableSync();
-                mStopAfterSync = false;
-            }
-        }
+        syncCategories();
 
         //sync categories without expenses to remove expenses from the server
         /*
@@ -137,7 +138,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     }
 
-    private static Account getSyncAccount(Context context) {
+    private Account getSyncAccount(Context context) {
         AccountManager accountManager =
                 (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
         mAccount = new Account(context.getString(R.string.app_name),
@@ -152,15 +153,6 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         return mAccount;
     }
 
-    private void handleExceptions(Exception e) {
-        if (e instanceof SocketTimeoutException) {
-            int count = mPreferences.exceptionsCount().get();
-            mPreferences.exceptionsCount().put(++count);
-        } else {
-            e.printStackTrace();
-        }
-    }
-
     private boolean areExpensesEmpty() {
         return mExpensesDb.size() == 0;
     }
@@ -173,13 +165,14 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         mNotificationUtil.updateNotification();
     }
 
-    private void notifySyncFinished() {
-        mEventBus.post(new SyncFinishedEvent(mStopAfterSync));
+    private void notifySyncFinished(boolean isSuccessful) {
+        mEventBus.post(new SyncFinishedEvent(mIsSyncBeforeExit, isSuccessful));
     }
 
-    private void disableSync() {
+    public void disableSync() {
         ContentResolver.setIsSyncable(mAccount, ConstantsManager.CONTENT_AUTHORITY, 0);
         ContentResolver.cancelSync(mAccount, ConstantsManager.CONTENT_AUTHORITY);
+        mIsSyncBeforeExit = false;
     }
 
     private void syncCategories() {
@@ -189,65 +182,83 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                 : getCategoriesString(getPreparedCategories());
 
         if (mNetworkStatusChecker.isNetworkAvailable()) {
-            CategoriesSyncModel apiCategories = mRestService
-                    .syncCategories(categoriesJsonString, getLoftToken(), getGoogleToken());
+            mRestService.syncCategories(
+                    categoriesJsonString,
+                    MoneyTrackerApplication_.getLoftApiToken(),
+                    MoneyTrackerApplication_.getGoogleToken(),
+                    new Callback<CategoriesSyncModel>() {
+                        @Override
+                        public void success(CategoriesSyncModel apiCategories, Response response) {
 
-            String status = apiCategories.getStatus();
+                            mNetworkErrorTriesCounter.resetTries();
+                            String status = apiCategories.getStatus();
 
-            switch (status) {
-                case ConstantsManager.STATUS_SUCCESS:
-                    setNewCategoryIds(apiCategories);
-                    if(!areExpensesEmpty()) {
-                        syncExpenses();
-                    }
-                    break;
-            }
+                            switch (status) {
+                                case ConstantsManager.STATUS_SUCCESS:
+                                    mApiErrorTriesCounter.resetTries();
+                                    setNewServerIds(apiCategories);
+                                    break;
+                                default:
+                                    mApiErrorTriesCounter.reduceTry();
+                                    if (mApiErrorTriesCounter.areTriesLeft()) {
+                                        mApiErrorHandler.handleError(status, new ApiErrorHandler.HandleCallback() {
+                                            @Override
+                                            public void onHandle() {
+                                                syncCategories();
+                                            }
+                                        });
+                                    } else {
+                                        notifySyncFinished(false);
+                                    }
+                                    break;
+                            }
+                        }
+
+                        @Override
+                        public void failure(RetrofitError error) {
+                            Timber.d(error.getLocalizedMessage());
+                            mNetworkErrorTriesCounter.reduceTry();
+                            if (mNetworkErrorTriesCounter.areTriesLeft()) {
+                                syncCategories();
+                            } else {
+                                notifySyncFinished(false);
+                            }
+                        }
+                    });
         }
 
     }
 
-    private void setNewCategoryIds(CategoriesSyncModel apiCategories) {
+    private void setNewServerIds(CategoriesSyncModel apiCategories) {
 
         List<CategoryData> categoryData = apiCategories.getData();
         String firstCategoryName = categoryData.get(0).getTitle();
 
-        if(!firstCategoryName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME)) {//not updating db if we get default category
-
-            int dataSize = categoryData.size();
-            mNewCategoryIds = new int[dataSize];
-
-            for (int i = 0; i < dataSize; i++) {
+        if (!firstCategoryName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME)) {//not updating db if we get default category
+            for (int i = 0; i < categoryData.size(); i++) {
 
                 int categoryId = categoryData.get(i).getId();
-                mNewCategoryIds[i] = categoryId;
+                CategoryEntry category = mCategoriesDb.get(i);
+                category.setServerId(categoryId);
 
             }
-            // FIXME: 16.06.2016 не доставать категории. Достаю их, чтобы проверить обновление id
-            if (!mStopAfterSync) {
-                updateIds();
-//                List<CategoryEntry> categoryEntries = CategoryEntry.updateIds(mCategoriesDb, mNewCategoryIds);
-//                for (CategoryEntry category : categoryEntries) {
-//                    Timber.d("%s = %d %n", category.getName(), category.getId());
-//                }
-            }
-        }
-    }
-
-    private void updateIds() {
-        List<CategoryEntry> categoriesToProcess = new ArrayList<>();
-        for (int i = 0; i < mCategoriesDb.size(); i++) {
-            CategoryEntry category = mCategoriesDb.get(i);
-            category.setId(mNewCategoryIds[i]);
-            categoriesToProcess.add(category);
-        }
-        CategoryEntry.update(categoriesToProcess, new Transaction.Success() {
-            @Override
-            public void onSuccess(Transaction transaction) {
-                for (CategoryEntry category : CategoryEntry.getAllCategories("")) {
-                    Timber.d("%s = %d %n", category.getName(), category.getId());
+            CategoryEntry.update(mCategoriesDb, new Transaction.Success() {
+                @Override
+                public void onSuccess(Transaction transaction) {
+                    for (CategoryEntry category : CategoryEntry.getAllCategories("")) {
+                        Timber.d("%s = %d %n", category.getName(), category.getServerId());
+                    }
+                    if (!areExpensesEmpty())
+                        syncExpenses();
+                    else {
+                        notifySyncFinished(true);
+                        sendUserNotification();
+                    }
                 }
-            }
-        }, null);
+            }, null);
+        } else {
+            notifySyncFinished(true);
+        }
     }
 
     @NonNull
@@ -289,16 +300,51 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String expensesString = getExpensesString(expenses);
 
         if (mNetworkStatusChecker.isNetworkAvailable()) {
-            ExpensesSyncModel expensesSyncModel = mRestService
-                    .syncExpenses(expensesString, getLoftToken(), getGoogleToken());
-            String status = expensesSyncModel.getStatus();
-            switch (status) {
-                case ConstantsManager.STATUS_SUCCESS:
-                    if (!mStopAfterSync) sendUserNotification();
-                    break;
-            }
+            mRestService.syncExpenses(
+                    expensesString,
+                    MoneyTrackerApplication_.getLoftApiToken(),
+                    MoneyTrackerApplication_.getGoogleToken(),
+                    new Callback<ExpensesSyncModel>() {
+                        @Override
+                        public void success(ExpensesSyncModel apiExpenses, Response response) {
+
+                            String status = apiExpenses.getStatus();
+
+                            switch (status) {
+                                case ConstantsManager.STATUS_SUCCESS:
+                                    notifySyncFinished(true);
+                                    sendUserNotification();
+                                    break;
+                                default:
+                                    mApiErrorTriesCounter.reduceTry();
+                                    if (mApiErrorTriesCounter.areTriesLeft()) {
+                                        mApiErrorHandler.handleError(status, new ApiErrorHandler.HandleCallback() {
+                                            @Override
+                                            public void onHandle() {
+                                                syncExpenses();
+                                            }
+                                        });
+                                    } else {
+                                        notifySyncFinished(false);
+                                    }
+                                    break;
+                            }
+                        }
+
+                        @Override
+                        public void failure(RetrofitError error) {
+                            Timber.d(error.getLocalizedMessage());
+                            mNetworkErrorTriesCounter.reduceTry();
+                            if (mNetworkErrorTriesCounter.areTriesLeft()) {
+                                syncExpenses();
+                            } else {
+                                notifySyncFinished(false);
+                            }
+                        }
+                    });
         }
     }
+
 
     @NonNull
     private String getExpensesString(List<ExpenseData> expensesToSync) {
@@ -318,7 +364,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             for (ExpenseEntry expenseDb : category.getExpenses()) {
                 ExpenseData expenseToSync = new ExpenseData();
 
-                expenseToSync.setCategoryId(mNewCategoryIds[i]);
+                expenseToSync.setCategoryId(category.getServerId());
                 expenseToSync.setComment(expenseDb.getDescription());
                 expenseToSync.setId((int) expenseDb.getId());
                 expenseToSync.setSum(Double.valueOf(expenseDb.getPrice()));
@@ -330,23 +376,15 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         return expensesToSync;
     }
 
-    private static void onAccountCreated(Account newAccount, Context context) {
-        final int SYNC_INTERVAL = 60;
+    private void onAccountCreated(Account newAccount, Context context) {
+        final int SYNC_INTERVAL = 60 * 5;
         final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
-        TrackerSyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
+        configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
         ContentResolver.setSyncAutomatically(newAccount,
                 ConstantsManager.CONTENT_AUTHORITY, true);
         ContentResolver.addPeriodicSync(newAccount, ConstantsManager.CONTENT_AUTHORITY,
                 Bundle.EMPTY,
                 SYNC_INTERVAL);
         syncImmediately(context, false);
-    }
-
-    private String getLoftToken() {
-        return MoneyTrackerApplication_.getLoftApiToken();
-    }
-
-    private String getGoogleToken() {
-        return MoneyTrackerApplication_.getGoogleToken();
     }
 }

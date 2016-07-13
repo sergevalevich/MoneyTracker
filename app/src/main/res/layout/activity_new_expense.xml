@@ -64,7 +64,7 @@
                 style="@style/EditText"
                 android:hint="@string/new_expense_description_hint"
                 android:maxLength="25"
-                android:maxLines="2"/>
+                android:singleLine="true"/>
 
         </android.support.design.widget.TextInputLayout>
 

@@ -1,5 +1,7 @@
 package com.valevich.moneytracker.ui.taskshandlers;
 
+import android.support.design.widget.Snackbar;
+
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
@@ -9,7 +11,6 @@ import com.valevich.moneytracker.network.rest.model.UserLoginModel;
 import com.valevich.moneytracker.ui.activities.LoginActivity;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
-import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -38,9 +39,6 @@ public class LoginTask {
 
     @StringRes(R.string.network_unavailable)
     String mNetworkUnavailableMessage;
-
-    @Bean
-    UserNotifier mUserNotifier;
 
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
@@ -79,14 +77,15 @@ public class LoginTask {
                     break;
             }
         } else {
-            mUserNotifier.notifyUser(mActivity.getRootView(), mNetworkUnavailableMessage);
+            notifyUser(mNetworkUnavailableMessage);
             notifyLoginFinished();
         }
     }
 
     @UiThread
     void notifyUser(String message) {
-        mUserNotifier.notifyUser(mActivity.findViewById(R.id.root), message);
+        Snackbar.make(mActivity.getRootView(), message, Snackbar.LENGTH_LONG)
+                .show();
     }
 
     private void fetchUserData() {

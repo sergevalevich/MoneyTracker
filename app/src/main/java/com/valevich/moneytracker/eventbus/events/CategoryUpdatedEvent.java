@@ -21,7 +21,7 @@ public class CategoryUpdatedEvent {
 
     public int getId() {
         int id = 0;
-        if (mCategory != null) id = (int) mCategory.getId();
+        if (mCategory != null) id = mCategory.getServerId();
         return id;
     }
 }

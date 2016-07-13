@@ -15,8 +15,8 @@ import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.GlobalCategoriesDataModel;
 import com.valevich.moneytracker.ui.activities.MainActivity_;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
+import com.valevich.moneytracker.utils.TriesCounter;
 import com.valevich.moneytracker.utils.formatters.PriceFormatter;
-import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -26,6 +26,9 @@ import org.androidannotations.annotations.RootContext;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 import timber.log.Timber;
 
 /**
@@ -41,29 +44,46 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
     RestService mRestService;
 
     @Bean
-    UserNotifier mUserNotifier;
-
-    @Bean
     NetworkStatusChecker mNetworkStatusChecker;
 
     @Bean
     PriceFormatter mPriceFormatter;
 
     @Bean
-    OttoBus mEventBus;
+    TriesCounter mNetworkErrorTriesCounter;
 
-    List<GlobalCategoriesDataModel> mGlobalCategoriesData;
+    @Bean
+    OttoBus mEventBus;
 
     @Background
     public void fetchUserData() {
         if (mNetworkStatusChecker.isNetworkAvailable()) {
-            mGlobalCategoriesData = mRestService
-                    .fetchGlobalCategoriesData(getLoftToken(), getGoogleToken());
-            if (mGlobalCategoriesData != null) {
-                saveData(mGlobalCategoriesData);
-            } else {
-                notifyLoginFinished();
-            }
+            mRestService.fetchGlobalCategoriesData(
+                    MoneyTrackerApplication_.getLoftApiToken(),
+                    MoneyTrackerApplication_.getGoogleToken(),
+                    new Callback<List<GlobalCategoriesDataModel>>() {
+                        @Override
+                        public void success(List<GlobalCategoriesDataModel> globalCategoriesData, Response response) {
+
+                            if (globalCategoriesData != null) {
+                                saveData(globalCategoriesData);
+                            } else {
+                                notifyLoginFinished();
+                            }
+
+                        }
+
+                        @Override
+                        public void failure(RetrofitError error) {
+                            Timber.d(error.getLocalizedMessage());
+                            mNetworkErrorTriesCounter.reduceTry();
+                            if (mNetworkErrorTriesCounter.areTriesLeft()) {
+                                fetchUserData();
+                            } else {
+                                notifyLoginFinished();
+                            }
+                        }
+                    });
         }
     }
 
@@ -92,8 +112,8 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
                             ExpenseEntry expense = createExpense(fetchedExpense);
                             expense.associateCategory(category);
                             expense.save();
-                            count[0]++;
                         }
+                        count[0]++;
                     }
                 }, TransactionExecutor.TRANSACTION_TYPE_CREATE);
 
@@ -101,7 +121,7 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
 
     private CategoryEntry createCategory(GlobalCategoriesDataModel fetchedCategory) {
         CategoryEntry category = new CategoryEntry();
-        category.setId(fetchedCategory.getId());
+        category.setServerId(fetchedCategory.getId());
         category.setName(fetchedCategory.getTitle());
         return category;
     }
@@ -110,17 +130,9 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
         ExpenseEntry expense = new ExpenseEntry();
         expense.setDescription(fetchedExpense.getComment());
         expense.setPrice(mPriceFormatter
-                .formatPrice(String.valueOf(fetchedExpense.getSum())));
+                .formatPriceForDb(String.valueOf(fetchedExpense.getSum())));
         expense.setDate(fetchedExpense.getTrDate());
         return expense;
-    }
-
-    private String getLoftToken() {
-        return MoneyTrackerApplication_.getLoftApiToken();
-    }
-
-    private String getGoogleToken() {
-        return MoneyTrackerApplication_.getGoogleToken();
     }
 
     @Override

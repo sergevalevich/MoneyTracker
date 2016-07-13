@@ -1,6 +1,7 @@
 package com.valevich.moneytracker.ui.taskshandlers;
 
 import android.content.Intent;
+import android.support.design.widget.Snackbar;
 
 import com.raizlabs.android.dbflow.sql.language.Delete;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
@@ -14,7 +15,6 @@ import com.valevich.moneytracker.ui.activities.LoginActivity_;
 import com.valevich.moneytracker.ui.activities.MainActivity;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
-import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -36,7 +36,7 @@ public class LogoutTask {
     RestService mRestService;
 
     @Bean
-    UserNotifier mUserNotifier;
+    TrackerSyncAdapter mTrackerSyncAdapter;
 
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
@@ -49,13 +49,15 @@ public class LogoutTask {
 
     @UiThread
     void notifyUser(String message) {
-        mUserNotifier.notifyUser(mActivity.findViewById(R.id.drawer_layout),message);
+        Snackbar.make(mActivity.getRootView(), message, Snackbar.LENGTH_LONG)
+                .show();
     }
 
+    @Background
     public void requestSync() {
         if (mNetworkStatusChecker.isNetworkAvailable())
-            TrackerSyncAdapter.syncImmediately(mActivity, true);
-        else mUserNotifier.notifyUser(mActivity.getRootView(), mNetworkUnavailableMessage);
+            mTrackerSyncAdapter.syncImmediately(mActivity, true);
+        else notifyUser(mNetworkUnavailableMessage);
     }
 
     @Background
@@ -76,9 +78,14 @@ public class LogoutTask {
         }
     }
 
-    public void onSyncFinished() {
-        if(mNetworkStatusChecker.isNetworkAvailable())
-            logOut();
+    public void onSyncFinished(boolean isSuccessful) {
+        if (isSuccessful) {
+            mTrackerSyncAdapter.disableSync();
+            if (mNetworkStatusChecker.isNetworkAvailable())
+                logOut();
+        } else {
+            notifyUser(mLogoutErrorMessage);
+        }
     }
 
     private void clearUserData() {

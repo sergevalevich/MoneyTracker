@@ -8,6 +8,12 @@ public class UserRegistrationModel {
     private String status;
     @SerializedName("id")
     private Integer id;
+    @SerializedName("code")
+    int code;
+
+    public int getCode() {
+        return code;
+    }
 
 
     public String getStatus() {

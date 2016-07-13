@@ -2,7 +2,6 @@ package com.valevich.moneytracker.network.rest.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,7 +37,4 @@ public class GlobalCategoriesDataModel {
         return transactions;
     }
 
-    public void setTransactions(List<ExpenseData> transactions) {
-        this.transactions = transactions;
-    }
 }

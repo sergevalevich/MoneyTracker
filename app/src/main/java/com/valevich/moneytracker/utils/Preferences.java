@@ -3,7 +3,6 @@ package com.valevich.moneytracker.utils;
 import com.valevich.moneytracker.R;
 
 import org.androidannotations.annotations.sharedpreferences.DefaultBoolean;
-import org.androidannotations.annotations.sharedpreferences.DefaultInt;
 import org.androidannotations.annotations.sharedpreferences.DefaultString;
 import org.androidannotations.annotations.sharedpreferences.SharedPref;
 
@@ -42,6 +41,4 @@ public interface Preferences {
     @DefaultBoolean(value = true,keyRes = R.string.pref_enable_sound_key)
     boolean soundPreference();
 
-    @DefaultInt(0)
-    int exceptionsCount();
 }

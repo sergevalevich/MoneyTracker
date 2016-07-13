@@ -11,6 +11,13 @@ public class RemovedCategoryModel {
     @SerializedName("status")
     String status;
 
+    @SerializedName("code")
+    int code;
+
+    public int getCode() {
+        return code;
+    }
+
     public Integer getData() {
         return data;
     }

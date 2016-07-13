@@ -1,6 +1,7 @@
 package com.valevich.moneytracker.ui.taskshandlers;
 
 import android.content.Intent;
+import android.support.design.widget.Snackbar;
 
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
@@ -13,7 +14,6 @@ import com.valevich.moneytracker.ui.activities.MainActivity_;
 import com.valevich.moneytracker.ui.activities.SignUpActivity;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
-import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -21,6 +21,11 @@ import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.res.StringRes;
+
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+import timber.log.Timber;
 
 /**
  * Created by NotePad.by on 22.05.2016.
@@ -47,9 +52,6 @@ public class SignUpTask {
     String mNetworkUnavailableMessage;
 
     @Bean
-    UserNotifier mUserNotifier;
-
-    @Bean
     NetworkStatusChecker mNetworkStatusChecker;
 
     @Bean
@@ -59,25 +61,37 @@ public class SignUpTask {
     RestService mRestService;
 
     @Background
-    public void signUp(String userName, String password, String email) {
+    public void signUp(final String userName, final String password, final String email) {
         if (mNetworkStatusChecker.isNetworkAvailable()) {
-            UserRegistrationModel userRegistrationModel = mRestService.register(userName, password);
-            String status = userRegistrationModel.getStatus();
-            switch (status) {
-                case ConstantsManager.STATUS_SUCCESS:
-                    logIn(userName, password, email);
-                    break;
-                case ConstantsManager.STATUS_LOGIN_BUSY:
-                    notifyUser(mLoginBusyMessage);
-                    notifySignUpFinished();
-                    break;
-                default:
-                    notifyUser(mGeneralErrorMessage);
-                    notifySignUpFinished();
-                    break;
-            }
+            mRestService.register(userName, password, new Callback<UserRegistrationModel>() {
+                @Override
+                public void success(UserRegistrationModel userRegistrationModel, Response response) {
+                    String status = userRegistrationModel.getStatus();
+                    switch (status) {
+                        case ConstantsManager.STATUS_SUCCESS:
+                            logIn(userName, password, email);
+                            break;
+                        case ConstantsManager.STATUS_LOGIN_BUSY:
+                            notifyUser(mLoginBusyMessage);
+                            notifySignUpFinished();
+                            break;
+                        default:
+                            notifyUser(mGeneralErrorMessage);
+                            notifySignUpFinished();
+                            break;
+                    }
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    String message = error.getLocalizedMessage();
+                    Timber.d(message);
+                    notifyUser(message);
+                }
+            });
+
         } else {
-            mUserNotifier.notifyUser(mActivity.getRootView(), mNetworkUnavailableMessage);
+            notifyUser(mNetworkUnavailableMessage);
             notifySignUpFinished();
         }
     }
@@ -109,7 +123,8 @@ public class SignUpTask {
 
     @UiThread
     void notifyUser(String message) {
-        mUserNotifier.notifyUser(mActivity.findViewById(R.id.root), message);
+        Snackbar.make(mActivity.getRootView(), message, Snackbar.LENGTH_LONG)
+                .show();
     }
 
     private void notifySignUpFinished() {

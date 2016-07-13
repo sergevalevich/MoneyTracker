@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
 import android.view.View;
@@ -21,7 +22,6 @@ import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
 import com.valevich.moneytracker.ui.taskshandlers.LoginTask;
 import com.valevich.moneytracker.ui.taskshandlers.SignUpWithGoogleTask;
 import com.valevich.moneytracker.utils.InputFieldValidator;
-import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
@@ -67,9 +67,6 @@ public class LoginActivity extends AppCompatActivity {
     @NonConfigurationInstance
     @Bean
     SignUpWithGoogleTask mSignUpWithGoogleTask;
-
-    @Bean
-    UserNotifier mUserNotifier;
 
     @Bean
     InputFieldValidator mInputFieldValidator;
@@ -160,13 +157,18 @@ public class LoginActivity extends AppCompatActivity {
 
     private boolean isInputValid(String username, String password) {
         if (!mInputFieldValidator.isUsernameValid(username)) {
-            mUserNotifier.notifyUser(mRootLayout, mInvalidUsernameMessage);
+            notifyUser(mInvalidUsernameMessage);
             return false;
         } else if (!mInputFieldValidator.isPasswordValid(password)) {
-            mUserNotifier.notifyUser(mRootLayout, mInvalidPasswordMessage);
+            notifyUser(mInvalidPasswordMessage);
             return false;
         }
         return true;
+    }
+
+    private void notifyUser(String message) {
+        Snackbar.make(mRootLayout, message, Snackbar.LENGTH_LONG)
+                .show();
     }
 
     private void showProgressDialog() {

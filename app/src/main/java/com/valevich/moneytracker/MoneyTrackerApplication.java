@@ -91,6 +91,10 @@ public class MoneyTrackerApplication extends Application {
         return mPreferences.userPhoto().get();
     }
 
+    public static String getUserPassword() {
+        return mPreferences.userPassword().get();
+    }
+
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);

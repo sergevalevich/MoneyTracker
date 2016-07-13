@@ -23,7 +23,7 @@
                 android:gravity="center_vertical"
                 android:textSize="@dimen/list_item_text_size"
                 android:textColor="@color/colorText"
-                tools:text = "Azazazaza"/>
+                tools:text="123456789123456"/>
 
 
             <TextView
@@ -32,13 +32,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:maxLines="1"
-                android:maxLength="9"
-                android:paddingStart="@dimen/list_item_price_text_start_padding"
-                android:paddingLeft="@dimen/list_item_price_text_start_padding"
-                android:gravity="center"
+                android:maxLength="14"
+                android:gravity="center_vertical|end"
                 android:textColor="@color/colorText"
                 android:textSize="@dimen/primary_text_size"
-                tools:text="10000000$"/>
+                tools:text="999.99 Млн р."/>
 
 
         </LinearLayout>

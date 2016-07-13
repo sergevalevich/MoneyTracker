@@ -3,6 +3,7 @@ package com.valevich.moneytracker.ui.activities;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
 import android.view.View;
@@ -15,7 +16,6 @@ import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.eventbus.events.SignUpFinishedEvent;
 import com.valevich.moneytracker.ui.taskshandlers.SignUpTask;
 import com.valevich.moneytracker.utils.InputFieldValidator;
-import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
@@ -60,9 +60,6 @@ public class SignUpActivity extends AppCompatActivity {
     @NonConfigurationInstance
     @Bean
     SignUpTask mSignUpTask;
-
-    @Bean
-    UserNotifier mUserNotifier;
 
     @Bean
     InputFieldValidator mInputFieldValidator;
@@ -122,16 +119,21 @@ public class SignUpActivity extends AppCompatActivity {
 
     private boolean isInputValid(String username, String password, String email) {
         if (!mInputFieldValidator.isUsernameValid(username)) {
-            mUserNotifier.notifyUser(mRootLayout, mInvalidUsernameMessage);
+            notifyUser(mInvalidUsernameMessage);
             return false;
         } else if (!mInputFieldValidator.isPasswordValid(password)) {
-            mUserNotifier.notifyUser(mRootLayout, mInvalidPasswordMessage);
+            notifyUser(mInvalidPasswordMessage);
             return false;
         } else if (!mInputFieldValidator.isEmailValid(email)) {
-            mUserNotifier.notifyUser(mRootLayout, mInvalidEmailMessage);
+            notifyUser(mInvalidEmailMessage);
             return false;
         }
         return true;
+    }
+
+    private void notifyUser(String message) {
+        Snackbar.make(mRootLayout, message, Snackbar.LENGTH_LONG)
+                .show();
     }
 
     private void showProgressDialog() {

@@ -4,13 +4,20 @@ package com.valevich.moneytracker.eventbus.events;
  * Created by User on 09.07.2016.
  */
 public class SyncFinishedEvent {
-    private boolean mStopAfterSync;
+    private boolean mIsSyncBeforeExit;
 
-    public SyncFinishedEvent(boolean stopAfterSync) {
-        mStopAfterSync = stopAfterSync;
+    private boolean mIsSuccessful;
+
+    public SyncFinishedEvent(boolean stopAfterSync, boolean isSuccessful) {
+        mIsSyncBeforeExit = stopAfterSync;
+        mIsSuccessful = isSuccessful;
     }
 
-    public boolean isStopAfterSync() {
-        return mStopAfterSync;
+    public boolean isSyncBeforeExit() {
+        return mIsSyncBeforeExit;
+    }
+
+    public boolean isSuccessful() {
+        return mIsSuccessful;
     }
 }

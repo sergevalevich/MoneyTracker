@@ -11,7 +11,10 @@ import com.valevich.moneytracker.network.rest.requests.RemoveCategoryApi;
 import com.valevich.moneytracker.network.rest.requests.SubmitGoogleTokenApi;
 import com.valevich.moneytracker.network.rest.requests.SyncCategoriesApi;
 import com.valevich.moneytracker.network.rest.requests.SyncExpensesApi;
+import com.valevich.moneytracker.utils.errorHandlers.CustomRestErrorHandler;
 
+import org.androidannotations.annotations.AfterInject;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
 import retrofit.RestAdapter;
@@ -34,9 +37,14 @@ public class RestClient {
     private AddCategoryApi addCategoryApi;
     private EditCategoryApi editCategoryApi;
 
-    public RestClient() {
+    @Bean
+    CustomRestErrorHandler mCustomRestErrorHandler;
+
+    @AfterInject
+    void setUpRestClient() {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(BASE_URL)
+                .setErrorHandler(mCustomRestErrorHandler)
                 .setLogLevel(RestAdapter.LogLevel.FULL)//logging request details
                 .build();
         registerUserApi = restAdapter.create(RegisterUserApi.class);
@@ -51,6 +59,7 @@ public class RestClient {
         addCategoryApi = restAdapter.create(AddCategoryApi.class);
         editCategoryApi = restAdapter.create(EditCategoryApi.class);
     }
+
     public RegisterUserApi getRegisterUserApi() {
         return registerUserApi;
     }

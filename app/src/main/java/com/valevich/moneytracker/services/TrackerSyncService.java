@@ -15,16 +15,6 @@ import org.androidannotations.annotations.EService;
  */
 @EService
 public class TrackerSyncService extends Service {
-//    private static final Object sSyncAdapterLock = new Object();
-//    private static TrackerSyncAdapter sTrackerSyncAdapter = null;
-//    @Override
-//    public void onCreate() {
-//        synchronized (sSyncAdapterLock) {
-//            if (sTrackerSyncAdapter == null) {// TODO: 28.06.2016 Не забыть
-//                sTrackerSyncAdapter=new TrackerSyncAdapter(getApplicationContext());
-//            }
-//        }
-//    }
     @Bean
     TrackerSyncAdapter sTrackerSyncAdapter;
     @Nullable

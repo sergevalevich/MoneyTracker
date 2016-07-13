@@ -1,5 +1,7 @@
 package com.valevich.moneytracker.ui.taskshandlers;
 
+import android.support.design.widget.Snackbar;
+
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.UserRecoverableAuthException;
@@ -12,12 +14,12 @@ import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
 import com.valevich.moneytracker.ui.activities.LoginActivity;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
-import com.valevich.moneytracker.utils.ui.UserNotifier;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
+import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.res.StringRes;
 
 import java.io.IOException;
@@ -44,9 +46,6 @@ public class SignUpWithGoogleTask {
 
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
-
-    @Bean
-    UserNotifier mUserNotifier;
 
     @Bean
     OttoBus mEventBus;
@@ -82,8 +81,14 @@ public class SignUpWithGoogleTask {
             }
         } else {
             notifyLoginFinished();
-            mUserNotifier.notifyUser(mLoginActivity.getRootView(), mNetworkUnavailableMessage);
+            notifyUser(mNetworkUnavailableMessage);
         }
+    }
+
+    @UiThread
+    void notifyUser(String message) {
+        Snackbar.make(mLoginActivity.getRootView(), message, Snackbar.LENGTH_LONG)
+                .show();
     }
 
     private void fetchUserData() {

@@ -27,7 +27,6 @@
     <dimen name="card_side_margin">4dp</dimen>
     <dimen name="list_vertical_padding">3dp</dimen>
 
-    <dimen name="list_item_price_text_start_padding">48dp</dimen>
     <dimen name="list_item_price_text_width">100dp</dimen>
 
     <!--list item margins per the Android Design guidelines. -->

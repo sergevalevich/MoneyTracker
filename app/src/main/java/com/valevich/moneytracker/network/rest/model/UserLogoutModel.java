@@ -8,6 +8,12 @@ import com.google.gson.annotations.SerializedName;
 public class UserLogoutModel {
     @SerializedName("status")
     private String status;
+    @SerializedName("code")
+    int code;
+
+    public int getCode() {
+        return code;
+    }
 
     public String getStatus() {
         return status;
