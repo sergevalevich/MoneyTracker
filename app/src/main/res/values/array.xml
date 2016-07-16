@@ -2,11 +2,11 @@
 <resources>
     <array name = "chartColors">
         <item>@color/lightBlue</item>
-        <item>@color/brown</item>
         <item>@color/yellow</item>
-        <item>@color/pink</item>
         <item>@color/green</item>
-        <item>@color/red</item>
+        <item>@color/pink</item>
+        <item>@color/brown</item>
         <item>@color/blue</item>
+        <item>@color/red</item>
     </array>
 </resources>

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Build;
 import android.support.multidex.MultiDex;
 
+import com.crashlytics.android.Crashlytics;
 import com.raizlabs.android.dbflow.config.FlowConfig;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.valevich.moneytracker.utils.Preferences_;
@@ -14,11 +15,9 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EApplication;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
+import io.fabric.sdk.android.Fabric;
 import timber.log.Timber;
 
-/**
- * Created by NotePad.by on 07.05.2016.
- */
 @EApplication
 public class MoneyTrackerApplication extends Application {
 
@@ -31,6 +30,9 @@ public class MoneyTrackerApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        //Fabric
+        Fabric.with(this, new Crashlytics());
 
         //DbFlow
         FlowManager.init(new FlowConfig.Builder(this)
@@ -50,12 +52,22 @@ public class MoneyTrackerApplication extends Application {
         }
     }
 
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            MultiDex.install(base);
+        }
+    }
+
     public static void saveGoogleToken(String token) {
         mPreferences.googleToken().put(token);
     }
+
     public static boolean isGoogleTokenExist() {
         return !mPreferences.googleToken().get().equals("");
     }
+
     public static String getGoogleToken() {
         return mPreferences.googleToken().get();
     }
@@ -63,13 +75,14 @@ public class MoneyTrackerApplication extends Application {
     public static void saveLoftApiToken(String token) {
         mPreferences.loftApiToken().put(token);
     }
+
     public static boolean isLoftTokenExist() {
         return !mPreferences.loftApiToken().get().equals("");
     }
+
     public static String getLoftApiToken() {
         return mPreferences.loftApiToken().get();
     }
-
 
     public static void saveUserInfo(String name, String email, String picture, String password) {
         mPreferences.edit()
@@ -79,6 +92,7 @@ public class MoneyTrackerApplication extends Application {
                 .userPassword().put(password)
                 .apply();
     }
+
     public static String getUserFullName() {
         return mPreferences.userFullName().get();
     }
@@ -93,13 +107,5 @@ public class MoneyTrackerApplication extends Application {
 
     public static String getUserPassword() {
         return mPreferences.userPassword().get();
-    }
-
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
-        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            MultiDex.install(base);
-        }
     }
 }

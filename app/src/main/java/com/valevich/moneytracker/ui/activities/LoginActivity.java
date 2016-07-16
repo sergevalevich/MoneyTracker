@@ -1,14 +1,10 @@
 package com.valevich.moneytracker.ui.activities;
 
 import android.accounts.AccountManager;
-import android.app.ProgressDialog;
 import android.content.Intent;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
-import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -18,9 +14,13 @@ import com.google.android.gms.common.AccountPicker;
 import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.DbErrorEvent;
 import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
-import com.valevich.moneytracker.ui.taskshandlers.LoginTask;
-import com.valevich.moneytracker.ui.taskshandlers.SignUpWithGoogleTask;
+import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
+import com.valevich.moneytracker.taskshandlers.LoginTask;
+import com.valevich.moneytracker.taskshandlers.SignUpWithGoogleTask;
+import com.valevich.moneytracker.ui.fragments.dialogs.AuthProgressDialogFragment;
+import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.InputFieldValidator;
 
 import org.androidannotations.annotations.Bean;
@@ -31,7 +31,6 @@ import org.androidannotations.annotations.OnActivityResult;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
 
-import io.fabric.sdk.android.Fabric;
 import timber.log.Timber;
 
 @EActivity(R.layout.activity_login)
@@ -41,6 +40,9 @@ public class LoginActivity extends AppCompatActivity {
 
     @StringRes(R.string.google_account_picker_error_msg)
     String mGoogleAccountPickerErrorMessage;
+
+    @StringRes(R.string.auth_dialog_content)
+    String mAuthDialogContent;
 
     @ViewById(R.id.google_login_btn)
     RelativeLayout mLogInWithGoogleButton;
@@ -83,13 +85,7 @@ public class LoginActivity extends AppCompatActivity {
     @StringRes(R.string.auth_dialog_message)
     String mAuthMessage;
 
-    private ProgressDialog mProgressDialog;
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Fabric.with(this);
-    }
+    private AuthProgressDialogFragment mProgressDialog;
 
     @Override
     protected void onStart() {
@@ -145,40 +141,58 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     @Subscribe
+    public void onNetworkError(NetworkErrorEvent event) {
+        closeProgressDialog();
+        unblockButtons();
+        notifyUserWithSnackBar(event.getMessage());
+    }
+
+    @Subscribe
+    public void onDbError(DbErrorEvent event) {
+        closeProgressDialog();
+        unblockButtons();
+        notifyUserWithSnackBar(event.getMessage());
+    }
+
+    @Subscribe
     public void onLoginFinished(LoginFinishedEvent loginFinishedEvent) {
         Timber.d("onLoginFinished: ");
         closeProgressDialog();
         unblockButtons();
+        navigateToMain();
     }
 
-    public View getRootView() {
-        return mRootLayout;
+    private void navigateToMain() {
+        Intent intent = new Intent(this, MainActivity_.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 
     private boolean isInputValid(String username, String password) {
         if (!mInputFieldValidator.isUsernameValid(username)) {
-            notifyUser(mInvalidUsernameMessage);
+            notifyUserWithSnackBar(mInvalidUsernameMessage);
             return false;
         } else if (!mInputFieldValidator.isPasswordValid(password)) {
-            notifyUser(mInvalidPasswordMessage);
+            notifyUserWithSnackBar(mInvalidPasswordMessage);
             return false;
         }
         return true;
     }
 
-    private void notifyUser(String message) {
+    private void notifyUserWithSnackBar(String message) {
         Snackbar.make(mRootLayout, message, Snackbar.LENGTH_LONG)
                 .show();
     }
 
     private void showProgressDialog() {
-        mProgressDialog = new ProgressDialog(this);
-        mProgressDialog.setMessage(mAuthMessage);
-        mProgressDialog.show();
+        mProgressDialog = AuthProgressDialogFragment.newInstance(mAuthMessage, mAuthDialogContent);
+        mProgressDialog.show(getSupportFragmentManager(), ConstantsManager.PROGRESS_DIALOG_TAG);
+        mProgressDialog.setCancelable(false);
     }
 
     private void closeProgressDialog() {
-        if (mProgressDialog != null && mProgressDialog.isShowing())
+        if (mProgressDialog != null)
             mProgressDialog.dismiss();
     }
 

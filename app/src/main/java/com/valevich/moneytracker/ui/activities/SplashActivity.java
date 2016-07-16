@@ -16,8 +16,6 @@ import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 
-import io.fabric.sdk.android.Fabric;
-
 @EActivity
 public class SplashActivity extends AppCompatActivity {
 
@@ -44,8 +42,6 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-        //Fabric
-        Fabric.with(this);
 
         new Handler().postDelayed(new Runnable(){
             @Override

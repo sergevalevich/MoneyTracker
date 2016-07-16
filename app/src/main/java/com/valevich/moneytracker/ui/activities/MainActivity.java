@@ -1,5 +1,6 @@
 package com.valevich.moneytracker.ui.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -15,35 +16,43 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.raizlabs.android.dbflow.sql.language.Delete;
 import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.database.data.CategoryEntry;
+import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryAddedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryUpdatedEvent;
+import com.valevich.moneytracker.eventbus.events.LogoutFinishedEvent;
+import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
 import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
 import com.valevich.moneytracker.network.sync.TrackerSyncAdapter;
+import com.valevich.moneytracker.taskshandlers.AddCategoryTask;
+import com.valevich.moneytracker.taskshandlers.LogoutTask;
+import com.valevich.moneytracker.taskshandlers.RemoveCategoriesTask;
+import com.valevich.moneytracker.taskshandlers.UpdateCategoryTask;
 import com.valevich.moneytracker.ui.fragments.CategoriesFragment_;
 import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
 import com.valevich.moneytracker.ui.fragments.SettingsFragment_;
 import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
-import com.valevich.moneytracker.ui.taskshandlers.AddCategoryTask;
-import com.valevich.moneytracker.ui.taskshandlers.LogoutTask;
-import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
-import com.valevich.moneytracker.ui.taskshandlers.UpdateCategoryTask;
+import com.valevich.moneytracker.ui.fragments.dialogs.AuthProgressDialogFragment;
+import com.valevich.moneytracker.utils.ConstantsManager;
+import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.ui.ImageLoader;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.InstanceState;
 import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
-
-import io.fabric.sdk.android.Fabric;
 
 
 @EActivity
@@ -64,6 +73,18 @@ public class MainActivity extends AppCompatActivity
 
     @StringRes(R.string.nav_drawer_settings)
     String mSettingsTitle;
+
+    @StringRes(R.string.logout_dialog_message)
+    String mLogoutMessage;
+
+    @StringRes(R.string.auth_dialog_content)
+    String mAuthDialogContent;
+
+    @StringRes(R.string.network_unavailable)
+    String mNetworkUnavailableMessage;
+
+    @StringRes(R.string.general_error_message)
+    String mNetworkErrorMessage;
 
     @ViewById(R.id.drawer_layout)
     DrawerLayout mDrawerLayout;
@@ -97,7 +118,12 @@ public class MainActivity extends AppCompatActivity
     OttoBus mEventBus;
 
     @Bean
+    NetworkStatusChecker mNetworkStatusChecker;
+
+    @Bean
     TrackerSyncAdapter mTrackerSyncAdapter;
+
+    private AuthProgressDialogFragment mProgressDialog;
 
     private FragmentManager mFragmentManager;
 
@@ -105,7 +131,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Fabric.with(this);
+
         mTrackerSyncAdapter.initializeSyncAdapter(this);
 
         if(savedInstanceState == null) {
@@ -133,10 +159,28 @@ public class MainActivity extends AppCompatActivity
         setupFragmentManager();
     }
 
+    @Background
+    void requestSync() {
+        mTrackerSyncAdapter.syncImmediately(this, true);
+    }
+
     @Subscribe
     public void onSyncFinished(SyncFinishedEvent syncFinishedEvent) {
-        if (syncFinishedEvent.isSyncBeforeExit())
-            mLogoutTask.onSyncFinished(syncFinishedEvent.isSuccessful());
+        if (syncFinishedEvent.isSyncBeforeExit()) {
+            mTrackerSyncAdapter.disableSync();
+            mLogoutTask.logOut();
+        }
+    }
+
+    @Subscribe
+    public void onLogoutFinished(LogoutFinishedEvent event) {
+        clearDatabase();
+        MoneyTrackerApplication_.saveUserInfo("", "", "", "");
+        MoneyTrackerApplication_.saveGoogleToken("");
+        MoneyTrackerApplication_.saveLoftApiToken("");
+
+        closeProgressDialog();
+        navigateToLogIn();
     }
 
     @Subscribe
@@ -154,6 +198,15 @@ public class MainActivity extends AppCompatActivity
         int id = categoryUpdatedEvent.getId();
         if (id != 0)
             mUpdateCategoryTask.updateCategory(categoryUpdatedEvent.getNewName(), id);
+    }
+
+    @Subscribe
+    public void onNetworkError(NetworkErrorEvent event) {
+        closeProgressDialog();
+        if (event.getMessage().contains(ConstantsManager.UNAUTHORIZED_ERROR_CODE)) {
+            mTrackerSyncAdapter.disableSync();
+            mLogoutTask.logOut();
+        } else notifyUser(event.getMessage());
     }
 
     @Override
@@ -180,16 +233,28 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public View getRootView() {
-        return mDrawerLayout;
+    private void prepareLogout() {
+        if (mNetworkStatusChecker.isNetworkAvailable()) {
+            showProgressDialog();
+            requestSync();//forces sync before logout
+        } else {
+            notifyUser(mNetworkUnavailableMessage);
+        }
     }
 
-    private void logout() {
-        mLogoutTask.requestSync();
+    private void clearDatabase() {
+        Delete.tables(ExpenseEntry.class, CategoryEntry.class);
     }
 
-    private void setupNavigationContent(final NavigationView navigationView) {
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+    private void navigateToLogIn() {
+        Intent intent = new Intent(this, LoginActivity_.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
+    private void setupNavigationContent() {
+        mNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
                 if (mDrawerLayout != null) {
@@ -210,13 +275,13 @@ public class MainActivity extends AppCompatActivity
                         replaceFragment(new SettingsFragment_());
                         break;
                     case R.id.drawer_exit:
-                        logout();
+                        prepareLogout();
                         break;
                 }
                 return true;
             }
         });
-        View headerView = navigationView.getHeaderView(0);
+        View headerView = mNavigationView.getHeaderView(0);
         final ImageView profileImage = (ImageView) headerView.findViewById(R.id.profile_image);
         TextView nameField = (TextView) headerView.findViewById(R.id.name);
         TextView emailField = (TextView) headerView.findViewById(R.id.email);
@@ -256,7 +321,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setupDrawerLayout() {
-        setupNavigationContent(mNavigationView);
+        setupNavigationContent();
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout
                 , mToolbar
                 , R.string.navigation_drawer_open
@@ -294,6 +359,23 @@ public class MainActivity extends AppCompatActivity
     private void setupFragmentManager() {
         mFragmentManager = getSupportFragmentManager();
         mFragmentManager.addOnBackStackChangedListener(this);
+    }
+
+    private void notifyUser(String message) {
+        Toast.makeText(this,
+                message,
+                Toast.LENGTH_SHORT).show();
+    }
+
+    private void showProgressDialog() {
+        mProgressDialog = AuthProgressDialogFragment.newInstance(mLogoutMessage, mAuthDialogContent);
+        mProgressDialog.show(getSupportFragmentManager(), ConstantsManager.PROGRESS_DIALOG_TAG);
+        mProgressDialog.setCancelable(false);
+    }
+
+    private void closeProgressDialog() {
+        if (mProgressDialog != null)
+            mProgressDialog.dismiss();
     }
 }
 

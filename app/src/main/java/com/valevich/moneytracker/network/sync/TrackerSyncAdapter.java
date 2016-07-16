@@ -19,6 +19,7 @@ import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
 import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
@@ -34,6 +35,7 @@ import com.valevich.moneytracker.utils.ui.NotificationUtil;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
+import org.androidannotations.annotations.res.StringRes;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
 import java.util.ArrayList;
@@ -54,6 +56,9 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     private static boolean mIsSyncBeforeExit = false;
 
     private static Account mAccount;
+
+    @StringRes(R.string.network_unavailable)
+    String mNetworkUnavailableMessage;
 
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
@@ -165,8 +170,12 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         mNotificationUtil.updateNotification();
     }
 
-    private void notifySyncFinished(boolean isSuccessful) {
-        mEventBus.post(new SyncFinishedEvent(mIsSyncBeforeExit, isSuccessful));
+    private void notifySyncFinished() {
+        mEventBus.post(new SyncFinishedEvent(mIsSyncBeforeExit));
+    }
+
+    private void notifyAboutNetworkError(String message) {
+        mEventBus.post(new NetworkErrorEvent(message));
     }
 
     public void disableSync() {
@@ -208,7 +217,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                                             }
                                         });
                                     } else {
-                                        notifySyncFinished(false);
+                                        notifyAboutNetworkError(ConstantsManager.STATUS_ERROR);
                                     }
                                     break;
                             }
@@ -221,10 +230,12 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                             if (mNetworkErrorTriesCounter.areTriesLeft()) {
                                 syncCategories();
                             } else {
-                                notifySyncFinished(false);
+                                notifyAboutNetworkError(error.getLocalizedMessage());
                             }
                         }
                     });
+        } else {
+            notifyAboutNetworkError(mNetworkUnavailableMessage);
         }
 
     }
@@ -235,7 +246,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String firstCategoryName = categoryData.get(0).getTitle();
 
         if (!firstCategoryName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME)) {//not updating db if we get default category
-            for (int i = 0; i < categoryData.size(); i++) {
+            for (int i = 0; i < mCategoriesDb.size(); i++) {
 
                 int categoryId = categoryData.get(i).getId();
                 CategoryEntry category = mCategoriesDb.get(i);
@@ -245,19 +256,19 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             CategoryEntry.update(mCategoriesDb, new Transaction.Success() {
                 @Override
                 public void onSuccess(Transaction transaction) {
-                    for (CategoryEntry category : CategoryEntry.getAllCategories("")) {
+                    for (CategoryEntry category : CategoryEntry.getAllCategories("")) {// TODO: 15.07.2016 remove
                         Timber.d("%s = %d %n", category.getName(), category.getServerId());
                     }
                     if (!areExpensesEmpty())
                         syncExpenses();
                     else {
-                        notifySyncFinished(true);
+                        notifySyncFinished();
                         sendUserNotification();
                     }
                 }
             }, null);
         } else {
-            notifySyncFinished(true);
+            notifySyncFinished();
         }
     }
 
@@ -312,7 +323,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
                             switch (status) {
                                 case ConstantsManager.STATUS_SUCCESS:
-                                    notifySyncFinished(true);
+                                    notifySyncFinished();
                                     sendUserNotification();
                                     break;
                                 default:
@@ -325,7 +336,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                                             }
                                         });
                                     } else {
-                                        notifySyncFinished(false);
+                                        notifyAboutNetworkError(ConstantsManager.STATUS_ERROR);
                                     }
                                     break;
                             }
@@ -338,10 +349,12 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                             if (mNetworkErrorTriesCounter.areTriesLeft()) {
                                 syncExpenses();
                             } else {
-                                notifySyncFinished(false);
+                                notifyAboutNetworkError(error.getLocalizedMessage());
                             }
                         }
                     });
+        } else {
+            notifyAboutNetworkError(mNetworkUnavailableMessage);
         }
     }
 
@@ -377,7 +390,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void onAccountCreated(Account newAccount, Context context) {
-        final int SYNC_INTERVAL = 60 * 5;
+        final int SYNC_INTERVAL = 60;
         final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
         configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
         ContentResolver.setSyncAutomatically(newAccount,

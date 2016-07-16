@@ -59,11 +59,11 @@ public class TransactionExecutor<T extends BaseModel> {
         }
     };
 
-    public void executeProcessModelTransaction(final List<T> entries,
-                                               Transaction.Success successCallback,
-                                               Transaction.Error errorCallback,
-                                               final ProcessModelCallback<T> processModelCallback,
-                                               String type
+    private void executeProcessModelTransaction(final List<T> entries,
+                                                Transaction.Success successCallback,
+                                                Transaction.Error errorCallback,
+                                                final ProcessModelCallback<T> processModelCallback,
+                                                String type
     ) {
         DatabaseDefinition database = FlowManager.getDatabase(MoneyTrackerDatabase.class);
 

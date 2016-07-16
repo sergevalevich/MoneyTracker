@@ -52,8 +52,6 @@ public class ApiErrorHandler {
         Timber.d("HANDLING");
         switch (status) {
             case ConstantsManager.STATUS_ERROR:
-            case ConstantsManager.STATUS_WRONG_TOKEN:
-            case ConstantsManager.STATUS_UNAUTHORIZED:
                 if (mNetworkStatusChecker.isNetworkAvailable()) {
                     if (MoneyTrackerApplication_.isGoogleTokenExist())
                         reLoginWithGoogle();

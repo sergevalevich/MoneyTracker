@@ -1,13 +1,10 @@
-package com.valevich.moneytracker.ui.taskshandlers;
-
-import android.widget.Toast;
+package com.valevich.moneytracker.taskshandlers;
 
 import com.valevich.moneytracker.MoneyTrackerApplication_;
-import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
 import com.valevich.moneytracker.network.rest.RestService;
-import com.valevich.moneytracker.network.rest.model.AddedCategoryModel;
-import com.valevich.moneytracker.ui.activities.MainActivity;
+import com.valevich.moneytracker.network.rest.model.RemovedCategoryModel;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.TriesCounter;
@@ -16,10 +13,7 @@ import com.valevich.moneytracker.utils.errorHandlers.ApiErrorHandler;
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
-import org.androidannotations.annotations.RootContext;
-import org.androidannotations.annotations.UiThread;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import retrofit.Callback;
@@ -28,10 +22,7 @@ import retrofit.client.Response;
 import timber.log.Timber;
 
 @EBean
-public class AddCategoryTask {
-
-    @RootContext
-    MainActivity mActivity;
+public class RemoveCategoriesTask {
 
     @Bean
     RestService mRestService;
@@ -51,21 +42,32 @@ public class AddCategoryTask {
     @Bean
     OttoBus mEventBus;
 
+    public void removeCategories(List<Integer> categoriesIds) {
+        mApiErrorTriesCounter.setTriesCount(2);
+        mNetworkErrorTriesCounter.setTriesCount(2);
+        for (int id : categoriesIds) {
+            removeCategory(id);
+        }
+    }
+
     @Background
-    public void addCategory(final String title) {
+    void removeCategory(final int id) {
         if (mNetworkStatusChecker.isNetworkAvailable()) {
-            mRestService.addCategory(
-                    title
-                    , MoneyTrackerApplication_.getLoftApiToken()
-                    , MoneyTrackerApplication_.getGoogleToken(),
-                    new Callback<AddedCategoryModel>() {
+            mRestService.removeCategory(
+                    id,
+                    MoneyTrackerApplication_.getLoftApiToken(),
+                    MoneyTrackerApplication_.getGoogleToken(),
+                    new Callback<RemovedCategoryModel>() {
                         @Override
-                        public void success(AddedCategoryModel addedCategoryModel, Response response) {
-                            Timber.d("Response status %s", response.getStatus());
-                            String status = addedCategoryModel.getStatus();
+                        public void success(RemovedCategoryModel removedCategoryModel, Response response) {
+
+                            mNetworkErrorTriesCounter.resetTries();
+
+                            String status = removedCategoryModel.getStatus();
                             switch (status) {
                                 case ConstantsManager.STATUS_SUCCESS:
-                                    setServerId(title, addedCategoryModel.getData().getId());
+                                case ConstantsManager.STATUS_WRONG_ID:
+                                    mApiErrorTriesCounter.resetTries();
                                     break;
                                 default:
                                     mApiErrorTriesCounter.reduceTry();
@@ -73,11 +75,11 @@ public class AddCategoryTask {
                                         mApiErrorHandler.handleError(status, new ApiErrorHandler.HandleCallback() {
                                             @Override
                                             public void onHandle() {
-                                                addCategory(title);
+                                                removeCategory(id);
                                             }
                                         });
                                     } else {
-                                        notifyUser(ConstantsManager.STATUS_ERROR);
+                                        notifyAboutNetworkError(ConstantsManager.STATUS_ERROR);
                                     }
                                     break;
                             }
@@ -88,30 +90,17 @@ public class AddCategoryTask {
                             Timber.d(error.getLocalizedMessage());
                             mNetworkErrorTriesCounter.reduceTry();
                             if (mNetworkErrorTriesCounter.areTriesLeft()) {
-                                addCategory(title);
+                                removeCategory(id);
                             } else {
-                                notifyUser(error.getLocalizedMessage());
+                                notifyAboutNetworkError(error.getLocalizedMessage());
                             }
                         }
                     });
         }
     }
 
-    private void setServerId(String title, int id) {
-        CategoryEntry category = CategoryEntry.getCategory(title);
-        if (category != null) {
-            List<CategoryEntry> categoriesToProcess = new ArrayList<>(1);
-            category.setServerId(id);
-            categoriesToProcess.add(category);
-            CategoryEntry.update(categoriesToProcess, null, null);
-        }
-    }
-
-    @UiThread
-    void notifyUser(String message) {
-        Toast.makeText(mActivity,
-                message,
-                Toast.LENGTH_SHORT).show();
+    private void notifyAboutNetworkError(String message) {
+        mEventBus.post(new NetworkErrorEvent(message));
     }
 
 }

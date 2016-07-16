@@ -40,11 +40,20 @@ public class ExpenseAdapter
     @Bean
     OttoBus mEventBus;
 
+    private long mLastInsertedId;
+
+    private boolean mWasAnimated;
+
     public void initAdapter(String filter) {
         mItems = mExpensesFinder.findAll(filter);
+        ExpenseEntry expense = ExpenseEntry.getLastInserted();
+        if (expense != null) {
+            long id = expense.getId();
+            mWasAnimated = mLastInsertedId == id;
+            if (!mWasAnimated) mLastInsertedId = id;
+        }
+        //animating only last inserted item(once)
     }
-
-    private int mLastPosition = -1;//animate last position
 
     @Override
     protected ExpenseItemView onCreateItemView(ViewGroup parent, int viewType) {
@@ -97,10 +106,10 @@ public class ExpenseAdapter
     }
 
     private void setAnimation(View view, int position) {
-        if(position > mLastPosition) {
+        ExpenseEntry expense = mItems.get(position);
+        if (expense != null && !mWasAnimated && expense.getId() == mLastInsertedId) {
             Animation animation = AnimationUtils.loadAnimation(mContext, R.anim.slide_in_left);
             view.startAnimation(animation);
-            mLastPosition = position;
         }
     }
 }

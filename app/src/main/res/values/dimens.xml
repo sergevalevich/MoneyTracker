@@ -62,7 +62,7 @@
 
 
     <!-- sign up screen paddings-->
-    <dimen name="login_horizontal_margin">16dp</dimen>
+    <dimen name="login_horizontal_margin">24dp</dimen>
     <dimen name="login_horizontal_padding">10dp</dimen>
     <dimen name="login_vertical_padding">10dp</dimen>
     <dimen name="auth_title_top_margin">48dp</dimen>
@@ -101,8 +101,8 @@
     <dimen name="activity_horizontal_margin_land">32dp</dimen>
     <dimen name="login_options_margin_top_land">16dp</dimen>
     <dimen name="tile_height_land">64dp</dimen>
-    <dimen name="signUp_activity_padding">5dp</dimen>
     <dimen name="input_fields_log_in_vertical_margin_land">24dp</dimen>
+    <dimen name="auth_screen_padding_land">8dp</dimen>
 
     <dimen name="preference_padding">2dp</dimen>
 

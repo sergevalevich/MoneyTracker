@@ -1,29 +1,30 @@
-package com.valevich.moneytracker.ui.taskshandlers;
-
-import android.app.Activity;
-import android.content.Intent;
+package com.valevich.moneytracker.taskshandlers;
 
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
-import com.valevich.moneytracker.database.TransactionExecutor;
+import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.DbErrorEvent;
 import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
+import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.GlobalCategoriesDataModel;
-import com.valevich.moneytracker.ui.activities.MainActivity_;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.TriesCounter;
+import com.valevich.moneytracker.utils.formatters.DateFormatter;
 import com.valevich.moneytracker.utils.formatters.PriceFormatter;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
-import org.androidannotations.annotations.RootContext;
+import org.androidannotations.annotations.res.StringRes;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import retrofit.Callback;
@@ -31,14 +32,11 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 import timber.log.Timber;
 
-/**
- * Created by User on 16.06.2016.
- */
 @EBean
 public class FetchUserDataTask implements Transaction.Error, Transaction.Success {
 
-    @RootContext
-    Activity mActivity;
+    @StringRes(R.string.network_unavailable)
+    String mNetworkUnavailableMessage;
 
     @Bean
     RestService mRestService;
@@ -48,6 +46,9 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
 
     @Bean
     PriceFormatter mPriceFormatter;
+
+    @Bean
+    DateFormatter mDateFormatter;
 
     @Bean
     TriesCounter mNetworkErrorTriesCounter;
@@ -68,7 +69,7 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
                             if (globalCategoriesData != null) {
                                 saveData(globalCategoriesData);
                             } else {
-                                notifyLoginFinished();
+                                notifyAboutNetworkError(response.getReason());
                             }
 
                         }
@@ -80,10 +81,12 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
                             if (mNetworkErrorTriesCounter.areTriesLeft()) {
                                 fetchUserData();
                             } else {
-                                notifyLoginFinished();
+                                notifyAboutNetworkError(error.getLocalizedMessage());
                             }
                         }
                     });
+        } else {
+            notifyAboutNetworkError(mNetworkUnavailableMessage);
         }
     }
 
@@ -96,26 +99,33 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
                 categoriesToSave.add(createCategory(fetchedCategory));
         }
 
-        final int[] count = {0};
-        TransactionExecutor<CategoryEntry> transactionExecutor = new TransactionExecutor<>();
-        transactionExecutor.executeProcessModelTransaction(categoriesToSave
-                , this
-                , this
-                , new TransactionExecutor.ProcessModelCallback<CategoryEntry>() {
-                    @Override
-                    public void processModel(CategoryEntry category) {
-                        category.save();
-                        List<ExpenseData> fetchedExpenses = globalCategoriesData
-                                .get(count[0])
-                                .getTransactions();
-                        for (ExpenseData fetchedExpense : fetchedExpenses) {
-                            ExpenseEntry expense = createExpense(fetchedExpense);
-                            expense.associateCategory(category);
-                            expense.save();
-                        }
-                        count[0]++;
+        CategoryEntry.create(categoriesToSave, new Transaction.Success() {
+            @Override
+            public void onSuccess(Transaction transaction) {
+                List<CategoryEntry> categoriesDb = CategoryEntry.getAllCategories("");
+                List<ExpenseEntry> expensesToSave = new ArrayList<>();
+                for (int i = 0; i < categoriesDb.size(); i++) {
+                    CategoryEntry category = categoriesDb.get(i);
+                    List<ExpenseData> fetchedExpenses = globalCategoriesData
+                            .get(i)
+                            .getTransactions();
+                    for (ExpenseData fetchedExpense : fetchedExpenses) {
+                        ExpenseEntry expense = createExpense(fetchedExpense);
+                        expense.associateCategory(category);
+                        expensesToSave.add(expense);
                     }
-                }, TransactionExecutor.TRANSACTION_TYPE_CREATE);
+                }
+                Collections.sort(expensesToSave, new Comparator<ExpenseEntry>() {
+                    @Override
+                    public int compare(ExpenseEntry expense1, ExpenseEntry expense2) {
+                        return mDateFormatter
+                                .getDateFromString(expense1.getDate())
+                                .compareTo(mDateFormatter.getDateFromString(expense2.getDate()));
+                    }
+                });
+                ExpenseEntry.create(expensesToSave, FetchUserDataTask.this, FetchUserDataTask.this);
+            }
+        }, FetchUserDataTask.this);
 
     }
 
@@ -137,26 +147,26 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
 
     @Override
     public void onError(Transaction transaction, Throwable error) {
-        notifyLoginFinished();
+        notifyAboutDbError(error.getMessage());
     }
 
     @Override
     public void onSuccess(Transaction transaction) {
         Timber.d("DATA SAVED SUCCESSFULLY");
         notifyLoginFinished();
-        navigateToMain();
-    }
-
-    private void navigateToMain() {
-        Intent intent = new Intent(mActivity,MainActivity_.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        mActivity.startActivity(intent);
     }
 
     private void notifyLoginFinished() {
         Timber.d("notifyLoginFinished: ");
         mEventBus.post(new LoginFinishedEvent());
+    }
+
+    private void notifyAboutNetworkError(String message) {
+        mEventBus.post(new NetworkErrorEvent(message));
+    }
+
+    private void notifyAboutDbError(String message) {
+        mEventBus.post(new DbErrorEvent(message));
     }
 
     private boolean isFetchedCategoryDefault(GlobalCategoriesDataModel category) {

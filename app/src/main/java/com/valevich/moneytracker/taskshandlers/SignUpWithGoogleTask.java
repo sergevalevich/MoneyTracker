@@ -1,6 +1,4 @@
-package com.valevich.moneytracker.ui.taskshandlers;
-
-import android.support.design.widget.Snackbar;
+package com.valevich.moneytracker.taskshandlers;
 
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
@@ -8,27 +6,27 @@ import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
-import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
+import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.UserGoogleInfoModel;
 import com.valevich.moneytracker.ui.activities.LoginActivity;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
+import com.valevich.moneytracker.utils.TriesCounter;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
-import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.res.StringRes;
 
 import java.io.IOException;
 
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 import timber.log.Timber;
 
-/**
- * Created by NotePad.by on 28.05.2016.
- */
 @EBean
 public class SignUpWithGoogleTask {
 
@@ -37,6 +35,12 @@ public class SignUpWithGoogleTask {
 
     @StringRes(R.string.network_unavailable)
     String mNetworkUnavailableMessage;
+
+    @StringRes(R.string.general_error_message)
+    String mGeneralErrorMessage;
+
+    @StringRes(R.string.google_token_error_message)
+    String mGoogleTokenErrorMessage;
 
     @Bean
     RestService mRestService;
@@ -49,6 +53,9 @@ public class SignUpWithGoogleTask {
 
     @Bean
     OttoBus mEventBus;
+
+    @Bean
+    TriesCounter mTriesCounter;
 
     @Background
     public void logInWithGoogle(final String accountName) {
@@ -69,34 +76,42 @@ public class SignUpWithGoogleTask {
 
             if (token != null) {
                 MoneyTrackerApplication_.saveGoogleToken(token);
-                UserGoogleInfoModel userGoogleInfoModel = mRestService.getGoogleInfo(token);
-                MoneyTrackerApplication_.saveUserInfo(
-                        userGoogleInfoModel.getName(),
-                        userGoogleInfoModel.getEmail(),
-                        userGoogleInfoModel.getPicture(),
-                        "");
-                fetchUserData();
+                mRestService.getGoogleInfo(token, new Callback<UserGoogleInfoModel>() {
+                    @Override
+                    public void success(UserGoogleInfoModel userGoogleInfoModel, Response response) {
+                        MoneyTrackerApplication_.saveUserInfo(
+                                userGoogleInfoModel.getName(),
+                                userGoogleInfoModel.getEmail(),
+                                userGoogleInfoModel.getPicture(),
+                                "");
+                        fetchUserData();
+                    }
+
+                    @Override
+                    public void failure(RetrofitError error) {
+                        Timber.d(error.getLocalizedMessage());
+                        mTriesCounter.reduceTry();
+                        if (mTriesCounter.areTriesLeft()) {
+                            logInWithGoogle(accountName);
+                        } else {
+                            notifyAboutNetworkError(mGeneralErrorMessage);
+                        }
+                    }
+                });
             } else {
-                notifyLoginFinished();
+                notifyAboutNetworkError(mGoogleTokenErrorMessage);
             }
         } else {
-            notifyLoginFinished();
-            notifyUser(mNetworkUnavailableMessage);
+            notifyAboutNetworkError(mNetworkUnavailableMessage);
         }
-    }
-
-    @UiThread
-    void notifyUser(String message) {
-        Snackbar.make(mLoginActivity.getRootView(), message, Snackbar.LENGTH_LONG)
-                .show();
     }
 
     private void fetchUserData() {
         mFetchUserDataTask.fetchUserData();
     }
 
-    private void notifyLoginFinished() {
-        mEventBus.post(new LoginFinishedEvent());
+    private void notifyAboutNetworkError(String message) {
+        mEventBus.post(new NetworkErrorEvent(message));
     }
 
 }

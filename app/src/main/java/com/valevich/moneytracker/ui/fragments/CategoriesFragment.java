@@ -295,11 +295,6 @@ public class CategoriesFragment extends Fragment
                         CategoriesFragment.this,
                         CategoriesFragment.this);
             }
-            //if screen rotated - find
-            mDialog = (EditCategoryDialogFragment) getFragmentManager()
-                    .findFragmentByTag(ConstantsManager.CATEGORY_DIALOG_TAG);
-            if (mDialog != null)
-                mDialog.dismiss();
         }
     }
 
@@ -368,13 +363,14 @@ public class CategoriesFragment extends Fragment
     }
 
     private void showDialog(String title) {
+        String inputText = mCategory != null ? mCategory.getName() : "";
         mDialog = EditCategoryDialogFragment_
                 .builder()
                 .title(title)
+                .input(inputText)
                 .build();
-        String text = mCategory != null ? mCategory.getName() : "";
-        mDialog.setInputFieldText(text);
-        mDialog.show(getFragmentManager(), ConstantsManager.CATEGORY_DIALOG_TAG);
+        if (mDialog != null)
+            mDialog.show(getFragmentManager(), ConstantsManager.CATEGORY_DIALOG_TAG);
     }
 
     private void notifyCategoryAdded() {

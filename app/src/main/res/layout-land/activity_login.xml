@@ -11,6 +11,7 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/auth_screen_padding_land"
         android:layout_centerVertical="true">
 
         <LinearLayout
@@ -26,7 +27,8 @@
                     android:id="@+id/userNameField"
                     style="@style/EditText"
                     android:hint="@string/username_hint"
-                    android:maxLength="10">
+                    android:maxLength="10"
+                    android:singleLine="true">
 
                     <requestFocus/>
 

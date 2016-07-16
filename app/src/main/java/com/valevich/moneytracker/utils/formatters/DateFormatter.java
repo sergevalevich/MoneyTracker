@@ -38,4 +38,14 @@ public class DateFormatter {
         simpleDateFormat = new SimpleDateFormat(PRESENTATION_FORMAT, Locale.getDefault());
         return simpleDateFormat.format(date);
     }
+
+    public Date getDateFromString(String stringDate) {
+        SimpleDateFormat sdf = new SimpleDateFormat(DB_FORMAT, Locale.getDefault());
+        try {
+            return sdf.parse(stringDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

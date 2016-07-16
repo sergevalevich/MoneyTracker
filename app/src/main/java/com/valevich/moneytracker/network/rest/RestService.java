@@ -18,9 +18,7 @@ import java.util.List;
 
 import retrofit.Callback;
 
-/**
- * Created by NotePad.by on 20.05.2016.
- */
+
 @EBean
 public class RestService {
     private static final String REGISTER_FLAG = "1";
@@ -52,7 +50,6 @@ public class RestService {
         restClient.getLogoutUserApi().logOut(callback);
     }
 
-    // TODO: 29.06.2016 JsonSyntaxException при входе с нового акка гугла
     public void fetchGlobalCategoriesData(String authToken, String googleToken, Callback<List<GlobalCategoriesDataModel>> callback) {
         restClient.getFetchGlobalCategoriesDataApi().fetchGlobalCategoriesData(authToken, googleToken, callback);
     }

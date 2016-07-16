@@ -1,6 +1,5 @@
 package com.valevich.moneytracker.ui.fragments;
 
-
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -213,7 +212,7 @@ public class ExpensesFragment extends Fragment {
         expensesToRemove.add(expenseToRemove);
         mExpenseAdapter.removeItemFromAdapter(position);
 
-        Snackbar snackBar = Snackbar.make(mRootLayout, mExpenseRemovedMessage, Snackbar.LENGTH_LONG)
+        Snackbar snackbar = Snackbar.make(mRootLayout, mExpenseRemovedMessage, Snackbar.LENGTH_LONG)
                 .setAction(mUndoDeleteActionMessage, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -221,7 +220,7 @@ public class ExpensesFragment extends Fragment {
                     }
                 });
 
-        snackBar.setCallback(new Snackbar.Callback() {
+        snackbar.setCallback(new Snackbar.Callback() {
             @Override
             public void onDismissed(Snackbar snackbar, int event) {
                 if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
@@ -229,7 +228,7 @@ public class ExpensesFragment extends Fragment {
                 }
             }
         });
-        snackBar.show();
+        snackbar.show();
     }
 
     @Click(R.id.fab)

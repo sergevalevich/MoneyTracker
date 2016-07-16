@@ -6,18 +6,12 @@ package com.valevich.moneytracker.eventbus.events;
 public class SyncFinishedEvent {
     private boolean mIsSyncBeforeExit;
 
-    private boolean mIsSuccessful;
-
-    public SyncFinishedEvent(boolean stopAfterSync, boolean isSuccessful) {
-        mIsSyncBeforeExit = stopAfterSync;
-        mIsSuccessful = isSuccessful;
+    public SyncFinishedEvent(boolean isSyncBeforeExit) {
+        mIsSyncBeforeExit = isSyncBeforeExit;
     }
 
     public boolean isSyncBeforeExit() {
         return mIsSyncBeforeExit;
     }
 
-    public boolean isSuccessful() {
-        return mIsSuccessful;
-    }
 }

@@ -85,7 +85,16 @@ public class ExpenseEntry extends BaseModel implements ExpensesFinder {
         return SQLite.select()
                 .from(ExpenseEntry.class)
                 .where(ExpenseEntry_Table.description.like("%" + filter + "%"))
+                .orderBy(ExpenseEntry_Table.date, true)
                 .queryList();
+    }
+
+    public static ExpenseEntry getLastInserted() {
+        return SQLite.select()
+                .from(ExpenseEntry.class)
+                .orderBy(ExpenseEntry_Table.id, false)
+                .limit(1)
+                .querySingle();
     }
 
     public static void create(List<ExpenseEntry> expensesToProcess,

@@ -18,10 +18,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
+import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
-import com.valevich.moneytracker.ui.taskshandlers.AddExpenseTask;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
+import com.valevich.moneytracker.taskshandlers.AddExpenseTask;
 import com.valevich.moneytracker.utils.InputFieldValidator;
 import com.valevich.moneytracker.utils.formatters.DateFormatter;
 import com.valevich.moneytracker.utils.formatters.PriceFormatter;
@@ -44,11 +47,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import io.fabric.sdk.android.Fabric;
 import timber.log.Timber;
 
 
-@EActivity
+@EActivity(R.layout.activity_new_expense)
 public class NewExpenseActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<CategoryEntry>>,
         Transaction.Success,
         Transaction.Error {
@@ -67,6 +69,9 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
 
     @Bean
     PriceFormatter mPriceFormatter;
+
+    @Bean
+    OttoBus mEventBus;
 
     @ViewById(R.id.amountLabel)
     AppCompatEditText mAmountEditText;
@@ -130,12 +135,16 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     private String mDate;
     private CategoryEntry mCategory;
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mEventBus.register(this);
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_new_expense);
-        Fabric.with(this);
+    protected void onStop() {
+        super.onStop();
+        mEventBus.unregister(this);
     }
 
     @Override
@@ -148,6 +157,11 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     void setupViews() {
         setupActionBar();
         setupDatePicker();
+    }
+
+    @Subscribe
+    public void onNetworkError(NetworkErrorEvent event) {
+        notifyUserWithToast(event.getMessage());
     }
 
     private void setupActionBar() {
@@ -230,19 +244,22 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         mDescriptionEditText.setText("");
     }
 
-    private void notifyUser(String text) {
-        Snackbar.make(mRootLayout, text, Snackbar.LENGTH_SHORT).show();
+    private void notifyUserWithToast(String message) {
+        Toast.makeText(this,
+                message,
+                Toast.LENGTH_SHORT).show();
     }
 
-    private void showToast(String text) {
-        Toast.makeText(this, text, Toast.LENGTH_LONG).show();
+    private void notifyUserWithSnackBar(String message) {
+        Snackbar.make(mRootLayout, message, Snackbar.LENGTH_LONG)
+                .show();
     }
 
     @Click(R.id.saveExpenseButton)
     void setupSaveExpenseButton() {
         Object selectedItem = mCategoriesPicker.getSelectedItem();
         if (selectedItem instanceof String) {
-            notifyUser(mAddCategoriesPrompt);
+            notifyUserWithSnackBar(mAddCategoriesPrompt);
         } else {
             mCategory = (CategoryEntry) selectedItem;
             mAmount = mAmountEditText.getText().toString();
@@ -254,7 +271,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
                     && mInputFieldValidator.isDescriptionValid(mDescription)) {
                 saveExpense();
             } else {
-                notifyUser(mEmptyFieldsWarning);
+                notifyUserWithSnackBar(mEmptyFieldsWarning);
             }
         }
     }
@@ -262,7 +279,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     @Click(R.id.cancelButton)
     void setupCancelButton() {
         dropFields();
-        notifyUser(mCancelMessage);
+        notifyUserWithSnackBar(mCancelMessage);
     }
 
     private void loadCategories() {
@@ -311,13 +328,13 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
                 mDescription,
                 serverId,
                 mDate);
-        showToast(mSaveMessage);
+        notifyUserWithToast(mSaveMessage);
         finish();
     }
 
     @Override
     public void onError(Transaction transaction, Throwable error) {
-        notifyUser(mSaveErrorMessage);
+        notifyUserWithToast(mSaveErrorMessage);
     }
 
     @Override

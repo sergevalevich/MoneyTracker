@@ -18,10 +18,10 @@ public interface ConstantsManager {
     String STATUS_WRONG_PASSWORD = "Wrong password";
     String STATUS_WRONG_USERNAME = "Wrong login";
     String STATUS_EMPTY = "";
-    String STATUS_WRONG_TOKEN = "Wrong token";
     String STATUS_WRONG_ID = "Wrong id";
     String STATUS_ERROR = "Error";
-    String STATUS_UNAUTHORIZED = "unauthorized";
+
+    String UNAUTHORIZED_ERROR_CODE = "401";
 
     //-----SYNC-----------------//
     String CONTENT_AUTHORITY = "com.loftschool.loftmoneytracker";
@@ -33,5 +33,6 @@ public interface ConstantsManager {
 
     //---Dialog--//
     String CATEGORY_DIALOG_TAG = "CATEGORY_DIALOG";
+    String PROGRESS_DIALOG_TAG = "PROGRESS_DIALOG";
 
 }

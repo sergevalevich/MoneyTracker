@@ -31,8 +31,4 @@ public class TriesCounter {
         mTriesLeft = triesCount;
     }
 
-    // TODO: 13.07.2016 Remove
-    public int getTriesLeft() {
-        return mTriesLeft;
-    }
 }

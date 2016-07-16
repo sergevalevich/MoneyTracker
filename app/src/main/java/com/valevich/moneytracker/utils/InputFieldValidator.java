@@ -47,8 +47,6 @@ public class InputFieldValidator {
     }
 
     public boolean isCategoryNameValid(String newName, String oldName) {
-        return !newName.trim().isEmpty()
-                && !newName.equals(oldName)
-                && !newName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME);
+        return !newName.equals(oldName) && !newName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME);
     }
 }
