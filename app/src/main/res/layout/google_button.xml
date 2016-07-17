@@ -2,17 +2,12 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:layout_width="match_parent"
     android:background="@color/button_auth"
+    android:layout_width="wrap_content"
     android:layout_height="@dimen/google_button_height"
     android:paddingStart="@dimen/google_icon_horizontal_padding"
-    android:paddingEnd="@dimen/google_icon_horizontal_padding">
-
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true">
+    android:paddingEnd="@dimen/google_icon_horizontal_padding"
+    android:gravity="center">
 
         <ImageView
             android:id="@+id/google_icon"
@@ -23,7 +18,8 @@
             android:layout_marginStart="0dp"
             android:layout_marginLeft="0dp"
             android:layout_centerVertical="true"
-            android:src = "@color/google_icon"/>
+            android:src="@color/google_icon"
+            android:contentDescription="@string/google_icon_desc"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -35,6 +31,5 @@
             android:textSize="@dimen/google_button_textSize"
             android:textColor="@color/colorText"/>
 
-    </RelativeLayout>
 
 </RelativeLayout>

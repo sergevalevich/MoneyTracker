@@ -3,13 +3,9 @@ package com.valevich.moneytracker.utils;
 import com.valevich.moneytracker.R;
 
 import org.androidannotations.annotations.sharedpreferences.DefaultBoolean;
-import org.androidannotations.annotations.sharedpreferences.DefaultInt;
 import org.androidannotations.annotations.sharedpreferences.DefaultString;
 import org.androidannotations.annotations.sharedpreferences.SharedPref;
 
-/**
- * Created by NotePad.by on 22.05.2016.
- */
 @SharedPref(value=SharedPref.Scope.UNIQUE)
 public interface Preferences {
     @DefaultString("")
@@ -42,6 +38,22 @@ public interface Preferences {
     @DefaultBoolean(value = true,keyRes = R.string.pref_enable_sound_key)
     boolean soundPreference();
 
-    @DefaultInt(0)
-    int exceptionsCount();
+    @DefaultBoolean(value = false)
+    boolean isLoginFinished();
+
+    @DefaultBoolean(value = false)
+    boolean isLogoutFinished();
+
+    @DefaultBoolean(value = false)
+    boolean isSyncFinished();
+
+    @DefaultBoolean(value = false)
+    boolean isSignUpFinished();
+
+    @DefaultBoolean(value = false)
+    boolean isNetworkError();
+
+    @DefaultString("")
+    String errorMessage();
+
 }

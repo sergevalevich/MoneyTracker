@@ -34,6 +34,6 @@
         app:fabSize="normal"
         app:layout_anchor="@+id/categories_list"
         app:layout_anchorGravity="bottom|end"
-        app:layout_behavior="com.valevich.moneytracker.utils.ScrollAwareFABBehavior"/>
+        app:layout_behavior="com.valevich.moneytracker.utils.ui.ScrollAwareFABBehavior"/>
 
 </android.support.design.widget.CoordinatorLayout>

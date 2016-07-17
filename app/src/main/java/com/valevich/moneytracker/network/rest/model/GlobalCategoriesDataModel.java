@@ -2,43 +2,29 @@ package com.valevich.moneytracker.network.rest.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by User on 16.06.2016.
- */
 public class GlobalCategoriesDataModel {
+
     @SerializedName("id")
-    private Integer id;
+    private Integer mId;
 
     @SerializedName("title")
-    private String title;
+    private String mTitle;
 
     @SerializedName("transactions")
-    private List<ExpenseData> transactions;
+    private List<ExpenseData> mTransactions;
 
     public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
+        return mId;
     }
 
     public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
+        return mTitle;
     }
 
     public List<ExpenseData> getTransactions() {
-        return transactions;
+        return mTransactions;
     }
 
-    public void setTransactions(List<ExpenseData> transactions) {
-        this.transactions = transactions;
-    }
 }

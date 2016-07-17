@@ -26,7 +26,8 @@
                 android:id="@+id/userNameField"
                 style="@style/EditText"
                 android:hint="@string/username_hint"
-                android:maxLength="10">
+                android:maxLength="10"
+                android:singleLine="true">
 
                 <requestFocus/>
 
@@ -82,7 +83,7 @@
         </include>
 
         <TextView
-            android:id="@+id/signUpText"
+            android:id="@+id/signUpButton"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"

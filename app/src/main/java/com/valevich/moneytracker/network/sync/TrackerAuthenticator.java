@@ -7,9 +7,9 @@ import android.accounts.NetworkErrorException;
 import android.content.Context;
 import android.os.Bundle;
 
-/**
- * Created by NotePad.by on 11.06.2016.
- */
+import org.androidannotations.annotations.EBean;
+
+@EBean
 public class TrackerAuthenticator extends AbstractAccountAuthenticator {
 
     public TrackerAuthenticator(Context context) {

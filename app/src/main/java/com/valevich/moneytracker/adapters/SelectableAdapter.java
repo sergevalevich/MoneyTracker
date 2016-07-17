@@ -1,20 +1,29 @@
 package com.valevich.moneytracker.adapters;
 
-import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
+import android.view.View;
+
+import com.valevich.moneytracker.adapters.util.ViewBinder;
+import com.valevich.moneytracker.adapters.wrappers.ViewWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by User on 18.06.2016.
- */
-public abstract class SelectableAdapter <VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH>{
+
+public abstract class SelectableAdapter<T, V extends View & ViewBinder<T>>
+        extends RecyclerViewAdapterBase<T, V> {
 
     private SparseBooleanArray mSelectedItems;
 
     public SelectableAdapter() {
         mSelectedItems = new SparseBooleanArray();
+    }
+
+    @Override
+    public void onBindViewHolder(ViewWrapper<V> holder, int position) {
+        V view = holder.getView();
+        T item = mItems.get(position);
+        view.bind(item, isSelected(position));
     }
 
     public List<Integer> getSelectedItems() {

@@ -3,7 +3,6 @@ package com.valevich.moneytracker.network.rest;
 import com.valevich.moneytracker.network.rest.model.AddedCategoryModel;
 import com.valevich.moneytracker.network.rest.model.AddedExpenseModel;
 import com.valevich.moneytracker.network.rest.model.CategoriesSyncModel;
-import com.valevich.moneytracker.network.rest.model.ExpenseData;
 import com.valevich.moneytracker.network.rest.model.ExpensesSyncModel;
 import com.valevich.moneytracker.network.rest.model.GlobalCategoriesDataModel;
 import com.valevich.moneytracker.network.rest.model.RemovedCategoryModel;
@@ -16,65 +15,61 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
 import java.util.List;
-import java.util.Map;
 
 import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
-/**
- * Created by NotePad.by on 20.05.2016.
- */
+
 @EBean
 public class RestService {
+
     private static final String REGISTER_FLAG = "1";
 
     @Bean
     RestClient restClient;
 
-    public UserRegistrationModel register(String login, String password) {
-        return restClient.getRegisterUserApi().registerUser(login, password, REGISTER_FLAG);
-    }
-    public UserLoginModel logIn (String login, String password) {
-        return restClient.getLoginUserApi().logIn(login, password);
+    public void register(String login, String password, Callback<UserRegistrationModel> callback) {
+        restClient.getRegisterUserApi().registerUser(login, password, REGISTER_FLAG, callback);
     }
 
-    public UserGoogleInfoModel getGoogleInfo(String token) {
-        return restClient.getSubmitGoogleTokenApi().submitGoogleToken(token);
+    public void logIn(String login, String password, Callback<UserLoginModel> callback) {
+        restClient.getLoginUserApi().logIn(login, password, callback);
     }
 
-    public ExpensesSyncModel syncExpenses(String expenses, String token,String googleToken) {
-        return restClient.getSyncExpensesApi().syncExpenses(expenses, token, googleToken);
+    public void getGoogleInfo(String token, Callback<UserGoogleInfoModel> callback) {
+        restClient.getSubmitGoogleTokenApi().submitGoogleToken(token, callback);
     }
 
-    public CategoriesSyncModel syncCategories(String categories, String token, String googleToken) {
-        return restClient.getSyncCategoriesApi().syncCategories(categories, token, googleToken);
+    public void syncExpenses(String expenses, String token, String googleToken, Callback<ExpensesSyncModel> callback) {
+        restClient.getSyncExpensesApi().syncExpenses(expenses, token, googleToken, callback);
     }
 
-    public UserLogoutModel logout() {
-        return restClient.getLogoutUserApi().logOut();
+    public void syncCategories(String categories, String token, String googleToken, Callback<CategoriesSyncModel> callback) {
+        restClient.getSyncCategoriesApi().syncCategories(categories, token, googleToken, callback);
     }
 
-    // TODO: 29.06.2016 JsonSyntaxException при входе с нового акка гугла
-    public List<GlobalCategoriesDataModel> fetchGlobalCategoriesData(String authToken, String googleToken) {
-        return restClient.getFetchGlobalCategoriesDataApi().fetchGlobalCategoriesData(authToken,googleToken);
+    public void logout(Callback<UserLogoutModel> callback) {
+        restClient.getLogoutUserApi().logOut(callback);
     }
 
-    public AddedExpenseModel addExpense(double sum, String comment, int categoryId,
-                                        String trDate, String authToken, String googleToken) {
-        return restClient.getAddExpenseApi().addExpense(sum,comment,categoryId,
-                trDate,authToken,googleToken);
+    public void fetchGlobalCategoriesData(String authToken, String googleToken, Callback<List<GlobalCategoriesDataModel>> callback) {
+        restClient.getFetchGlobalCategoriesDataApi().fetchGlobalCategoriesData(authToken, googleToken, callback);
     }
 
-    public RemovedCategoryModel removeCategory(int id, String authToken, String googleToken) {
-        return restClient.getRemoveCategoryApi().removeCategory(id,authToken,googleToken);
+    public void addExpense(double sum, String comment, int categoryId,
+                           String trDate, String authToken, String googleToken, Callback<AddedExpenseModel> callback) {
+        restClient.getAddExpenseApi().addExpense(sum, comment, categoryId,
+                trDate, authToken, googleToken, callback);
     }
 
-    public AddedCategoryModel addCategory(String title, String authToken, String googleToken) {
-        return restClient.getAddCategoryApi().addCategory(title,authToken,googleToken);
+    public void removeCategory(int id, String authToken, String googleToken, Callback<RemovedCategoryModel> callback) {
+        restClient.getRemoveCategoryApi().removeCategory(id, authToken, googleToken, callback);
     }
 
-    public AddedCategoryModel updateCategory(String newTitle, int id, String authToken, String googleToken) {
-        return restClient.getEditCategoryApi().updateCategory(newTitle,id,authToken,googleToken);
+    public void addCategory(String title, String authToken, String googleToken, Callback<AddedCategoryModel> callback) {
+        restClient.getAddCategoryApi().addCategory(title, authToken, googleToken, callback);
+    }
+
+    public void updateCategory(String newTitle, int id, String authToken, String googleToken, Callback<AddedCategoryModel> callback) {
+        restClient.getEditCategoryApi().updateCategory(newTitle, id, authToken, googleToken, callback);
     }
 }

@@ -27,6 +27,7 @@
                 android:id="@+id/userNameField"
                 style="@style/EditText"
                 android:maxLength="10"
+                android:singleLine="true"
                 android:hint="@string/username_hint">
 
                 <requestFocus/>

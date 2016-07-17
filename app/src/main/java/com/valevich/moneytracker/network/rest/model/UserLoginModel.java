@@ -1,45 +1,31 @@
 package com.valevich.moneytracker.network.rest.model;
 
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class UserLoginModel {
 
-
     @SerializedName("status")
-    private String status;
+    private String mStatus;
+
     @SerializedName("id")
-    private Integer id;
+    private Integer mId;
+
     @SerializedName("auth_token")
-    private String authToken;
+    private String mAuthToken;
+
+    @SerializedName("code")
+    int mCode;
 
     public String getStatus() {
-        return status;
+        return mStatus;
     }
-
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
 
     public Integer getId() {
-        return id;
+        return mId;
     }
-
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
 
     public String getAuthToken() {
-        return authToken;
-    }
-
-
-    public void setAuthToken(String authToken) {
-        this.authToken = authToken;
+        return mAuthToken;
     }
 
 }

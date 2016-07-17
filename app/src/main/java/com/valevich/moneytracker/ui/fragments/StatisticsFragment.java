@@ -16,10 +16,11 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
-import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.utils.ConstantsManager;
+import com.valevich.moneytracker.utils.formatters.PriceFormatter;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
@@ -31,8 +32,6 @@ import java.util.Locale;
 
 @EFragment(R.layout.fragment_statistics)
 public class StatisticsFragment extends Fragment {
-
-    private static final int CATEGORIES_LOADER = 2;
 
     @ViewById(R.id.chart)
     PieChart mChart;
@@ -46,6 +45,8 @@ public class StatisticsFragment extends Fragment {
     @StringRes(R.string.chart_total_center_text)
     String mTotalDefaultText;
 
+    @Bean
+    PriceFormatter mPriceFormatter;
 
     @AfterViews
     void setupChart() {
@@ -65,7 +66,9 @@ public class StatisticsFragment extends Fragment {
     }
 
     private void loadCategories(final String filter) {
-        getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks<List<CategoryEntry>>() {
+        getLoaderManager().restartLoader(ConstantsManager.CATEGORIES_LOADER_ID,
+                null,
+                new LoaderManager.LoaderCallbacks<List<CategoryEntry>>() {
             @Override
             public Loader<List<CategoryEntry>> onCreateLoader(int id, Bundle args) {
                 final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(getActivity()) {
@@ -119,9 +122,9 @@ public class StatisticsFragment extends Fragment {
             @Override
             public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
                 mChart.setCenterText(String.format(Locale.getDefault(),
-                        "%s %n %.1f$",
+                        "%s %n %s",
                         labels.get(e.getXIndex()),
-                        e.getVal()));
+                        mPriceFormatter.formatCategoryTotal(e.getVal())));
             }
 
             @Override
@@ -144,8 +147,8 @@ public class StatisticsFragment extends Fragment {
 
     private void setDefaultCenterText(List<CategoryEntry> categories) {
         mChart.setCenterText(String.format(Locale.getDefault(),
-                "%s %n %.1f$",
+                "%s %n %s",
                 mTotalDefaultText,
-                getTotal(categories)));
+                mPriceFormatter.formatCategoryTotal(getTotal(categories))));
     }
 }

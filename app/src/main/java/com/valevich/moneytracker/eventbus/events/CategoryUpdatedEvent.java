@@ -1,20 +1,18 @@
 package com.valevich.moneytracker.eventbus.events;
 
-/**
- * Created by User on 21.06.2016.
- */
 public class CategoryUpdatedEvent {
-    private String mNewName;
+
+    private String mTitle;
 
     private int mId;
 
-    public CategoryUpdatedEvent(String newName, int id) {
-        mNewName = newName;
+    public CategoryUpdatedEvent(String title, int id) {
+        mTitle = title;
         mId = id;
     }
 
-    public String getNewName() {
-        return mNewName;
+    public String getTitle() {
+        return mTitle;
     }
 
     public int getId() {

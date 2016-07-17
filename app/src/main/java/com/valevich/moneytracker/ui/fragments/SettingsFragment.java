@@ -20,8 +20,6 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 public class SettingsFragment
         extends PreferenceFragmentCompat {
 
-    private static final String TAG = SettingsFragment.class.getSimpleName();
-
     @Pref
     Preferences_ mPreferences;
 
@@ -83,6 +81,7 @@ public class SettingsFragment
             mIndicatorPreference.setChecked(indicatorState);
         }
     }
+
     private void setPrefsState(boolean state) {
         mSoundPreference.setEnabled(state);
         mIndicatorPreference.setEnabled(state);

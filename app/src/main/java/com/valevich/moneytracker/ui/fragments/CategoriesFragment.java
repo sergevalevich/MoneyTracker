@@ -1,12 +1,11 @@
 package com.valevich.moneytracker.ui.fragments;
 
 
-import android.animation.Animator;
-import android.app.Dialog;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -14,41 +13,43 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
-import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
-import android.text.TextUtils;
-import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewAnimationUtils;
-import android.view.Window;
-import android.widget.ImageView;
 import android.widget.SearchView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.appdatasearch.Feature;
 import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
+import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.adapters.CategoriesAdapter;
+import com.valevich.moneytracker.database.TransactionExecutor;
 import com.valevich.moneytracker.database.data.CategoryEntry;
-import com.valevich.moneytracker.eventbus.buses.BusProvider;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.ActionItemClickedEvent;
+import com.valevich.moneytracker.eventbus.events.ActionModeDestroyedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoriesRemovedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryAddedEvent;
+import com.valevich.moneytracker.eventbus.events.CategoryItemClickedEvent;
+import com.valevich.moneytracker.eventbus.events.CategoryItemLongClickedEvent;
+import com.valevich.moneytracker.eventbus.events.CategorySaveButtonClickedEvent;
+import com.valevich.moneytracker.eventbus.events.CategorySubmittedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryUpdatedEvent;
-import com.valevich.moneytracker.ui.taskshandlers.RemoveCategoriesTask;
-import com.valevich.moneytracker.utils.ClickListener;
-import com.valevich.moneytracker.utils.UserNotifier;
+import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
+import com.valevich.moneytracker.ui.fragments.dialogs.EditCategoryDialogFragment;
+import com.valevich.moneytracker.ui.fragments.dialogs.EditCategoryDialogFragment_;
+import com.valevich.moneytracker.utils.ConstantsManager;
+import com.valevich.moneytracker.utils.InputFieldValidator;
+import com.valevich.moneytracker.utils.ui.ActionModeHandler;
+import com.valevich.moneytracker.utils.ui.ViewCustomizer;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
-import org.androidannotations.annotations.NonConfigurationInstance;
+import org.androidannotations.annotations.InstanceState;
 import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.OptionsMenuItem;
 import org.androidannotations.annotations.ViewById;
@@ -56,14 +57,14 @@ import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
 import org.androidannotations.api.BackgroundExecutor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @OptionsMenu(R.menu.search_menu)
 @EFragment(R.layout.fragment_categories)
-public class CategoriesFragment extends Fragment implements ClickListener, Transaction.Error, Transaction.Success {
+public class CategoriesFragment extends Fragment
+        implements Transaction.Error, Transaction.Success {
 
-    private static final String SEARCH_ID = "search_id";
-    private static final String TAG = CategoriesFragment.class.getSimpleName();
     @ViewById(R.id.categories_list)
     RecyclerView mCategoriesRecyclerView;
 
@@ -73,20 +74,14 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     @ViewById(R.id.swipeToRefresh)
     SwipeRefreshLayout mSwipeRefreshLayout;
 
+    @ViewById(R.id.fab)
+    FloatingActionButton mFab;
+
     @OptionsMenuItem(R.id.action_search)
     MenuItem mSearchMenuItem;
 
-    @Bean
-    UserNotifier mUserNotifier;
-
-    @StringRes(R.string.wrong_category_message)
-    String mWrongCategoryNameMessage;
-
     @StringRes(R.string.search_hint)
     String mSearchHint;
-
-    @StringRes(R.string.new_expense_cancel_warning)
-    String mCancelMessage;
 
     @StringRes(R.string.new_expense_save_message)
     String mSaveMessage;
@@ -101,27 +96,51 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     String mEditCategoryDialogTitle;
 
     @ColorRes(R.color.colorPrimary)
-    int mColorPrimary;
+    int mRefreshColor;
 
-    @ColorRes(R.color.colorPrimaryDark)
-    int mColorPrimaryDark;
+    @Bean
+    CategoriesAdapter mCategoriesAdapter;
 
-    public CategoriesFragment() {
-    }
+    @Bean
+    ActionModeHandler mActionModeHandler;
 
-    private static final int CATEGORIES_LOADER = 1;
+    @Bean
+    ViewCustomizer mViewCustomizer;
 
-    private CategoriesAdapter mCategoriesAdapter;
+    @Bean
+    OttoBus mEventBus;
+
+    @Bean
+    InputFieldValidator mInputFieldValidator;
 
     private ActionMode mActionMode;
 
-    private ActionMode.Callback mActionModeCallback = new ActionModeCallback();
+    private CategoryEntry mCategory;
 
-    private Dialog mDialog;
+    //needed to update category if sync happened when the dialog is shown
+    @InstanceState
+    int mCategoryPosition;
 
-    private String mCategoryName;
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mCategory = CategoryEntry
+                    .getCategory(savedInstanceState.getString(ConstantsManager.CATEGORY_NAME_KEY));
+            List<Integer> selectedItems = savedInstanceState
+                    .getIntegerArrayList(ConstantsManager.SELECTED_ITEMS_KEY);
+            if (selectedItems != null && selectedItems.size() != 0) {
+                startActionMode();
+                for (int position : selectedItems) toggleSelection(position);
+            }
+        }
+    }
 
-    private int mCategoryId;
+    @Override
+    public void onStart() {
+        super.onStart();
+        mEventBus.register(this);
+    }
 
     @Override
     public void onResume() {
@@ -130,13 +149,31 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     }
 
     @Override
+    public void onStop() {
+        super.onStop();
+        mEventBus.unregister(this);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mCategory != null)
+            outState.putString(ConstantsManager.CATEGORY_NAME_KEY, mCategory.getName());
+
+        //save selected items when screen rotates
+        outState.putIntegerArrayList(ConstantsManager.SELECTED_ITEMS_KEY
+                , (ArrayList<Integer>) mCategoriesAdapter.getSelectedItems());
+        onDestroyActionMode(null);
+    }
+
+    @Override
     public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
         SearchView searchView = (SearchView) mSearchMenuItem.getActionView();
 
-        //customize default searchview style for pre L devices because it looks ugly
+        //customize default searchView style for pre L devices because it looks ugly
         if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            customizeSearchViewOld(searchView);
+            mViewCustomizer.customizeSearchView(searchView);
         }
 
 
@@ -149,7 +186,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                BackgroundExecutor.cancelAll(SEARCH_ID, true);
+                BackgroundExecutor.cancelAll(ConstantsManager.SEARCH_ID, true);
                 queryCategories(newText);
                 return false;
             }
@@ -157,11 +194,10 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
 
     }
 
-    @Background(delay = 700, id = SEARCH_ID)
+    @Background(delay = 700, id = ConstantsManager.SEARCH_ID)
     void queryCategories(String filter) {
         loadCategories(filter);
     }
-
 
     @AfterViews
     void setupViews() {
@@ -171,77 +207,93 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
 
     @Click(R.id.fab)
     void addCategory() {
-        showDialog(mNewCategoryDialogTitle,"",null);
+        mCategory = null;
+        showDialog(mNewCategoryDialogTitle);
     }
 
-    @Override
-    public boolean onItemClick(int position) {
+    @Subscribe
+    public void onItemClick(CategoryItemClickedEvent event) {
+        mCategoryPosition = event.getPosition();
         if (mActionMode != null) {
-            toggleSection(position);
+            toggleSelection(mCategoryPosition);
         } else {
-            CategoryEntry category = mCategoriesAdapter.getItem(position);
-            showDialog(mEditCategoryDialogTitle,category.getName(),category);
+            mCategory = mCategoriesAdapter.getItem(mCategoryPosition);
+            showDialog(mEditCategoryDialogTitle);
         }
-        return true;
     }
 
-    @Override
-    public boolean onItemLongClick(int position) {
-        if (mActionMode == null) {
-            mActionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallback);
-        }
+    @Subscribe
+    public void onItemLongClick(CategoryItemLongClickedEvent event) {
+        startActionMode();
+        toggleSelection(event.getPosition());
+    }
 
-        toggleSection(position);
-        return true;
+    @Subscribe
+    public void onSyncFinished(SyncFinishedEvent syncFinishedEvent) {
+        if (!syncFinishedEvent.isSyncBeforeExit())
+            loadCategories("");
+    }
+
+    @Subscribe
+    public void onCategorySubmitted(CategorySubmittedEvent event) {
+        loadCategories("");
     }
 
     @Override
     public void onError(Transaction transaction, Throwable error) {
-        mDialog.dismiss();
+        loadCategories("");
         showToast(mSaveErrorMessage);
     }
 
     @Override
     public void onSuccess(Transaction transaction) {
-        mDialog.dismiss();
         loadCategories("");
         showToast(mSaveMessage);
         String transactionType = transaction.name();
-        if(transactionType.equals(CategoryEntry.TRANSACTION_TYPE_UPDATE))
-            BusProvider.getInstance().post(new CategoryUpdatedEvent(mCategoryName,mCategoryId));
-        else BusProvider.getInstance().post(new CategoryAddedEvent(mCategoryName));
+        if (transactionType.equals(TransactionExecutor.TRANSACTION_TYPE_UPDATE))
+            notifyCategoryUpdated();
+        else notifyCategoryAdded();
     }
 
-    private class ActionModeCallback implements ActionMode.Callback {
-        @Override
-        public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-            actionMode.getMenuInflater().inflate(R.menu.contextual_action_bar, menu);
-            return true;
+    @Subscribe
+    public void onActionItemClicked(ActionItemClickedEvent actionItemClickedEvent) {
+        switch (actionItemClickedEvent.getMenuItem().getItemId()) {
+            case R.id.menu_remove:
+                List<Integer> ids = mCategoriesAdapter
+                        .removeDbAndAdapterItems(mCategoriesAdapter.getSelectedItems());
+                mActionMode.finish();
+                if (!mFab.isShown()) mFab.show();//to prevent accidentally  hiding fab
+                notifyCategoryRemoved(ids);
         }
+    }
 
-        @Override
-        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
-            return false;
-        }
+    @Subscribe
+    public void onDestroyActionMode(ActionModeDestroyedEvent event) {
+        mCategoriesAdapter.clearSelection();
+        mActionMode = null;
+    }
 
-        @Override
-        public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
-            switch (menuItem.getItemId()) {
-                case R.id.menu_remove:
-                    List<Integer> ids = mCategoriesAdapter.removeItems(mCategoriesAdapter.getSelectedItems());
-                    mActionMode.finish();
-
-                    BusProvider.getInstance().post(new CategoriesRemovedEvent(ids));
-
-                    return true;
+    @Subscribe
+    public void onSaveClicked(CategorySaveButtonClickedEvent event) {
+        String oldName = mCategory != null ? mCategory.getName() : "";
+        String name = event.getInputText();
+        if (mInputFieldValidator.isCategoryNameValid(name, oldName)) {
+            List<CategoryEntry> categoriesToProcess = new ArrayList<>(1);
+            if (mCategory != null) {
+                mCategory = mCategoriesAdapter.getItem(mCategoryPosition);//if sync happened when the dialog is shown
+                mCategory.setName(name);
+                categoriesToProcess.add(mCategory);
+                CategoryEntry.update(categoriesToProcess,
+                        CategoriesFragment.this,
+                        CategoriesFragment.this);
+            } else {
+                mCategory = new CategoryEntry();
+                mCategory.setName(name);
+                categoriesToProcess.add(mCategory);
+                CategoryEntry.create(categoriesToProcess,
+                        CategoriesFragment.this,
+                        CategoriesFragment.this);
             }
-            return false;
-        }
-
-        @Override
-        public void onDestroyActionMode(ActionMode actionMode) {
-            mCategoriesAdapter.clearSelection();
-            mActionMode = null;
         }
     }
 
@@ -250,7 +302,7 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
     }
 
     private void setupSwipeToRefresh() {
-        mSwipeRefreshLayout.setColorSchemeColors(mColorPrimary,mColorPrimaryDark);
+        mSwipeRefreshLayout.setColorSchemeColors(mRefreshColor);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -259,14 +311,24 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         });
     }
 
+    private void startActionMode() {
+        if (mActionMode == null) {
+            mActionMode = ((AppCompatActivity) getActivity())
+                    .startSupportActionMode(mActionModeHandler);
+        }
+    }
+
     private void loadCategories(final String filter) {
-        getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks<List<CategoryEntry>>() {
+        getLoaderManager().restartLoader(ConstantsManager.CATEGORIES_LOADER_ID,
+                null,
+                new LoaderManager.LoaderCallbacks() {
             @Override
-            public Loader<List<CategoryEntry>> onCreateLoader(int id, Bundle args) {
-                final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(getActivity()) {
+            public Loader onCreateLoader(int id, Bundle args) {
+                final AsyncTaskLoader loader = new AsyncTaskLoader(getActivity()) {
                     @Override
-                    public List<CategoryEntry> loadInBackground() {
-                        return CategoryEntry.getAllCategories(filter);
+                    public Object loadInBackground() {
+                        mCategoriesAdapter.initAdapter(filter);
+                        return null;
                     }
                 };
                 loader.forceLoad();
@@ -274,25 +336,19 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
             }
 
             @Override
-            public void onLoadFinished(Loader<List<CategoryEntry>> loader, List<CategoryEntry> data) {
+            public void onLoadFinished(Loader loader, Object data) {
                 mSwipeRefreshLayout.setRefreshing(false);
-                mCategoriesAdapter = (CategoriesAdapter) mCategoriesRecyclerView.getAdapter();
-                if (mCategoriesAdapter == null) {
-                    mCategoriesAdapter = new CategoriesAdapter(data, CategoriesFragment.this);
-                    mCategoriesRecyclerView.setAdapter(mCategoriesAdapter);
-                } else {
-                    mCategoriesAdapter.refresh(data);
-                }
+                mCategoriesRecyclerView.setAdapter(mCategoriesAdapter);
             }
 
             @Override
-            public void onLoaderReset(Loader<List<CategoryEntry>> loader) {
+            public void onLoaderReset(Loader loader) {
 
             }
         });
     }
 
-    private void toggleSection(int position) {
+    private void toggleSelection(int position) {
         mCategoriesAdapter.toggleSelection(position);
         int selectedItemsCount = mCategoriesAdapter.getSelectedItemCount();
         if (selectedItemsCount == 0) {
@@ -303,76 +359,38 @@ public class CategoriesFragment extends Fragment implements ClickListener, Trans
         }
     }
 
-    private void customizeSearchViewOld(SearchView searchView) {
-        int searchPlateId = searchView.getContext().getResources().getIdentifier("android:id/search_plate", null, null);
-        View searchPlateView = searchView.findViewById(searchPlateId);
-
-        if (searchPlateView != null) {
-            searchPlateView.setBackgroundColor(mColorPrimary);
-        }
-
-        int searchImgId = getResources().getIdentifier("android:id/search_button", null, null);
-        ImageView search = (ImageView) searchView.findViewById(searchImgId);
-
-        if (search != null) {
-            search.setImageResource(R.drawable.ic_action_search);
-        }
-
-        int closeImgId = getResources().getIdentifier("android:id/search_close_btn", null, null);
-        ImageView close = (ImageView) searchView.findViewById(closeImgId);
-
-        if (close != null) {
-            close.setImageResource(R.drawable.ic_clear);
-            close.setAlpha(0.4f);
-        }
-
-    }
-
     private void showToast(String text) {
-        Toast.makeText(getActivity(),text,Toast.LENGTH_LONG).show();
+        Toast.makeText(getActivity(), text, Toast.LENGTH_LONG).show();
     }
 
-    private void showDialog(String title, final String text, final CategoryEntry category) {
-        mDialog = new Dialog(getActivity());
-        mDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mDialog.setContentView(R.layout.dialog_add_category);
+    private void showDialog(String title) {
+        String inputText = mCategory != null ? mCategory.getName() : "";
+        EditCategoryDialogFragment dialog = EditCategoryDialogFragment_
+                .builder()
+                .title(title)
+                .input(inputText)
+                .build();
+        if (dialog != null)
+            dialog.show(getFragmentManager(), ConstantsManager.CATEGORY_DIALOG_TAG);
+    }
 
+    private void notifyCategoryAdded() {
+        String title = mCategory != null ? mCategory.getName() : "";
+        mEventBus.post(new CategoryAddedEvent(title));
+    }
 
-        TextView saveCategoryButton = (TextView) mDialog.findViewById(R.id.saveCategoryButton);
-        TextView cancelButton = (TextView) mDialog.findViewById(R.id.cancelButton);
-        final AppCompatEditText categoryNameField = (AppCompatEditText) mDialog.findViewById(R.id.category_name_field);
-        TextView titleView = (TextView) mDialog.findViewById(R.id.dialog_title);
-        titleView.setText(title);
-        categoryNameField.setText(text);
+    private void notifyCategoryUpdated() {
+        String title = "";
+        int id = 0;
+        if (mCategory != null) {
+            title = mCategory.getName();
+            id = mCategory.getServerId();
+        }
+        mEventBus.post(new CategoryUpdatedEvent(title, id));
+    }
 
-        saveCategoryButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Editable editable = categoryNameField.getText();
-                if (!TextUtils.isEmpty(editable) && !TextUtils.equals(editable,text)) {
-                    mCategoryName = editable.toString();
-                    if(!mCategoryName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME)) {
-                        if(category != null) mCategoryId = (int) category.getId();
-                        CategoryEntry.saveCategory(category
-                                , mCategoryName
-                                , CategoriesFragment.this
-                                , CategoriesFragment.this);
-                    } else {
-                        mUserNotifier.notifyUser(mRootLayout,mWrongCategoryNameMessage);
-                    }
-                }
-            }
-        });
-
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mDialog.dismiss();
-                showToast(mCancelMessage);
-            }
-        });
-        mDialog.getWindow().getAttributes().windowAnimations = R.style.CustomAnimations_slide;
-        mDialog.show();
+    private void notifyCategoryRemoved(List<Integer> ids) {
+        mEventBus.post(new CategoriesRemovedEvent(ids));
     }
 
 }

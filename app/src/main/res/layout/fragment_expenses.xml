@@ -16,7 +16,9 @@
         <android.support.v7.widget.RecyclerView
             android:id="@+id/expenseList"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:paddingTop="@dimen/list_vertical_padding"
+            android:paddingBottom="@dimen/list_vertical_padding">
         </android.support.v7.widget.RecyclerView>
 
     </android.support.v4.widget.SwipeRefreshLayout>
@@ -33,7 +35,7 @@
         app:fabSize="normal"
         app:layout_anchor="@+id/expenseList"
         app:layout_anchorGravity="bottom|end"
-        app:layout_behavior="com.valevich.moneytracker.utils.ScrollAwareFABBehavior"/>
+        app:layout_behavior="com.valevich.moneytracker.utils.ui.ScrollAwareFABBehavior"/>
 
 
 </android.support.design.widget.CoordinatorLayout>

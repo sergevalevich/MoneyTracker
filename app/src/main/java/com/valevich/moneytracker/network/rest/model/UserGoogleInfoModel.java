@@ -4,97 +4,60 @@ import com.google.gson.annotations.SerializedName;
 
 public class UserGoogleInfoModel {
 
-
     @SerializedName("id")
-    private String id;
+    private String mId;
+
     @SerializedName("email")
-    private String email;
+    private String mEmail;
+
     @SerializedName("verified_email")
-    private Boolean verifiedEmail;
+    private Boolean mVerifiedEmail;
+
     @SerializedName("name")
-    private String name;
+    private String mName;
+
     @SerializedName("given_name")
-    private String givenName;
+    private String mGivenName;
+
     @SerializedName("family_name")
-    private String familyName;
+    private String mFamilyName;
+
     @SerializedName("link")
-    private String link;
+    private String mLink;
+
     @SerializedName("picture")
-    private String picture;
+    private String mPicture;
+
     @SerializedName("locale")
-    private String locale;
+    private String mLocale;
 
 
     public String getId() {
-        return id;
+        return mId;
     }
 
     public void setId(String id) {
-        this.id = id;
+        mId = id;
     }
 
     public String getEmail() {
-        return email;
+        return mEmail;
     }
 
     public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Boolean getVerifiedEmail() {
-        return verifiedEmail;
-    }
-
-    public void setVerifiedEmail(Boolean verifiedEmail) {
-        this.verifiedEmail = verifiedEmail;
+        mEmail = email;
     }
 
     public String getName() {
-        return name;
+        return mName;
     }
 
     public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getGivenName() {
-        return givenName;
-    }
-
-    public void setGivenName(String givenName) {
-        this.givenName = givenName;
-    }
-
-    public String getFamilyName() {
-        return familyName;
-    }
-
-    public void setFamilyName(String familyName) {
-        this.familyName = familyName;
-    }
-
-    public String getLink() {
-        return link;
-    }
-
-    public void setLink(String link) {
-        this.link = link;
+        mName = name;
     }
 
     public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
-    }
-
-    public String getLocale() {
-        return locale;
-    }
-
-    public void setLocale(String locale) {
-        this.locale = locale;
+        return mPicture;
     }
 
 }

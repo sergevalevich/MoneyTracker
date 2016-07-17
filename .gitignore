@@ -6,3 +6,6 @@
 .DS_Store
 /build
 /captures
+/app/keystore/releaseks.jks
+/app/release_signing.properties
+/app/app-release.apk

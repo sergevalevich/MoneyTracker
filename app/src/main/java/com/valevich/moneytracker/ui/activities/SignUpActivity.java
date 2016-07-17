@@ -1,46 +1,35 @@
 package com.valevich.moneytracker.ui.activities;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
-import android.util.Log;
-import android.view.Gravity;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.ImageViewTarget;
+import com.squareup.otto.Subscribe;
+import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
-import com.valevich.moneytracker.network.rest.RestService;
-import com.valevich.moneytracker.network.rest.model.UserLoginModel;
-import com.valevich.moneytracker.network.rest.model.UserRegistrationModel;
-import com.valevich.moneytracker.ui.taskshandlers.SignUpTask;
+import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
+import com.valevich.moneytracker.eventbus.events.SignUpFinishedEvent;
+import com.valevich.moneytracker.taskshandlers.SignUpTask;
+import com.valevich.moneytracker.ui.fragments.dialogs.AuthProgressDialogFragment;
+import com.valevich.moneytracker.ui.fragments.dialogs.AuthProgressDialogFragment_;
+import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.InputFieldValidator;
-import com.valevich.moneytracker.utils.NetworkStatusChecker;
-import com.valevich.moneytracker.utils.UserNotifier;
 
-import org.androidannotations.annotations.AfterInject;
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
-import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.NonConfigurationInstance;
-import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.StringRes;
 
 
 @EActivity(R.layout.activity_sign_up)
-public class SignUpActivity extends AppCompatActivity{
+public class SignUpActivity extends AppCompatActivity {
 
-    private static final String LOG_TAG = SignUpActivity.class.getSimpleName();
     @ViewById(R.id.root)
     RelativeLayout mRootLayout;
 
@@ -56,9 +45,6 @@ public class SignUpActivity extends AppCompatActivity{
     @ViewById(R.id.signUpButton)
     Button mSignUpButton;
 
-    @StringRes(R.string.network_unavailable)
-    String mNetworkUnavailableMessage;
-
     @StringRes(R.string.wrong_auth_input)
     String mWrongInputMessage;
 
@@ -71,45 +57,121 @@ public class SignUpActivity extends AppCompatActivity{
     @StringRes(R.string.invalid_email_msg)
     String mInvalidEmailMessage;
 
+    @StringRes(R.string.auth_dialog_content)
+    String mAuthDialogContent;
+
+    @StringRes(R.string.auth_dialog_message)
+    String mAuthMessage;
+
     @NonConfigurationInstance
     @Bean
     SignUpTask mSignUpTask;
 
     @Bean
-    NetworkStatusChecker mNetworkStatusChecker;
+    InputFieldValidator mInputFieldValidator;
 
     @Bean
-    UserNotifier mUserNotifier;
+    OttoBus mEventBus;
 
+    private AuthProgressDialogFragment mProgressDialog;
 
-    @Click(R.id.signUpButton)
-    void submitAccountInfo() {
-        Log.d(LOG_TAG,"Click");
-        if(mNetworkStatusChecker.isNetworkAvailable()) {
-
-            String username = mUsernameField.getText().toString();
-            String password = mPasswordField.getText().toString();
-            String email = mEmailField.getText().toString();
-
-            if(isInputValid(username,password,email))
-                mSignUpTask.signUp(username,password,email);
-
-        } else {
-            mUserNotifier.notifyUser(mRootLayout,mNetworkUnavailableMessage);
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mEventBus.register(this);
+        //if the user pressed the power button during authorization
+        if (MoneyTrackerApplication_.isSignUpFinished()) {
+            onSignUpFinished(null);
+        } else if (MoneyTrackerApplication_.isNetworkError()) {
+            onNetworkError(new NetworkErrorEvent(MoneyTrackerApplication_.getErrorMessage()));
         }
     }
 
-    private boolean isInputValid(String username,String password,String email) {
-        if(!InputFieldValidator.isUsernameValid(username)) {
-            mUserNotifier.notifyUser(mRootLayout,mInvalidUsernameMessage);
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unblockButton();
+        mEventBus.unregister(this);
+    }
+
+    @Click(R.id.signUpButton)
+    void submitAccountInfo() {
+        blockButton();
+
+        String username = mUsernameField.getText().toString();
+        String password = mPasswordField.getText().toString();
+        String email = mEmailField.getText().toString();
+
+        if (isInputValid(username, password, email)) {
+            showProgressDialog();
+            mSignUpTask.signUp(username, password, email);
+        } else {
+            unblockButton();
+        }
+    }
+
+    @Subscribe
+    public void onSignUpFinished(SignUpFinishedEvent signUpFinishedEvent) {
+        MoneyTrackerApplication_.setIsSignUpFinished(false);
+        closeProgressDialog();
+        unblockButton();
+        navigateToMain();
+    }
+
+    @Subscribe
+    public void onNetworkError(NetworkErrorEvent event) {
+        MoneyTrackerApplication_.setIsNetworkError(false);
+        MoneyTrackerApplication_.setErrorMessage("");
+        closeProgressDialog();
+        unblockButton();
+        notifyUserWithSnackBar(event.getMessage());
+    }
+
+    private void navigateToMain() {
+        Intent intent = new Intent(this, MainActivity_.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
+    private boolean isInputValid(String username, String password, String email) {
+        if (!mInputFieldValidator.isUsernameValid(username)) {
+            notifyUserWithSnackBar(mInvalidUsernameMessage);
             return false;
-        } else if(!InputFieldValidator.isPasswordValid(password)) {
-            mUserNotifier.notifyUser(mRootLayout,mInvalidPasswordMessage);
+        } else if (!mInputFieldValidator.isPasswordValid(password)) {
+            notifyUserWithSnackBar(mInvalidPasswordMessage);
             return false;
-        } else if(!InputFieldValidator.isEmailValid(email)) {
-            mUserNotifier.notifyUser(mRootLayout,mInvalidEmailMessage);
+        } else if (!mInputFieldValidator.isEmailValid(email)) {
+            notifyUserWithSnackBar(mInvalidEmailMessage);
             return false;
         }
         return true;
+    }
+
+    private void notifyUserWithSnackBar(String message) {
+        Snackbar.make(mRootLayout, message, Snackbar.LENGTH_LONG)
+                .show();
+    }
+
+    private void showProgressDialog() {
+        mProgressDialog = AuthProgressDialogFragment_.builder()
+                .message(mAuthMessage)
+                .content(mAuthDialogContent)
+                .build();
+        mProgressDialog.show(getSupportFragmentManager(), ConstantsManager.PROGRESS_DIALOG_TAG);
+        mProgressDialog.setCancelable(false);
+    }
+
+    private void closeProgressDialog() {
+        if (mProgressDialog != null)
+            mProgressDialog.dismiss();
+    }
+
+    private void blockButton() {
+        mSignUpButton.setClickable(false);
+    }
+
+    private void unblockButton() {
+        mSignUpButton.setClickable(true);
     }
 }

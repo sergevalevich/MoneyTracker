@@ -10,6 +10,8 @@
     app:cardBackgroundColor="@color/colorCards"
     app:cardCornerRadius="@dimen/expense_card_corner_radius"
     app:cardElevation="@dimen/card_elevation"
+    android:layout_marginStart="@dimen/card_side_margin"
+    android:layout_marginEnd="@dimen/card_side_margin"
     app:cardUseCompatPadding="true">
 
     <FrameLayout
@@ -70,15 +72,13 @@
                 android:layout_weight="1"
                 android:id="@+id/price"
                 android:maxLines="1"
-                android:maxLength="9"
-                android:paddingStart="@dimen/list_item_price_text_start_padding"
-                android:paddingLeft="@dimen/list_item_price_text_start_padding"
+                android:maxLength="11"
                 android:layout_width="@dimen/list_item_price_text_width"
                 android:layout_height="match_parent"
-                android:gravity="center"
+                android:gravity="center|end"
                 android:textColor="@color/colorText"
                 android:textSize="@dimen/primary_text_size"
-                tools:text="10000000$"/>
+                tools:text="1000001 р."/>
 
         </LinearLayout>
 

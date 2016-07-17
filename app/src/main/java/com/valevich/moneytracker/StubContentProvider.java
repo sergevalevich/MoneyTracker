@@ -6,9 +6,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
-/**
- * Created by NotePad.by on 11.06.2016.
- */
 public class StubContentProvider extends ContentProvider {
 
     @Override

@@ -3,7 +3,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/drawer_header_layout_height"
                 xmlns:tools="http://schemas.android.com/tools"
-                android:background="@mipmap/drawer_header_2"
+                android:background="@mipmap/drawer_header"
                 android:orientation="vertical"
                 android:paddingTop="@dimen/drawer_status_bar_height"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
@@ -16,7 +16,8 @@
         android:layout_height="@dimen/profile_image_size"
         android:layout_marginStart="@dimen/profile_margin"
         android:layout_marginLeft="@dimen/profile_margin"
-        android:layout_marginTop="@dimen/profile_margin"/>
+        android:layout_marginTop="@dimen/profile_margin"
+        android:contentDescription="@string/profile_image_desc"/>
 
     <LinearLayout
         android:layout_width="match_parent"
