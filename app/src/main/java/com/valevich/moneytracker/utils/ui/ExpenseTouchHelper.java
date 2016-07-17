@@ -9,9 +9,6 @@ import com.valevich.moneytracker.eventbus.events.ItemSwipedEvent;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
-/**
- * Created by User on 22.06.2016.
- */
 @EBean
 public class ExpenseTouchHelper extends ItemTouchHelper.SimpleCallback {
 
@@ -25,7 +22,6 @@ public class ExpenseTouchHelper extends ItemTouchHelper.SimpleCallback {
 
     @Override
     public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-        //TODO: Not implemented here
         return false;
     }
 

@@ -18,13 +18,11 @@ import org.androidannotations.annotations.EBean;
 
 import java.util.List;
 
-/**
- * Created by NotePad.by on 07.05.2016.
- */
 @EBean
 @Table(database = MoneyTrackerDatabase.class)
 public class ExpenseEntry extends BaseModel implements ExpensesFinder {
 
+    //Columns//
     @PrimaryKey(autoincrement = true)
     long id;
 

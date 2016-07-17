@@ -25,6 +25,7 @@ import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
 import com.valevich.moneytracker.taskshandlers.AddExpenseTask;
+import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.InputFieldValidator;
 import com.valevich.moneytracker.utils.formatters.DateFormatter;
 import com.valevich.moneytracker.utils.formatters.PriceFormatter;
@@ -40,38 +41,18 @@ import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import timber.log.Timber;
-
 
 @EActivity(R.layout.activity_new_expense)
-public class NewExpenseActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<CategoryEntry>>,
+public class NewExpenseActivity extends AppCompatActivity implements
+        LoaderManager.LoaderCallbacks<List<CategoryEntry>>,
         Transaction.Success,
         Transaction.Error {
-
-    private static final int CATEGORIES_LOADER = 2;
-
-    @NonConfigurationInstance
-    @Bean
-    AddExpenseTask mAddExpenseTask;
-
-    @Bean
-    InputFieldValidator mInputFieldValidator;
-
-    @Bean
-    DateFormatter mDateFormatter;
-
-    @Bean
-    PriceFormatter mPriceFormatter;
-
-    @Bean
-    OttoBus mEventBus;
 
     @ViewById(R.id.amountLabel)
     AppCompatEditText mAmountEditText;
@@ -130,6 +111,22 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     @ColorRes(R.color.colorAccentDatePicker)
     int mDatePickerColor;
 
+    @NonConfigurationInstance
+    @Bean
+    AddExpenseTask mAddExpenseTask;
+
+    @Bean
+    InputFieldValidator mInputFieldValidator;
+
+    @Bean
+    DateFormatter mDateFormatter;
+
+    @Bean
+    PriceFormatter mPriceFormatter;
+
+    @Bean
+    OttoBus mEventBus;
+
     private String mAmount;
     private String mDescription;
     private String mDate;
@@ -159,9 +156,120 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
         setupDatePicker();
     }
 
+    //not allowing to enter more than 2 digits after dot
+    @TextChange(R.id.amountLabel)
+    void setUpAmountEditText(CharSequence charSequence) {
+        String text = charSequence.toString();
+        int dotIndex = text.indexOf(PriceFormatter.SEPARATOR);
+        if (dotIndex != -1) {
+            if (text.substring(dotIndex + 1).length() > 2) {
+                mAmountEditText.setText(text.substring(0, text.length() - 1));
+            }
+        }
+    }
+
+    @Click(R.id.date_picker)
+    void pickDate() {
+        Date date = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        int day = cal.get(Calendar.DAY_OF_MONTH);
+        DatePickerDialog dialog = DatePickerDialog.newInstance(mDatePickerListener, year, month, day);
+        dialog.setAccentColor(mDatePickerColor);
+        dialog.setThemeDark(true);
+        dialog.show(getFragmentManager(), ConstantsManager.DATE_PICKER_TAG);
+
+    }
+
+    @Click(R.id.saveExpenseButton)
+    void setupSaveExpenseButton() {
+        Object selectedItem = mCategoriesPicker.getSelectedItem();
+        if (selectedItem instanceof String) {
+            notifyUserWithSnackBar(mAddCategoriesPrompt);
+        } else {
+            mCategory = (CategoryEntry) selectedItem;
+            mAmount = mAmountEditText.getText().toString();
+            mDescription = mDescriptionEditText.getText().toString();
+            mDate = mDateFormatter.formatDateForDb(mDatePicker.getText().toString());
+
+            if (mCategory != null
+                    && mInputFieldValidator.isAmountValid(mAmount)
+                    && mInputFieldValidator.isDescriptionValid(mDescription)) {
+                saveExpense();
+            } else {
+                notifyUserWithSnackBar(mEmptyFieldsWarning);
+            }
+        }
+    }
+
+    @Click(R.id.cancelButton)
+    void setupCancelButton() {
+        dropFields();
+        notifyUserWithSnackBar(mCancelMessage);
+    }
+
+    @Override
+    public Loader<List<CategoryEntry>> onCreateLoader(int id, Bundle args) {
+        final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(this) {
+            @Override
+            public List<CategoryEntry> loadInBackground() {
+                return CategoryEntry.getAllCategories("");
+            }
+        };
+        loader.forceLoad();
+        return loader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<CategoryEntry>> loader, List<CategoryEntry> data) {
+        setupCategoriesPicker(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<CategoryEntry>> loader) {
+
+    }
+
+    @Override
+    public void onSuccess(Transaction transaction) {
+        int serverId = mCategory.getServerId();
+        if (serverId != 0)
+            mAddExpenseTask.addExpense(Double.valueOf(mAmount),
+                    mDescription,
+                    serverId,
+                    mDate);
+        notifyUserWithToast(mSaveMessage);
+        finish();
+    }
+
+    @Override
+    public void onError(Transaction transaction, Throwable error) {
+        notifyUserWithToast(mSaveErrorMessage);
+    }
+
     @Subscribe
     public void onNetworkError(NetworkErrorEvent event) {
         notifyUserWithToast(event.getMessage());
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.enter_fade_in, R.anim.exit_push_out);
+    }
+
+    private void saveExpense() {
+        List<ExpenseEntry> expensesToAdd = new ArrayList<>(1);
+        ExpenseEntry expense = new ExpenseEntry();
+        expense.setDate(mDate);
+        expense.setDescription(mDescription);
+        expense.setPrice(mPriceFormatter.formatPriceForDb(mAmount));
+        expense.associateCategory(mCategory);
+        expensesToAdd.add(expense);
+
+        ExpenseEntry.create(expensesToAdd, this, this);
     }
 
     private void setupActionBar() {
@@ -189,37 +297,7 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
     }
 
     private void setupDatePicker() {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-        Date date = new Date();
-        mDatePicker.setText(sdf.format(date));
-    }
-
-    //not allowing to enter more than 2 digits after dot
-    @TextChange(R.id.amountLabel)
-    void setUpAmountEditText(CharSequence charSequence) {
-        String text = charSequence.toString();
-        Timber.d(text);
-        int dotIndex = text.indexOf(PriceFormatter.POINT);
-        if (dotIndex != -1) {
-            if (text.substring(dotIndex + 1).length() > 2) {
-                mAmountEditText.setText(text.substring(0, text.length() - 1));
-            }
-        }
-    }
-
-    @Click(R.id.date_picker)
-    void pickDate() {
-        Date date = new Date();
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH);
-        int day = cal.get(Calendar.DAY_OF_MONTH);
-        DatePickerDialog dialog = DatePickerDialog.newInstance(mDatePickerListener, year, month, day);
-        dialog.setAccentColor(mDatePickerColor);
-        dialog.setThemeDark(true);
-        dialog.show(getFragmentManager(), "DatePicker");
-
+        mDatePicker.setText(mDateFormatter.getStringFromDate(new Date()));
     }
 
     private DatePickerDialog.OnDateSetListener mDatePickerListener
@@ -255,92 +333,8 @@ public class NewExpenseActivity extends AppCompatActivity implements LoaderManag
                 .show();
     }
 
-    @Click(R.id.saveExpenseButton)
-    void setupSaveExpenseButton() {
-        Object selectedItem = mCategoriesPicker.getSelectedItem();
-        if (selectedItem instanceof String) {
-            notifyUserWithSnackBar(mAddCategoriesPrompt);
-        } else {
-            mCategory = (CategoryEntry) selectedItem;
-            mAmount = mAmountEditText.getText().toString();
-            mDescription = mDescriptionEditText.getText().toString();
-            mDate = mDateFormatter.formatDateForDb(mDatePicker.getText().toString());
-
-            if (mCategory != null
-                    && mInputFieldValidator.isAmountValid(mAmount)
-                    && mInputFieldValidator.isDescriptionValid(mDescription)) {
-                saveExpense();
-            } else {
-                notifyUserWithSnackBar(mEmptyFieldsWarning);
-            }
-        }
-    }
-
-    @Click(R.id.cancelButton)
-    void setupCancelButton() {
-        dropFields();
-        notifyUserWithSnackBar(mCancelMessage);
-    }
-
     private void loadCategories() {
-        getSupportLoaderManager().restartLoader(CATEGORIES_LOADER, null, this);
-    }
-
-    @Override
-    public Loader<List<CategoryEntry>> onCreateLoader(int id, Bundle args) {
-        final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(this) {
-            @Override
-            public List<CategoryEntry> loadInBackground() {
-                return CategoryEntry.getAllCategories("");
-            }
-        };
-        loader.forceLoad();
-        return loader;
-    }
-
-    @Override
-    public void onLoadFinished(Loader<List<CategoryEntry>> loader, List<CategoryEntry> data) {
-        setupCategoriesPicker(data);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<List<CategoryEntry>> loader) {
-
-    }
-
-    private void saveExpense() {
-        List<ExpenseEntry> expensesToAdd = new ArrayList<>(1);
-        ExpenseEntry expense = new ExpenseEntry();
-        expense.setDate(mDate);
-        expense.setDescription(mDescription);
-        expense.setPrice(mPriceFormatter.formatPriceForDb(mAmount));
-        expense.associateCategory(mCategory);
-        expensesToAdd.add(expense);
-
-        ExpenseEntry.create(expensesToAdd, this, this);
-    }
-
-    @Override
-    public void onSuccess(Transaction transaction) {
-        int serverId = mCategory.getServerId();
-        if (serverId != 0)
-        mAddExpenseTask.addExpense(Double.valueOf(mAmount),
-                mDescription,
-                serverId,
-                mDate);
-        notifyUserWithToast(mSaveMessage);
-        finish();
-    }
-
-    @Override
-    public void onError(Transaction transaction, Throwable error) {
-        notifyUserWithToast(mSaveErrorMessage);
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        overridePendingTransition(R.anim.enter_fade_in, R.anim.exit_push_out);
+        getSupportLoaderManager().restartLoader(ConstantsManager.CATEGORIES_LOADER_ID, null, this);
     }
 
 }

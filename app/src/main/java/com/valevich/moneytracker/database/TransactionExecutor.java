@@ -8,9 +8,7 @@ import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 
 import java.util.List;
 
-/**
- * Created by User on 08.07.2016.
- */
+
 public class TransactionExecutor<T extends BaseModel> {
 
     public static String TRANSACTION_TYPE_CREATE = "CREATE";

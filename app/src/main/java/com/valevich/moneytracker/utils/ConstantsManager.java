@@ -1,9 +1,8 @@
 package com.valevich.moneytracker.utils;
 
-/**
- * Created by NotePad.by on 26.05.2016.
- */
 public interface ConstantsManager {
+
+    //-- G+ --//
     String G_PLUS_SCOPE =
             "oauth2:https://www.googleapis.com/auth/plus.me";
     String USERINFO_SCOPE =
@@ -12,7 +11,7 @@ public interface ConstantsManager {
             "https://www.googleapis.com/auth/userinfo.email";
     String SCOPES = G_PLUS_SCOPE + " " + USERINFO_SCOPE + " " + EMAIL_SCOPE;
 
-    //-----loftApiStatuses------//
+    //--loftApiStatuses--//
     String STATUS_SUCCESS = "success";
     String STATUS_LOGIN_BUSY = "Login busy already";
     String STATUS_WRONG_PASSWORD = "Wrong password";
@@ -21,11 +20,11 @@ public interface ConstantsManager {
     String STATUS_WRONG_ID = "Wrong id";
     String STATUS_ERROR = "Error";
 
-    //-----SYNC-----------------//
+    //--SYNC--//
     String CONTENT_AUTHORITY = "com.loftschool.loftmoneytracker";
     String SYNC_ACCOUNT_TYPE = "loftmoneytracker.loftschool.com";
 
-    //-----CHART---///
+    //--CHART---//
     float CHART_LABEL_SIZE = 14.0f;
     float CHART_LABEL_CENTER_SIZE = 16.0f;
 
@@ -35,5 +34,29 @@ public interface ConstantsManager {
 
     //--Intent--//
     int NOTIFICATION_INTENT_ID = 1;
+
+    //--Activity result request code--//
+    int PICK_ACCOUNT_REQUEST_CODE = 100;
+
+    //--Loader ids--//
+    int EXPENSES_LOADER_ID = 0;
+    int CATEGORIES_LOADER_ID = 1;
+
+    //--args keys--//
+    String CATEGORY_NAME_KEY = "CATEGORY_NAME";
+    String SELECTED_ITEMS_KEY = "SELECTED_ITEMS";
+
+    //--Search--//
+    String SEARCH_ID = "search_id";
+
+    //--Notifications--//
+    int NOTIFICATION_REQUEST_CODE = 0;
+    int NOTIFICATION_ID = 0;
+
+    //--Logs--//
+    int MAX_LOG_LENGTH = 4000;
+
+    String DATE_PICKER_TAG = "DATE_PICKER";
+
 
 }

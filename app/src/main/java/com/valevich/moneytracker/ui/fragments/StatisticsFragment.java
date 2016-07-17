@@ -33,8 +33,6 @@ import java.util.Locale;
 @EFragment(R.layout.fragment_statistics)
 public class StatisticsFragment extends Fragment {
 
-    private static final int CATEGORIES_LOADER = 2;
-
     @ViewById(R.id.chart)
     PieChart mChart;
 
@@ -68,7 +66,9 @@ public class StatisticsFragment extends Fragment {
     }
 
     private void loadCategories(final String filter) {
-        getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks<List<CategoryEntry>>() {
+        getLoaderManager().restartLoader(ConstantsManager.CATEGORIES_LOADER_ID,
+                null,
+                new LoaderManager.LoaderCallbacks<List<CategoryEntry>>() {
             @Override
             public Loader<List<CategoryEntry>> onCreateLoader(int id, Bundle args) {
                 final AsyncTaskLoader<List<CategoryEntry>> loader = new AsyncTaskLoader<List<CategoryEntry>>(getActivity()) {

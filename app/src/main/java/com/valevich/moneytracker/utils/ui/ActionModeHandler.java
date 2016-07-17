@@ -12,9 +12,6 @@ import com.valevich.moneytracker.eventbus.events.ActionModeDestroyedEvent;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
-/**
- * Created by User on 07.07.2016.
- */
 @EBean
 public class ActionModeHandler implements ActionMode.Callback {
 

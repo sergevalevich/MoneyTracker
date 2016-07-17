@@ -6,9 +6,6 @@ import retrofit.Callback;
 import retrofit.http.POST;
 import retrofit.http.Query;
 
-/**
- * Created by NotePad.by on 28.05.2016.
- */
 public interface SubmitGoogleTokenApi {
     @POST("/gjson")
     void submitGoogleToken(@Query("google_token") String token,

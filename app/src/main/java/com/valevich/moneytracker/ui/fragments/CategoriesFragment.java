@@ -34,6 +34,7 @@ import com.valevich.moneytracker.eventbus.events.CategoryAddedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryItemClickedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryItemLongClickedEvent;
 import com.valevich.moneytracker.eventbus.events.CategorySaveButtonClickedEvent;
+import com.valevich.moneytracker.eventbus.events.CategorySubmittedEvent;
 import com.valevich.moneytracker.eventbus.events.CategoryUpdatedEvent;
 import com.valevich.moneytracker.eventbus.events.SyncFinishedEvent;
 import com.valevich.moneytracker.ui.fragments.dialogs.EditCategoryDialogFragment;
@@ -63,11 +64,6 @@ import java.util.List;
 @EFragment(R.layout.fragment_categories)
 public class CategoriesFragment extends Fragment
         implements Transaction.Error, Transaction.Success {
-
-    private static final String SEARCH_ID = "search_id";
-    private static final int CATEGORIES_LOADER = 1;
-    private static final String CATEGORY_NAME_KEY = "CATEGORY_NAME";
-    private static final String SELECTED_ITEMS_KEY = "SELECTED_ITEMS";
 
     @ViewById(R.id.categories_list)
     RecyclerView mCategoriesRecyclerView;
@@ -117,26 +113,33 @@ public class CategoriesFragment extends Fragment
     @Bean
     InputFieldValidator mInputFieldValidator;
 
-    private EditCategoryDialogFragment mDialog;
-
     private ActionMode mActionMode;
 
-    CategoryEntry mCategory;
+    private CategoryEntry mCategory;
 
     //needed to update category if sync happened when the dialog is shown
     @InstanceState
     int mCategoryPosition;
 
     @Override
-    public void onStart() {
-        super.onStart();
-        mEventBus.register(this);
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mCategory = CategoryEntry
+                    .getCategory(savedInstanceState.getString(ConstantsManager.CATEGORY_NAME_KEY));
+            List<Integer> selectedItems = savedInstanceState
+                    .getIntegerArrayList(ConstantsManager.SELECTED_ITEMS_KEY);
+            if (selectedItems != null && selectedItems.size() != 0) {
+                startActionMode();
+                for (int position : selectedItems) toggleSelection(position);
+            }
+        }
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        mEventBus.unregister(this);
+    public void onStart() {
+        super.onStart();
+        mEventBus.register(this);
     }
 
     @Override
@@ -146,29 +149,21 @@ public class CategoriesFragment extends Fragment
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (mCategory != null)
-            outState.putString(CATEGORY_NAME_KEY, mCategory.getName());
-
-        //save selected items when screen rotates
-        outState.putIntegerArrayList(SELECTED_ITEMS_KEY
-                , (ArrayList<Integer>) mCategoriesAdapter.getSelectedItems());
-        onDestroyActionMode(null);
+    public void onStop() {
+        super.onStop();
+        mEventBus.unregister(this);
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (savedInstanceState != null) {
-            mCategory = CategoryEntry
-                    .getCategory(savedInstanceState.getString(CATEGORY_NAME_KEY));
-            List<Integer> selectedItems = savedInstanceState.getIntegerArrayList(SELECTED_ITEMS_KEY);
-            if (selectedItems != null && selectedItems.size() != 0) {
-                startActionMode();
-                for (int position : selectedItems) toggleSelection(position);
-            }
-        }
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mCategory != null)
+            outState.putString(ConstantsManager.CATEGORY_NAME_KEY, mCategory.getName());
+
+        //save selected items when screen rotates
+        outState.putIntegerArrayList(ConstantsManager.SELECTED_ITEMS_KEY
+                , (ArrayList<Integer>) mCategoriesAdapter.getSelectedItems());
+        onDestroyActionMode(null);
     }
 
     @Override
@@ -176,7 +171,7 @@ public class CategoriesFragment extends Fragment
         super.onPrepareOptionsMenu(menu);
         SearchView searchView = (SearchView) mSearchMenuItem.getActionView();
 
-        //customize default searchview style for pre L devices because it looks ugly
+        //customize default searchView style for pre L devices because it looks ugly
         if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             mViewCustomizer.customizeSearchView(searchView);
         }
@@ -191,7 +186,7 @@ public class CategoriesFragment extends Fragment
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                BackgroundExecutor.cancelAll(SEARCH_ID, true);
+                BackgroundExecutor.cancelAll(ConstantsManager.SEARCH_ID, true);
                 queryCategories(newText);
                 return false;
             }
@@ -199,11 +194,10 @@ public class CategoriesFragment extends Fragment
 
     }
 
-    @Background(delay = 700, id = SEARCH_ID)
+    @Background(delay = 700, id = ConstantsManager.SEARCH_ID)
     void queryCategories(String filter) {
         loadCategories(filter);
     }
-
 
     @AfterViews
     void setupViews() {
@@ -238,6 +232,11 @@ public class CategoriesFragment extends Fragment
     public void onSyncFinished(SyncFinishedEvent syncFinishedEvent) {
         if (!syncFinishedEvent.isSyncBeforeExit())
             loadCategories("");
+    }
+
+    @Subscribe
+    public void onCategorySubmitted(CategorySubmittedEvent event) {
+        loadCategories("");
     }
 
     @Override
@@ -281,7 +280,7 @@ public class CategoriesFragment extends Fragment
         if (mInputFieldValidator.isCategoryNameValid(name, oldName)) {
             List<CategoryEntry> categoriesToProcess = new ArrayList<>(1);
             if (mCategory != null) {
-                mCategory = mCategoriesAdapter.getItem(mCategoryPosition);//if sync happened
+                mCategory = mCategoriesAdapter.getItem(mCategoryPosition);//if sync happened when the dialog is shown
                 mCategory.setName(name);
                 categoriesToProcess.add(mCategory);
                 CategoryEntry.update(categoriesToProcess,
@@ -320,7 +319,9 @@ public class CategoriesFragment extends Fragment
     }
 
     private void loadCategories(final String filter) {
-        getLoaderManager().restartLoader(CATEGORIES_LOADER, null, new LoaderManager.LoaderCallbacks() {
+        getLoaderManager().restartLoader(ConstantsManager.CATEGORIES_LOADER_ID,
+                null,
+                new LoaderManager.LoaderCallbacks() {
             @Override
             public Loader onCreateLoader(int id, Bundle args) {
                 final AsyncTaskLoader loader = new AsyncTaskLoader(getActivity()) {
@@ -364,21 +365,28 @@ public class CategoriesFragment extends Fragment
 
     private void showDialog(String title) {
         String inputText = mCategory != null ? mCategory.getName() : "";
-        mDialog = EditCategoryDialogFragment_
+        EditCategoryDialogFragment dialog = EditCategoryDialogFragment_
                 .builder()
                 .title(title)
                 .input(inputText)
                 .build();
-        if (mDialog != null)
-            mDialog.show(getFragmentManager(), ConstantsManager.CATEGORY_DIALOG_TAG);
+        if (dialog != null)
+            dialog.show(getFragmentManager(), ConstantsManager.CATEGORY_DIALOG_TAG);
     }
 
     private void notifyCategoryAdded() {
-        mEventBus.post(new CategoryAddedEvent(mCategory));
+        String title = mCategory != null ? mCategory.getName() : "";
+        mEventBus.post(new CategoryAddedEvent(title));
     }
 
     private void notifyCategoryUpdated() {
-        mEventBus.post(new CategoryUpdatedEvent(mCategory));
+        String title = "";
+        int id = 0;
+        if (mCategory != null) {
+            title = mCategory.getName();
+            id = mCategory.getServerId();
+        }
+        mEventBus.post(new CategoryUpdatedEvent(title, id));
     }
 
     private void notifyCategoryRemoved(List<Integer> ids) {

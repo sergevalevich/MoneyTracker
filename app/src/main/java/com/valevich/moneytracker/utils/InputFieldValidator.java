@@ -8,9 +8,6 @@ import org.androidannotations.annotations.EBean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by NotePad.by on 27.05.2016.
- */
 @EBean
 public class InputFieldValidator {
     private static final String EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
@@ -36,10 +33,10 @@ public class InputFieldValidator {
     public boolean isAmountValid(String amount) {
         int length = amount.length();
         return length != 0
-                && amount.charAt(0) != PriceFormatter.POINT
-                && amount.charAt(length - 1) != PriceFormatter.POINT
+                && amount.charAt(0) != PriceFormatter.SEPARATOR
+                && amount.charAt(length - 1) != PriceFormatter.SEPARATOR
                 && Double.valueOf(amount) != 0
-                && !(length > 1 && amount.charAt(0) == PriceFormatter.ZERO && amount.charAt(1) != PriceFormatter.POINT);
+                && !(length > 1 && amount.charAt(0) == PriceFormatter.ZERO && amount.charAt(1) != PriceFormatter.SEPARATOR);
     }
 
     public boolean isDescriptionValid(String description) {

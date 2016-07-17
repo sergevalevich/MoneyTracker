@@ -108,9 +108,6 @@
 #Charts
 -keep class com.github.mikephil.charting.** { *; }
 -dontwarn io.realm.**
-#Animations
--keep class com.daimajia.androidanimations.** { *; }
--keep public class com.daimajia.** {*;}
 
 #Fabric
 -keepattributes SourceFile, LineNumberTable

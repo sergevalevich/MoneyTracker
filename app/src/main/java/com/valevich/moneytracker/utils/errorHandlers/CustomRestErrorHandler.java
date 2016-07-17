@@ -9,9 +9,6 @@ import retrofit.ErrorHandler;
 import retrofit.RetrofitError;
 import timber.log.Timber;
 
-/**
- * Created by User on 12.07.2016.
- */
 @EBean(scope = EBean.Scope.Singleton)
 public class CustomRestErrorHandler implements ErrorHandler {
 

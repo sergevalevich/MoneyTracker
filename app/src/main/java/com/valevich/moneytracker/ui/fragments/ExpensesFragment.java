@@ -32,6 +32,7 @@ import com.valevich.moneytracker.eventbus.events.ExpenseItemClickedEvent;
 import com.valevich.moneytracker.eventbus.events.ExpenseItemLongClickedEvent;
 import com.valevich.moneytracker.eventbus.events.ItemSwipedEvent;
 import com.valevich.moneytracker.ui.activities.NewExpenseActivity_;
+import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.ui.ActionModeHandler;
 import com.valevich.moneytracker.utils.ui.ExpenseTouchHelper;
 import com.valevich.moneytracker.utils.ui.ViewCustomizer;
@@ -54,10 +55,6 @@ import java.util.List;
 @OptionsMenu(R.menu.search_menu)
 @EFragment(R.layout.fragment_expenses)
 public class ExpensesFragment extends Fragment {
-
-    private static final String SEARCH_ID = "search_id";
-    private static final int EXPENSES_LOADER = 0;
-    private static final String SELECTED_ITEMS_KEY = "SELECTED_ITEMS";
 
     @ViewById(R.id.expenseList)
     RecyclerView mExpenseRecyclerView;
@@ -104,15 +101,22 @@ public class ExpensesFragment extends Fragment {
     private ActionMode mActionMode;
 
     @Override
-    public void onStart() {
-        super.onStart();
-        mEventBus.register(this);
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            List<Integer> selectedItems = savedInstanceState
+                    .getIntegerArrayList(ConstantsManager.SELECTED_ITEMS_KEY);
+            if (selectedItems != null && selectedItems.size() != 0) {
+                startActionMode();
+                for (int position : selectedItems) toggleSelection(position);
+            }
+        }
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        mEventBus.unregister(this);
+    public void onStart() {
+        super.onStart();
+        mEventBus.register(this);
     }
 
     @Override
@@ -122,24 +126,18 @@ public class ExpensesFragment extends Fragment {
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        //save selected items when screen rotates
-        outState.putIntegerArrayList(SELECTED_ITEMS_KEY
-                , (ArrayList<Integer>) mExpenseAdapter.getSelectedItems());
-        onDestroyActionMode(null);
+    public void onStop() {
+        super.onStop();
+        mEventBus.unregister(this);
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (savedInstanceState != null) {
-            List<Integer> selectedItems = savedInstanceState.getIntegerArrayList(SELECTED_ITEMS_KEY);
-            if (selectedItems != null && selectedItems.size() != 0) {
-                startActionMode();
-                for (int position : selectedItems) toggleSelection(position);
-            }
-        }
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        //save selected items when screen rotates
+        outState.putIntegerArrayList(ConstantsManager.SELECTED_ITEMS_KEY
+                , (ArrayList<Integer>) mExpenseAdapter.getSelectedItems());
+        onDestroyActionMode(null);
     }
 
     @Override
@@ -162,7 +160,7 @@ public class ExpensesFragment extends Fragment {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                BackgroundExecutor.cancelAll(SEARCH_ID, true);
+                BackgroundExecutor.cancelAll(ConstantsManager.SEARCH_ID, true);
                 queryExpenses(newText);
                 return false;
             }
@@ -173,6 +171,11 @@ public class ExpensesFragment extends Fragment {
     void setupViews() {
         setUpRecyclerView();
         setupSwipeToRefresh();
+    }
+
+    @Click(R.id.fab)
+    void setupFab() {
+        NewExpenseActivity_.intent(this).start().withAnimation(R.anim.enter_pull_in, R.anim.exit_fade_out);
     }
 
     @Subscribe
@@ -231,12 +234,7 @@ public class ExpensesFragment extends Fragment {
         snackbar.show();
     }
 
-    @Click(R.id.fab)
-    void setupFab() {
-        NewExpenseActivity_.intent(this).start().withAnimation(R.anim.enter_pull_in, R.anim.exit_fade_out);
-    }
-
-    @Background(delay = 700, id = SEARCH_ID)
+    @Background(delay = 700, id = ConstantsManager.SEARCH_ID)
     void queryExpenses(String filter) {
         loadExpenses(filter);
     }
@@ -263,7 +261,9 @@ public class ExpensesFragment extends Fragment {
     }
 
     private void loadExpenses(final String filter) {
-        getLoaderManager().restartLoader(EXPENSES_LOADER, null, new LoaderManager.LoaderCallbacks() {
+        getLoaderManager().restartLoader(ConstantsManager.EXPENSES_LOADER_ID,
+                null,
+                new LoaderManager.LoaderCallbacks() {
 
             @Override
             public Loader onCreateLoader(int id, Bundle args) {

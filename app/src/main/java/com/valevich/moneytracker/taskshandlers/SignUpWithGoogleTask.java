@@ -66,7 +66,7 @@ public class SignUpWithGoogleTask {
                         ConstantsManager.SCOPES);
 
             } catch (UserRecoverableAuthException userAuthEx) {
-                mLoginActivity.startActivityForResult(userAuthEx.getIntent(), LoginActivity.REQUEST_CODE);
+                mLoginActivity.startActivityForResult(userAuthEx.getIntent(), ConstantsManager.PICK_ACCOUNT_REQUEST_CODE);
             } catch (IOException ioEx) {
                 ioEx.printStackTrace();
             } catch (GoogleAuthException fatalAuthEx) {

@@ -9,9 +9,7 @@ import com.valevich.moneytracker.adapters.wrappers.ViewWrapper;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by User on 18.06.2016.
- */
+
 public abstract class SelectableAdapter<T, V extends View & ViewBinder<T>>
         extends RecyclerViewAdapterBase<T, V> {
 

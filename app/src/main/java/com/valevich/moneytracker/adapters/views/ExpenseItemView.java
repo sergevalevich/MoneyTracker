@@ -17,9 +17,6 @@ import org.androidannotations.annotations.EViewGroup;
 import org.androidannotations.annotations.ViewById;
 
 
-/**
- * Created by User on 05.07.2016.
- */
 @EViewGroup(R.layout.expense_list_item)
 public class ExpenseItemView extends RelativeLayout implements ViewBinder<ExpenseEntry> {
 

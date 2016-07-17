@@ -25,8 +25,6 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 @EBean
 public class NotificationUtil {
 
-    private final static int REQUEST_CODE = 0;
-
     @RootContext
     Context mContext;
 
@@ -42,15 +40,14 @@ public class NotificationUtil {
     @Pref
     Preferences_ mPreferences;
 
-    private static final int NOTIFICATION_ID = 0;
-
     public void updateNotification() {
         boolean displayNotification = mPreferences.notificationPreference().get();
         if(displayNotification) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
             Intent intent = MainActivity_.intent(mContext).intentId(ConstantsManager.NOTIFICATION_INTENT_ID).get();
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            PendingIntent pendingIntent = PendingIntent.getActivity(mContext, REQUEST_CODE,intent,
+            PendingIntent pendingIntent = PendingIntent.getActivity(mContext,
+                    ConstantsManager.NOTIFICATION_REQUEST_CODE, intent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
             builder.setContentIntent(pendingIntent);
             builder.setSmallIcon(R.drawable.ic_notification);
@@ -75,7 +72,7 @@ public class NotificationUtil {
 
             Notification notification = builder.build();
 
-            mNotificationManager.notify(NOTIFICATION_ID,notification);
+            mNotificationManager.notify(ConstantsManager.NOTIFICATION_ID, notification);
         }
 
     }

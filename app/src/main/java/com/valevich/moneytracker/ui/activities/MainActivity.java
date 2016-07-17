@@ -41,6 +41,7 @@ import com.valevich.moneytracker.ui.fragments.ExpensesFragment_;
 import com.valevich.moneytracker.ui.fragments.SettingsFragment_;
 import com.valevich.moneytracker.ui.fragments.StatisticsFragment_;
 import com.valevich.moneytracker.ui.fragments.dialogs.AuthProgressDialogFragment;
+import com.valevich.moneytracker.ui.fragments.dialogs.AuthProgressDialogFragment_;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.ui.ImageLoader;
@@ -61,8 +62,14 @@ import org.androidannotations.annotations.res.StringRes;
 public class MainActivity extends AppCompatActivity
         implements FragmentManager.OnBackStackChangedListener {
 
-    @InstanceState
-    String mToolbarTitle;
+    @ViewById(R.id.drawer_layout)
+    DrawerLayout mDrawerLayout;
+
+    @ViewById(R.id.toolbar)
+    Toolbar mToolbar;
+
+    @ViewById(R.id.navigation_view)
+    NavigationView mNavigationView;
 
     @StringRes(R.string.nav_drawer_expenses)
     String mExpensesTitle;
@@ -88,14 +95,8 @@ public class MainActivity extends AppCompatActivity
     @StringRes(R.string.general_error_message)
     String mNetworkErrorMessage;
 
-    @ViewById(R.id.drawer_layout)
-    DrawerLayout mDrawerLayout;
-
-    @ViewById(R.id.toolbar)
-    Toolbar mToolbar;
-
-    @ViewById(R.id.navigation_view)
-    NavigationView mNavigationView;
+    @InstanceState
+    String mToolbarTitle;
 
     @Extra
     int intentId;
@@ -149,7 +150,8 @@ public class MainActivity extends AppCompatActivity
     protected void onStart() {
         super.onStart();
         mEventBus.register(this);
-        if (MoneyTrackerApplication_.isSyncFinished())//if the user pressed the power button
+        //if the user pressed the power button during logout
+        if (MoneyTrackerApplication_.isSyncFinished())
             onSyncFinished(new SyncFinishedEvent(true));
         else if (MoneyTrackerApplication_.isLogoutFinished())
             onLogoutFinished(null);
@@ -219,7 +221,7 @@ public class MainActivity extends AppCompatActivity
     public void onCategoryUpdated(CategoryUpdatedEvent categoryUpdatedEvent) {
         int id = categoryUpdatedEvent.getId();
         if (id != 0)
-            mUpdateCategoryTask.updateCategory(categoryUpdatedEvent.getNewName(), id);
+            mUpdateCategoryTask.updateCategory(categoryUpdatedEvent.getTitle(), id);
     }
 
     @Subscribe
@@ -257,7 +259,7 @@ public class MainActivity extends AppCompatActivity
     private void prepareLogout() {
         if (mNetworkStatusChecker.isNetworkAvailable()) {
             showProgressDialog();
-            requestSync();//forces sync before logout
+            requestSync();//forcing sync before logout
         } else {
             notifyUser(mNetworkUnavailableMessage);
         }
@@ -317,7 +319,7 @@ public class MainActivity extends AppCompatActivity
         if (MoneyTrackerApplication_.isGoogleTokenExist()) {
             mImageLoader.loadRoundedUserImage(profileImage, imageUrl);
         } else {
-            mImageLoader.loadRoundedUserImage(profileImage, R.drawable.dummy_profile);
+            mImageLoader.loadRoundedUserImage(profileImage, R.mipmap.dummy_profile);
         }
     }
 
@@ -389,7 +391,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void showProgressDialog() {
-        mProgressDialog = AuthProgressDialogFragment.newInstance(mLogoutMessage, mAuthDialogContent);
+        mProgressDialog = AuthProgressDialogFragment_.builder()
+                .message(mLogoutMessage)
+                .content(mAuthDialogContent)
+                .build();
         mProgressDialog.show(getSupportFragmentManager(), ConstantsManager.PROGRESS_DIALOG_TAG);
         mProgressDialog.setCancelable(false);
     }

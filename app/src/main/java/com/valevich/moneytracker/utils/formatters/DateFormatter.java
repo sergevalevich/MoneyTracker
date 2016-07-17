@@ -7,11 +7,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/**
- * Created by User on 17.06.2016.
- */
 @EBean
 public class DateFormatter {
+
     private static final String PRESENTATION_FORMAT = "dd-MM-yyyy";
     private static final String DB_FORMAT = "yyyy-MM-dd";
 
@@ -47,5 +45,10 @@ public class DateFormatter {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public String getStringFromDate(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat(PRESENTATION_FORMAT, Locale.getDefault());
+        return sdf.format(date);
     }
 }

@@ -19,9 +19,6 @@ import org.androidannotations.annotations.EBean;
 
 import retrofit.RestAdapter;
 
-/**
- * Created by NotePad.by on 20.05.2016.
- */
 @EBean
 public class RestClient {
     private static final String BASE_URL = "http://lmt.loftblog.tmweb.ru";

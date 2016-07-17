@@ -12,13 +12,10 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
-/**
- * Created by User on 05.07.2016.
- */
 @EBean
 public class PriceFormatter {
 
-    public static final char POINT = '.';
+    public static final char SEPARATOR = '.';
 
     public static final char ZERO = '0';
 
@@ -37,7 +34,6 @@ public class PriceFormatter {
 
     private static final NavigableMap<Float, String> SUFFIXES = new TreeMap<>();
 
-
     static {
         SUFFIXES.put(1000000.f, " Млн");
         SUFFIXES.put(1000000000.f, " Млр");
@@ -45,7 +41,6 @@ public class PriceFormatter {
         SUFFIXES.put(1000000000000000.f, " Квд");
         SUFFIXES.put(1000000000000000000.f, " Квт");
     }
-
 
     //don't show ".0000" if price is an Integer
     public String formatPriceForDb(String priceString) {
@@ -90,8 +85,8 @@ public class PriceFormatter {
 
     private DecimalFormatSymbols getDecimalFormatSymbols() {
         DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(Locale.getDefault());
-        otherSymbols.setDecimalSeparator(POINT);
-        otherSymbols.setGroupingSeparator(POINT);
+        otherSymbols.setDecimalSeparator(SEPARATOR);
+        otherSymbols.setGroupingSeparator(SEPARATOR);
         return otherSymbols;
     }
 }

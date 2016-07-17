@@ -21,6 +21,7 @@ import retrofit.Callback;
 
 @EBean
 public class RestService {
+
     private static final String REGISTER_FLAG = "1";
 
     @Bean

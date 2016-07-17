@@ -89,6 +89,17 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
         }
     }
 
+    @Override
+    public void onError(Transaction transaction, Throwable error) {
+        notifyLoginFinished();
+    }
+
+    @Override
+    public void onSuccess(Transaction transaction) {
+        Timber.d("DATA SAVED SUCCESSFULLY");
+        notifyLoginFinished();
+    }
+
     private void saveData(final List<GlobalCategoriesDataModel> globalCategoriesData) {
 
         final List<CategoryEntry> categoriesToSave = new ArrayList<>();
@@ -140,19 +151,8 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
         expense.setDescription(fetchedExpense.getComment());
         expense.setPrice(mPriceFormatter
                 .formatPriceForDb(String.valueOf(fetchedExpense.getSum())));
-        expense.setDate(fetchedExpense.getTrDate());
+        expense.setDate(fetchedExpense.getDate());
         return expense;
-    }
-
-    @Override
-    public void onError(Transaction transaction, Throwable error) {
-        notifyLoginFinished();
-    }
-
-    @Override
-    public void onSuccess(Transaction transaction) {
-        Timber.d("DATA SAVED SUCCESSFULLY");
-        notifyLoginFinished();
     }
 
     private void notifyLoginFinished() {

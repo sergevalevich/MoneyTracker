@@ -5,31 +5,20 @@ import com.google.gson.annotations.SerializedName;
 public class UserRegistrationModel {
 
     @SerializedName("status")
-    private String status;
+    private String mStatus;
+
     @SerializedName("id")
-    private Integer id;
+    private Integer mId;
+
     @SerializedName("code")
-    int code;
-
-    public int getCode() {
-        return code;
-    }
-
+    int mCode;
 
     public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
+        return mStatus;
     }
 
     public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
+        return mId;
     }
 
 }

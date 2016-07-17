@@ -6,9 +6,6 @@ import retrofit.Callback;
 import retrofit.http.GET;
 import retrofit.http.Query;
 
-/**
- * Created by NotePad.by on 21.05.2016.
- */
 public interface LoginUserApi {
     @GET("/auth")
     void logIn(@Query("login") String login,

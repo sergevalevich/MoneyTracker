@@ -8,9 +8,6 @@ import retrofit.Callback;
 import retrofit.http.GET;
 import retrofit.http.Query;
 
-/**
- * Created by User on 16.06.2016.
- */
 public interface FetchGlobalCategoriesDataApi {
     @GET("/transcat")
     void fetchGlobalCategoriesData(

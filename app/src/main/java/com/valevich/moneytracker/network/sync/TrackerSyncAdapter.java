@@ -60,6 +60,9 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     @StringRes(R.string.network_unavailable)
     String mNetworkUnavailableMessage;
 
+    @Pref
+    Preferences_ mPreferences;
+
     @Bean
     NetworkStatusChecker mNetworkStatusChecker;
 
@@ -74,9 +77,6 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Bean
     OttoBus mEventBus;
-
-    @Pref
-    Preferences_ mPreferences;
 
     @Bean
     TriesCounter mApiErrorTriesCounter;
@@ -130,11 +130,11 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
         syncCategories();
 
-        //sync categories without expenses to remove expenses from the server
         /*
+        we also sync categories without expenses to remove expenses from the server
         Because the server doesn't allow sync of empty categories list this is
         needed to perform sync if the user removed everything.
-        So we send default category to the server to remove all the other categories
+        So we send default category to the server to remove all the other categories.
         Everything will be fine if the network connection exists when the user removes
         all categories, because in this case delete category query will work.
         But if the user removes all data without internet, we need to perform this
@@ -156,6 +156,18 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             onAccountCreated(mAccount, context);
         }
         return mAccount;
+    }
+
+    private void onAccountCreated(Account newAccount, Context context) {
+        final int SYNC_INTERVAL = 60 * 60;
+        final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
+        configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
+        ContentResolver.setSyncAutomatically(newAccount,
+                ConstantsManager.CONTENT_AUTHORITY, true);
+        ContentResolver.addPeriodicSync(newAccount, ConstantsManager.CONTENT_AUTHORITY,
+                Bundle.EMPTY,
+                SYNC_INTERVAL);
+        syncImmediately(context, false);
     }
 
     private boolean areExpensesEmpty() {
@@ -211,7 +223,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                                 switch (status) {
                                     case ConstantsManager.STATUS_SUCCESS:
                                         mApiErrorTriesCounter.resetTries();
-                                        setNewServerIds(apiCategories);
+                                        setServerIds(apiCategories);
                                         break;
                                     default:
                                         mApiErrorTriesCounter.reduceTry();
@@ -247,71 +259,6 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
             notifyAboutNetworkError(mNetworkUnavailableMessage);
         }
 
-    }
-
-    private void setNewServerIds(CategoriesSyncModel apiCategories) {
-
-        List<CategoryData> categoryData = apiCategories.getData();
-        String firstCategoryName = categoryData.get(0).getTitle();
-
-        if (!firstCategoryName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME)) {//not updating db if we get default category
-            for (int i = 0; i < mCategoriesDb.size(); i++) {
-
-                int categoryId = categoryData.get(i).getId();
-                CategoryEntry category = mCategoriesDb.get(i);
-                category.setServerId(categoryId);
-
-            }
-            CategoryEntry.update(mCategoriesDb, new Transaction.Success() {
-                @Override
-                public void onSuccess(Transaction transaction) {
-                    for (CategoryEntry category : CategoryEntry.getAllCategories("")) {// TODO: 15.07.2016 remove
-                        Timber.d("%s = %d %n", category.getName(), category.getServerId());
-                    }
-                    if (!areExpensesEmpty())
-                        syncExpenses();
-                    else {
-                        notifySyncFinished();
-                        sendUserNotification();
-                    }
-                }
-            }, null);
-        } else {
-            notifySyncFinished();
-        }
-    }
-
-    @NonNull
-    private String getCategoriesString(List<CategoryData> categoriesToSync) {
-        Gson gson = new Gson();
-
-        return gson.toJson(categoriesToSync);
-    }
-
-    private List<CategoryData> getPreparedCategories() {
-
-        List<CategoryData> categoriesToSync = new ArrayList<>();
-
-        for (int i = 0; i < mCategoriesDb.size(); i++) {
-            CategoryData categoryToSync = new CategoryData();
-            CategoryEntry categoryDb = mCategoriesDb.get(i);
-
-
-            categoryToSync.setId(0);
-            categoryToSync.setTitle(categoryDb.getName());
-
-            categoriesToSync.add(categoryToSync);
-        }
-        return categoriesToSync;
-    }
-
-    private List<CategoryData> getPreparedDefaultCategory() {
-        List<CategoryData> categoriesToSync = new ArrayList<>();
-        CategoryData categoryToSync = new CategoryData();
-        categoryToSync.setId(0);
-        categoryToSync.setTitle(CategoryEntry.DEFAULT_CATEGORY_NAME);
-        categoriesToSync.add(categoryToSync);
-        return categoriesToSync;
     }
 
     private void syncExpenses() {
@@ -371,6 +318,68 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
+    private void setServerIds(CategoriesSyncModel apiCategories) {
+
+        List<CategoryData> categoryData = apiCategories.getData();
+        String firstCategoryName = categoryData.get(0).getTitle();
+
+        if (!firstCategoryName.equals(CategoryEntry.DEFAULT_CATEGORY_NAME)) {
+            //not updating db if we get default category
+            for (int i = 0; i < mCategoriesDb.size(); i++) {
+
+                int categoryId = categoryData.get(i).getId();
+                CategoryEntry category = mCategoriesDb.get(i);
+                category.setServerId(categoryId);
+
+            }
+            CategoryEntry.update(mCategoriesDb, new Transaction.Success() {
+                @Override
+                public void onSuccess(Transaction transaction) {
+                    if (!areExpensesEmpty())
+                        syncExpenses();
+                    else {
+                        notifySyncFinished();
+                        sendUserNotification();
+                    }
+                }
+            }, null);
+        } else {
+            notifySyncFinished();
+        }
+    }
+
+    @NonNull
+    private String getCategoriesString(List<CategoryData> categoriesToSync) {
+        Gson gson = new Gson();
+
+        return gson.toJson(categoriesToSync);
+    }
+
+    private List<CategoryData> getPreparedCategories() {
+
+        List<CategoryData> categoriesToSync = new ArrayList<>();
+
+        for (int i = 0; i < mCategoriesDb.size(); i++) {
+            CategoryData categoryToSync = new CategoryData();
+            CategoryEntry categoryDb = mCategoriesDb.get(i);
+
+
+            categoryToSync.setId(0);
+            categoryToSync.setTitle(categoryDb.getName());
+
+            categoriesToSync.add(categoryToSync);
+        }
+        return categoriesToSync;
+    }
+
+    private List<CategoryData> getPreparedDefaultCategory() {
+        List<CategoryData> categoriesToSync = new ArrayList<>();
+        CategoryData categoryToSync = new CategoryData();
+        categoryToSync.setId(0);
+        categoryToSync.setTitle(CategoryEntry.DEFAULT_CATEGORY_NAME);
+        categoriesToSync.add(categoryToSync);
+        return categoriesToSync;
+    }
 
     @NonNull
     private String getExpensesString(List<ExpenseData> expensesToSync) {
@@ -394,7 +403,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                 expenseToSync.setComment(expenseDb.getDescription());
                 expenseToSync.setId((int) expenseDb.getId());
                 expenseToSync.setSum(Double.valueOf(expenseDb.getPrice()));
-                expenseToSync.setTrDate(expenseDb.getDate());
+                expenseToSync.setDate(expenseDb.getDate());
 
                 expensesToSync.add(expenseToSync);
             }
@@ -402,15 +411,4 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         return expensesToSync;
     }
 
-    private void onAccountCreated(Account newAccount, Context context) {
-        final int SYNC_INTERVAL = 60 * 3;
-        final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
-        configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
-        ContentResolver.setSyncAutomatically(newAccount,
-                ConstantsManager.CONTENT_AUTHORITY, true);
-        ContentResolver.addPeriodicSync(newAccount, ConstantsManager.CONTENT_AUTHORITY,
-                Bundle.EMPTY,
-                SYNC_INTERVAL);
-        syncImmediately(context, false);
-    }
 }

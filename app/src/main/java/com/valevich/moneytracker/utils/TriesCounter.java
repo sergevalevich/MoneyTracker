@@ -2,9 +2,6 @@ package com.valevich.moneytracker.utils;
 
 import org.androidannotations.annotations.EBean;
 
-/**
- * Created by User on 13.07.2016.
- */
 @EBean
 public class TriesCounter {
 

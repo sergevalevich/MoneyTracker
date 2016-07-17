@@ -2,64 +2,57 @@ package com.valevich.moneytracker.network.rest.model;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Created by NotePad.by on 11.06.2016.
- */
 public class ExpenseData {
 
     @SerializedName("id")
-    private Integer id;
+    private Integer mId;
 
     @SerializedName("category_id")
-    private Integer category_id;
+    private Integer mCategoryId;
 
     @SerializedName("comment")
-    private String comment;
+    private String mComment;
 
     @SerializedName("sum")
-    private Double sum;
+    private Double mSum;
 
     @SerializedName("tr_date")
-    private String tr_date;
+    private String mDate;
 
     public Integer getId() {
-        return id;
+        return mId;
     }
 
     public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getCategory_id() {
-        return category_id;
+        mId = id;
     }
 
     public void setCategoryId(Integer category_id) {
-        this.category_id = category_id;
+        mCategoryId = category_id;
     }
 
     public String getComment() {
-        return comment;
+        return mComment;
     }
 
     public void setComment(String comment) {
-        this.comment = comment;
+        mComment = comment;
     }
 
     public Double getSum() {
-        return sum;
+        return mSum;
     }
 
     public void setSum(Double sum) {
-        this.sum = sum;
+        mSum = sum;
     }
 
-    public String getTrDate() {
-        return tr_date;
+    public String getDate() {
+        return mDate;
     }
 
-    public void setTrDate(String trDate) {
-        this.tr_date = trDate;
+    public void setDate(String date) {
+        mDate = date;
     }
 
 }

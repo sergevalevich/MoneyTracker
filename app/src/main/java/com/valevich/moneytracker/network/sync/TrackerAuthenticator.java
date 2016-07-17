@@ -9,9 +9,6 @@ import android.os.Bundle;
 
 import org.androidannotations.annotations.EBean;
 
-/**
- * Created by NotePad.by on 11.06.2016.
- */
 @EBean
 public class TrackerAuthenticator extends AbstractAccountAuthenticator {
 

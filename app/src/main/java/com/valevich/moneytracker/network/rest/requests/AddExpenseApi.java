@@ -6,9 +6,6 @@ import retrofit.Callback;
 import retrofit.http.POST;
 import retrofit.http.Query;
 
-/**
- * Created by User on 18.06.2016.
- */
 public interface AddExpenseApi {
 
     @POST("/transactions/add")

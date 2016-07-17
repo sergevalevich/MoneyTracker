@@ -4,47 +4,28 @@ import com.google.gson.annotations.SerializedName;
 
 public class UserLoginModel {
 
-
     @SerializedName("status")
-    private String status;
-    @SerializedName("id")
-    private Integer id;
-    @SerializedName("auth_token")
-    private String authToken;
-    @SerializedName("code")
-    int code;
+    private String mStatus;
 
-    public int getCode() {
-        return code;
-    }
+    @SerializedName("id")
+    private Integer mId;
+
+    @SerializedName("auth_token")
+    private String mAuthToken;
+
+    @SerializedName("code")
+    int mCode;
 
     public String getStatus() {
-        return status;
+        return mStatus;
     }
-
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
 
     public Integer getId() {
-        return id;
+        return mId;
     }
-
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
 
     public String getAuthToken() {
-        return authToken;
-    }
-
-
-    public void setAuthToken(String authToken) {
-        this.authToken = authToken;
+        return mAuthToken;
     }
 
 }

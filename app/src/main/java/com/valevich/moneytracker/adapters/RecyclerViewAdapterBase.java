@@ -11,9 +11,7 @@ import com.valevich.moneytracker.utils.ui.ClickListener;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by User on 05.07.2016.
- */
+
 public abstract class RecyclerViewAdapterBase<T, V extends View & ViewBinder<T>>
         extends RecyclerView.Adapter<ViewWrapper<V>> implements ClickListener {
 

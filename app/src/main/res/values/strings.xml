@@ -97,9 +97,12 @@
     <string name="error_no_response">Нет ответа</string>
     <string name="error_network_http">Ошибка </string>
     <string name="error_unknown">Неизвестная ошибка</string>
-    <string name="google_token_error_message">Не удалось войти с помощью Google</string>
+    <string name="google_token_error_message">Не удалось войти. Повтор</string>
     <string name="logout_dialog_message">Выход</string>
     <string name="sync_dialog_message">Синхронизация</string>
     <string name="auth_dialog_content">Пожалуйста подождите</string>
     <string name="logout_error_message">При выходе возникла ошибка. Попробуйте ещё раз</string>
+    <string name="logo_desc">app logo</string>
+    <string name="profile_image_desc">user profile image</string>
+    <string name="google_icon_desc">google icon</string>
 </resources>

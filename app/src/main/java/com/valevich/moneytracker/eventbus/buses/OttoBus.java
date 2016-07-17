@@ -7,9 +7,7 @@ import com.squareup.otto.Bus;
 
 import org.androidannotations.annotations.EBean;
 
-/**
- * Created by User on 17.06.2016.
- */
+
 @EBean(scope = EBean.Scope.Singleton)
 public class OttoBus extends Bus{
     private final Handler mHandler = new Handler(Looper.getMainLooper());

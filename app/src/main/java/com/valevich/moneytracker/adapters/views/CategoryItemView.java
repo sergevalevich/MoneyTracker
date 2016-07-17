@@ -14,9 +14,7 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EViewGroup;
 import org.androidannotations.annotations.ViewById;
 
-/**
- * Created by User on 05.07.2016.
- */
+
 @EViewGroup(R.layout.category_list_item)
 public class CategoryItemView extends FrameLayout implements ViewBinder<CategoryEntry> {
 

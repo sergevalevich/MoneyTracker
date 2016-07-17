@@ -21,9 +21,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Created by NotePad.by on 20.04.2016.
- */
 @EBean(scope = EBean.Scope.Singleton)
 public class CategoriesAdapter
         extends SelectableAdapter<CategoryEntry, CategoryItemView>
@@ -40,11 +37,6 @@ public class CategoriesAdapter
 
     public void initAdapter(String filter) {
         mItems = mCategoriesFinder.findAll(filter);
-    }
-
-    @Override
-    protected CategoryItemView onCreateItemView(ViewGroup parent, int viewType) {
-        return CategoryItemView_.build(mContext);
     }
 
     public List<Integer> removeDbAndAdapterItems(List<Integer> positions) {
@@ -89,5 +81,10 @@ public class CategoriesAdapter
     public boolean onItemLongClick(int position) {
         mEventBus.post(new CategoryItemLongClickedEvent(position));
         return true;
+    }
+
+    @Override
+    protected CategoryItemView onCreateItemView(ViewGroup parent, int viewType) {
+        return CategoryItemView_.build(mContext);
     }
 }

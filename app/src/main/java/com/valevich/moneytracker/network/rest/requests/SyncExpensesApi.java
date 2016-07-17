@@ -6,8 +6,6 @@ import retrofit.Callback;
 import retrofit.http.POST;
 import retrofit.http.Query;
 
-/**
-* Created by NotePad.by on 11.06.2016.*/
 public interface SyncExpensesApi {
 
     @POST("/transactions/synch")

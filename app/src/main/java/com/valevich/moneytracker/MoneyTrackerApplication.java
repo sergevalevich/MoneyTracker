@@ -47,7 +47,6 @@ public class MoneyTrackerApplication extends Application {
                 }
             });
         } else {
-            //releaseTree
             Timber.plant(mReleaseTree);
         }
     }

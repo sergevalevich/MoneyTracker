@@ -1,8 +1,10 @@
 package com.valevich.moneytracker.taskshandlers;
 
+import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
+import com.valevich.moneytracker.eventbus.events.CategorySubmittedEvent;
 import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
 import com.valevich.moneytracker.network.rest.RestService;
 import com.valevich.moneytracker.network.rest.model.AddedCategoryModel;
@@ -96,12 +98,21 @@ public class AddCategoryTask {
             List<CategoryEntry> categoriesToProcess = new ArrayList<>(1);
             category.setServerId(id);
             categoriesToProcess.add(category);
-            CategoryEntry.update(categoriesToProcess, null, null);
+            CategoryEntry.update(categoriesToProcess, new Transaction.Success() {
+                @Override
+                public void onSuccess(Transaction transaction) {
+                    notifyCategorySubmitted();
+                }
+            }, null);
         }
     }
 
     private void notifyAboutError(String message) {
         mEventBus.post(new NetworkErrorEvent(message));
+    }
+
+    private void notifyCategorySubmitted() {
+        mEventBus.post(new CategorySubmittedEvent());
     }
 
 }

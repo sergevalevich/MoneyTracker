@@ -8,13 +8,8 @@ import org.androidannotations.annotations.EBean;
 
 import timber.log.Timber;
 
-/**
- * Created by User on 04.07.2016.
- */
 @EBean
 public class ReleaseTree extends Timber.Tree {
-
-    private static int MAX_LOG_LENGTH = 4000;
 
     @Override
     protected boolean isLoggable(int priority) {
@@ -28,14 +23,14 @@ public class ReleaseTree extends Timber.Tree {
     @Override
     protected void log(int priority, String tag, String message, Throwable t) {
         if(isLoggable(priority)) {
-//            Message is short enough. Doesn't need to be broken into chunks
+//          Message is short enough. Doesn't need to be broken into chunks
 
             if(priority == Log.ERROR && t != null) {
                 Crashlytics.log(message);
             }
 
 
-            if(message.length() < MAX_LOG_LENGTH) {
+            if (message.length() < ConstantsManager.MAX_LOG_LENGTH) {
                 if(priority == Log.ASSERT) {
                     Log.wtf(tag,message);
                 } else {
@@ -48,7 +43,7 @@ public class ReleaseTree extends Timber.Tree {
                 int newLine = message.indexOf('\n',i);
                 newLine = newLine!=-1 ? newLine:length;
                 do {
-                    int end = Math.min(newLine, i+MAX_LOG_LENGTH);
+                    int end = Math.min(newLine, i + ConstantsManager.MAX_LOG_LENGTH);
                     String part = message.substring(i,end);
                     if(priority == Log.ASSERT) {
                         Log.wtf(tag,part);

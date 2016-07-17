@@ -2,33 +2,27 @@ package com.valevich.moneytracker.network.rest.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Created by NotePad.by on 14.06.2016.
- */
 public class CategoryData {
 
     @SerializedName("id")
-    private Integer id;
+    private Integer mId;
 
     @SerializedName("title")
-    private String title;
+    private String mTitle;
 
     public Integer getId() {
-        return id;
+        return mId;
     }
 
     public void setId(Integer id) {
-        this.id = id;
+        mId = id;
     }
 
     public String getTitle() {
-        return title;
+        return mTitle;
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        mTitle = title;
     }
 }

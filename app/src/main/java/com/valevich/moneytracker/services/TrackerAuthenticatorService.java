@@ -10,9 +10,6 @@ import com.valevich.moneytracker.network.sync.TrackerAuthenticator;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EService;
 
-/**
- * Created by NotePad.by on 11.06.2016.
- */
 @EService
 public class TrackerAuthenticatorService extends Service {
 

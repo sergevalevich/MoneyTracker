@@ -6,9 +6,6 @@ import retrofit.Callback;
 import retrofit.http.POST;
 import retrofit.http.Query;
 
-/**
- * Created by NotePad.by on 14.06.2016.
- */
 public interface SyncCategoriesApi {
 
     @POST("/categories/synch")

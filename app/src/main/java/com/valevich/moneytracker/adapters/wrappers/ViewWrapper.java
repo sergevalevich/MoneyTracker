@@ -5,9 +5,6 @@ import android.view.View;
 
 import com.valevich.moneytracker.utils.ui.ClickListener;
 
-/**
- * Created by User on 05.07.2016.
- */
 public class ViewWrapper<V extends View>
         extends RecyclerView.ViewHolder
         implements View.OnClickListener, View.OnLongClickListener {

@@ -17,20 +17,19 @@ import org.androidannotations.annotations.EBean;
 
 import java.util.List;
 
-/**
- * Created by NotePad.by on 07.05.2016.
- */
+
 @EBean
 @ModelContainer
 @Table(database = MoneyTrackerDatabase.class)
 public class CategoryEntry extends BaseModel implements CategoriesFinder {
 
-    //----DEFAULT CATEGORY. Needed to allow sync when the user removed all mItems
+    //----DEFAULT CATEGORY. Needed to allow sync when the user removed all Items
     public static final String DEFAULT_CATEGORY_NAME = "DEFAULT_CATEGORY";
 
     private static final TransactionExecutor<CategoryEntry> mTransactionExecutor
             = new TransactionExecutor<>();
 
+    //Columns//
     @PrimaryKey(autoincrement = true)
     long id;
 

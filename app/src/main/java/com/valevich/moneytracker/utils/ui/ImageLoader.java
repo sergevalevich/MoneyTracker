@@ -14,9 +14,6 @@ import com.valevich.moneytracker.R;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 
-/**
- * Created by NotePad.by on 28.05.2016.
- */
 @EBean
 public class ImageLoader {
     @RootContext
@@ -25,7 +22,7 @@ public class ImageLoader {
         Glide.with(mActivity)
                 .load(imageUrl)
                 .asBitmap()
-                .placeholder(R.drawable.dummy_profile)
+                .placeholder(R.mipmap.dummy_profile)
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(new BitmapImageViewTarget(profileImage) {
@@ -38,11 +35,12 @@ public class ImageLoader {
                     }
                 });
     }
-    public void loadRoundedUserImage(final ImageView profileImage, int resourceId) {
+
+    public void loadRoundedUserImage(final ImageView profileImage, int resId) {
         Glide.with(mActivity)
-                .load(resourceId)
+                .load(resId)
                 .asBitmap()
-                .placeholder(R.drawable.dummy_profile)
+                .placeholder(R.mipmap.dummy_profile)
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(new BitmapImageViewTarget(profileImage) {

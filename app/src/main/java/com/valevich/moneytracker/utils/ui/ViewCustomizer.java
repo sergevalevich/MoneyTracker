@@ -13,9 +13,6 @@ import org.androidannotations.annotations.RootContext;
 import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.DrawableRes;
 
-/**
- * Created by User on 07.07.2016.
- */
 @EBean
 public class ViewCustomizer {
 

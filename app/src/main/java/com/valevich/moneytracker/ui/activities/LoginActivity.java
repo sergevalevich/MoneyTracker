@@ -20,6 +20,7 @@ import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
 import com.valevich.moneytracker.taskshandlers.LoginTask;
 import com.valevich.moneytracker.taskshandlers.SignUpWithGoogleTask;
 import com.valevich.moneytracker.ui.fragments.dialogs.AuthProgressDialogFragment;
+import com.valevich.moneytracker.ui.fragments.dialogs.AuthProgressDialogFragment_;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.InputFieldValidator;
 
@@ -35,14 +36,6 @@ import timber.log.Timber;
 
 @EActivity(R.layout.activity_login)
 public class LoginActivity extends AppCompatActivity {
-
-    public final static int REQUEST_CODE = 100;
-
-    @StringRes(R.string.google_account_picker_error_msg)
-    String mGoogleAccountPickerErrorMessage;
-
-    @StringRes(R.string.auth_dialog_content)
-    String mAuthDialogContent;
 
     @ViewById(R.id.google_login_btn)
     RelativeLayout mLogInWithGoogleButton;
@@ -62,6 +55,21 @@ public class LoginActivity extends AppCompatActivity {
     @ViewById(R.id.passwordField)
     AppCompatEditText mPasswordField;
 
+    @StringRes(R.string.google_account_picker_error_msg)
+    String mGoogleAccountPickerErrorMessage;
+
+    @StringRes(R.string.auth_dialog_content)
+    String mAuthDialogContent;
+
+    @StringRes(R.string.invalid_username_msg)
+    String mInvalidUsernameMessage;
+
+    @StringRes(R.string.invalid_password_msg)
+    String mInvalidPasswordMessage;
+
+    @StringRes(R.string.auth_dialog_message)
+    String mAuthMessage;
+
     @NonConfigurationInstance
     @Bean
     LoginTask mLoginTask;
@@ -76,22 +84,14 @@ public class LoginActivity extends AppCompatActivity {
     @Bean
     OttoBus mEventBus;
 
-    @StringRes(R.string.invalid_username_msg)
-    String mInvalidUsernameMessage;
-
-    @StringRes(R.string.invalid_password_msg)
-    String mInvalidPasswordMessage;
-
-    @StringRes(R.string.auth_dialog_message)
-    String mAuthMessage;
-
     private AuthProgressDialogFragment mProgressDialog;
 
     @Override
     protected void onStart() {
         super.onStart();
         mEventBus.register(this);
-        if (MoneyTrackerApplication_.isLoginFinished()) {//if the user pressed the power button
+        //if the user pressed the power button during authorization
+        if (MoneyTrackerApplication_.isLoginFinished()) {
             onLoginFinished(null);
         } else if (MoneyTrackerApplication_.isNetworkError()) {
             onNetworkError(new NetworkErrorEvent(MoneyTrackerApplication_.getErrorMessage()));
@@ -110,7 +110,7 @@ public class LoginActivity extends AppCompatActivity {
         blockButtons();
         Intent intent = AccountPicker.newChooseAccountIntent(null, null, new String[]{"com.google"},
                 false, null, null, null, null);
-        startActivityForResult(intent, REQUEST_CODE);
+        startActivityForResult(intent, ConstantsManager.PICK_ACCOUNT_REQUEST_CODE);
     }
 
     @Click(R.id.logInButton)
@@ -135,7 +135,7 @@ public class LoginActivity extends AppCompatActivity {
         SignUpActivity_.intent(this).start();
     }
 
-    @OnActivityResult(REQUEST_CODE)
+    @OnActivityResult(ConstantsManager.PICK_ACCOUNT_REQUEST_CODE)
     void onResult(int resultCode, @OnActivityResult.Extra(value = AccountManager.KEY_ACCOUNT_NAME) String accountName) {
         if (resultCode == RESULT_OK) {
             showProgressDialog();
@@ -187,7 +187,10 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void showProgressDialog() {
-        mProgressDialog = AuthProgressDialogFragment.newInstance(mAuthMessage, mAuthDialogContent);
+        mProgressDialog = AuthProgressDialogFragment_.builder()
+                .message(mAuthMessage)
+                .content(mAuthDialogContent)
+                .build();
         mProgressDialog.show(getSupportFragmentManager(), ConstantsManager.PROGRESS_DIALOG_TAG);
         mProgressDialog.setCancelable(false);
     }

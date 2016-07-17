@@ -81,6 +81,7 @@ public class SettingsFragment
             mIndicatorPreference.setChecked(indicatorState);
         }
     }
+
     private void setPrefsState(boolean state) {
         mSoundPreference.setEnabled(state);
         mIndicatorPreference.setEnabled(state);

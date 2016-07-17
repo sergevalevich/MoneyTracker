@@ -56,12 +56,6 @@ public class ExpenseAdapter
     }
 
     @Override
-    protected ExpenseItemView onCreateItemView(ViewGroup parent, int viewType) {
-        return ExpenseItemView_.build(mContext);
-    }
-
-
-    @Override
     public void onBindViewHolder(ViewWrapper<ExpenseItemView> holder, int position) {
         super.onBindViewHolder(holder, position);
         setAnimation(holder.getView().getRootView(), position);
@@ -103,6 +97,11 @@ public class ExpenseAdapter
     public boolean onItemLongClick(int position) {
         mEventBus.post(new ExpenseItemLongClickedEvent(position));
         return true;
+    }
+
+    @Override
+    protected ExpenseItemView onCreateItemView(ViewGroup parent, int viewType) {
+        return ExpenseItemView_.build(mContext);
     }
 
     private void setAnimation(View view, int position) {

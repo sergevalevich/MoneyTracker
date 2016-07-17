@@ -15,6 +15,7 @@ import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
 import com.valevich.moneytracker.eventbus.events.SignUpFinishedEvent;
 import com.valevich.moneytracker.taskshandlers.SignUpTask;
 import com.valevich.moneytracker.ui.fragments.dialogs.AuthProgressDialogFragment;
+import com.valevich.moneytracker.ui.fragments.dialogs.AuthProgressDialogFragment_;
 import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.InputFieldValidator;
 
@@ -78,7 +79,8 @@ public class SignUpActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         mEventBus.register(this);
-        if (MoneyTrackerApplication_.isSignUpFinished()) {//if the user pressed the power button
+        //if the user pressed the power button during authorization
+        if (MoneyTrackerApplication_.isSignUpFinished()) {
             onSignUpFinished(null);
         } else if (MoneyTrackerApplication_.isNetworkError()) {
             onNetworkError(new NetworkErrorEvent(MoneyTrackerApplication_.getErrorMessage()));
@@ -152,7 +154,10 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void showProgressDialog() {
-        mProgressDialog = AuthProgressDialogFragment.newInstance(mAuthMessage, mAuthDialogContent);
+        mProgressDialog = AuthProgressDialogFragment_.builder()
+                .message(mAuthMessage)
+                .content(mAuthDialogContent)
+                .build();
         mProgressDialog.show(getSupportFragmentManager(), ConstantsManager.PROGRESS_DIALOG_TAG);
         mProgressDialog.setCancelable(false);
     }
