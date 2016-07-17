@@ -1,5 +1,6 @@
 package com.valevich.moneytracker.taskshandlers;
 
+import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.eventbus.events.LogoutFinishedEvent;
@@ -79,10 +80,13 @@ public class LogoutTask {
     }
 
     private void notifyLogoutFinished() {
+        MoneyTrackerApplication_.setIsLogoutFinished(true);
         mEventBus.post(new LogoutFinishedEvent());
     }
 
     private void notifyAboutNetworkError(String message) {
+        MoneyTrackerApplication_.setIsNetworkError(true);
+        MoneyTrackerApplication_.setErrorMessage(message);
         mEventBus.post(new NetworkErrorEvent(message));
     }
 

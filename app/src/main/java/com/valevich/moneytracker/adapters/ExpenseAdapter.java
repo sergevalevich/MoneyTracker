@@ -52,7 +52,7 @@ public class ExpenseAdapter
             mWasAnimated = mLastInsertedId == id;
             if (!mWasAnimated) mLastInsertedId = id;
         }
-        //animating only last inserted item(once)
+        //animating only last inserted item
     }
 
     @Override
@@ -110,6 +110,7 @@ public class ExpenseAdapter
         if (expense != null && !mWasAnimated && expense.getId() == mLastInsertedId) {
             Animation animation = AnimationUtils.loadAnimation(mContext, R.anim.slide_in_left);
             view.startAnimation(animation);
+            mWasAnimated = true;
         }
     }
 }

@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.squareup.otto.Subscribe;
+import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
 import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
@@ -77,6 +78,11 @@ public class SignUpActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         mEventBus.register(this);
+        if (MoneyTrackerApplication_.isSignUpFinished()) {//if the user pressed the power button
+            onSignUpFinished(null);
+        } else if (MoneyTrackerApplication_.isNetworkError()) {
+            onNetworkError(new NetworkErrorEvent(MoneyTrackerApplication_.getErrorMessage()));
+        }
     }
 
     @Override
@@ -104,6 +110,7 @@ public class SignUpActivity extends AppCompatActivity {
 
     @Subscribe
     public void onSignUpFinished(SignUpFinishedEvent signUpFinishedEvent) {
+        MoneyTrackerApplication_.setIsSignUpFinished(false);
         closeProgressDialog();
         unblockButton();
         navigateToMain();
@@ -111,6 +118,8 @@ public class SignUpActivity extends AppCompatActivity {
 
     @Subscribe
     public void onNetworkError(NetworkErrorEvent event) {
+        MoneyTrackerApplication_.setIsNetworkError(false);
+        MoneyTrackerApplication_.setErrorMessage("");
         closeProgressDialog();
         unblockButton();
         notifyUserWithSnackBar(event.getMessage());

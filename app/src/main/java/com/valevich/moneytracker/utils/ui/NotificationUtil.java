@@ -13,6 +13,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.ui.activities.MainActivity_;
+import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.Preferences_;
 
 import org.androidannotations.annotations.EBean;
@@ -21,9 +22,6 @@ import org.androidannotations.annotations.SystemService;
 import org.androidannotations.annotations.res.StringRes;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
-/**
- * Created by User on 27.06.2016.
- */
 @EBean
 public class NotificationUtil {
 
@@ -50,7 +48,7 @@ public class NotificationUtil {
         boolean displayNotification = mPreferences.notificationPreference().get();
         if(displayNotification) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
-            Intent intent = new Intent(mContext, MainActivity_.class);//after pressing on notification
+            Intent intent = MainActivity_.intent(mContext).intentId(ConstantsManager.NOTIFICATION_INTENT_ID).get();
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             PendingIntent pendingIntent = PendingIntent.getActivity(mContext, REQUEST_CODE,intent,
                     PendingIntent.FLAG_UPDATE_CURRENT);

@@ -25,17 +25,17 @@ import retrofit.RestAdapter;
 @EBean
 public class RestClient {
     private static final String BASE_URL = "http://lmt.loftblog.tmweb.ru";
-    private RegisterUserApi registerUserApi;
-    private LoginUserApi loginUserApi;
-    private SubmitGoogleTokenApi submitGoogleTokenApi;
-    private SyncExpensesApi syncExpensesApi;
-    private SyncCategoriesApi syncCategoriesApi;
-    private LogoutUserApi logoutUserApi;
-    private FetchGlobalCategoriesDataApi fetchGlobalCategoriesDataApi;
-    private AddExpenseApi addExpenseApi;
-    private RemoveCategoryApi removeCategoryApi;
-    private AddCategoryApi addCategoryApi;
-    private EditCategoryApi editCategoryApi;
+    private RegisterUserApi mRegisterUserApi;
+    private LoginUserApi mLoginUserApi;
+    private SubmitGoogleTokenApi mSubmitGoogleTokenApi;
+    private SyncExpensesApi mSyncExpensesApi;
+    private SyncCategoriesApi mSyncCategoriesApi;
+    private LogoutUserApi mLogoutUserApi;
+    private FetchGlobalCategoriesDataApi mFetchGlobalCategoriesDataApi;
+    private AddExpenseApi mAddExpenseApi;
+    private RemoveCategoryApi mRemoveCategoryApi;
+    private AddCategoryApi mAddCategoryApi;
+    private EditCategoryApi mEditCategoryApi;
 
     @Bean
     CustomRestErrorHandler mCustomRestErrorHandler;
@@ -47,56 +47,60 @@ public class RestClient {
                 .setErrorHandler(mCustomRestErrorHandler)
                 .setLogLevel(RestAdapter.LogLevel.FULL)//logging request details
                 .build();
-        registerUserApi = restAdapter.create(RegisterUserApi.class);
-        loginUserApi = restAdapter.create(LoginUserApi.class);
-        submitGoogleTokenApi = restAdapter.create(SubmitGoogleTokenApi.class);
-        syncExpensesApi = restAdapter.create(SyncExpensesApi.class);
-        syncCategoriesApi = restAdapter.create(SyncCategoriesApi.class);
-        logoutUserApi = restAdapter.create(LogoutUserApi.class);
-        fetchGlobalCategoriesDataApi = restAdapter.create(FetchGlobalCategoriesDataApi.class);
-        addExpenseApi = restAdapter.create(AddExpenseApi.class);
-        removeCategoryApi = restAdapter.create(RemoveCategoryApi.class);
-        addCategoryApi = restAdapter.create(AddCategoryApi.class);
-        editCategoryApi = restAdapter.create(EditCategoryApi.class);
+        mRegisterUserApi = restAdapter.create(RegisterUserApi.class);
+        mLoginUserApi = restAdapter.create(LoginUserApi.class);
+        mSubmitGoogleTokenApi = restAdapter.create(SubmitGoogleTokenApi.class);
+        mSyncExpensesApi = restAdapter.create(SyncExpensesApi.class);
+        mSyncCategoriesApi = restAdapter.create(SyncCategoriesApi.class);
+        mLogoutUserApi = restAdapter.create(LogoutUserApi.class);
+        mFetchGlobalCategoriesDataApi = restAdapter.create(FetchGlobalCategoriesDataApi.class);
+        mAddExpenseApi = restAdapter.create(AddExpenseApi.class);
+        mRemoveCategoryApi = restAdapter.create(RemoveCategoryApi.class);
+        mAddCategoryApi = restAdapter.create(AddCategoryApi.class);
+        mEditCategoryApi = restAdapter.create(EditCategoryApi.class);
     }
 
     public RegisterUserApi getRegisterUserApi() {
-        return registerUserApi;
+        return mRegisterUserApi;
     }
 
     public LoginUserApi getLoginUserApi() {
-        return loginUserApi;
+        return mLoginUserApi;
     }
 
     public SubmitGoogleTokenApi getSubmitGoogleTokenApi() {
-        return submitGoogleTokenApi;
+        return mSubmitGoogleTokenApi;
     }
 
     public SyncExpensesApi getSyncExpensesApi() {
-        return syncExpensesApi;
+        return mSyncExpensesApi;
     }
 
     public SyncCategoriesApi getSyncCategoriesApi() {
-        return syncCategoriesApi;
+        return mSyncCategoriesApi;
     }
 
-    public LogoutUserApi getLogoutUserApi() {return logoutUserApi;}
+    public LogoutUserApi getLogoutUserApi() {
+        return mLogoutUserApi;
+    }
 
-    public FetchGlobalCategoriesDataApi getFetchGlobalCategoriesDataApi() {return fetchGlobalCategoriesDataApi;}
+    public FetchGlobalCategoriesDataApi getFetchGlobalCategoriesDataApi() {
+        return mFetchGlobalCategoriesDataApi;
+    }
 
     public AddExpenseApi getAddExpenseApi() {
-        return addExpenseApi;
+        return mAddExpenseApi;
     }
 
     public RemoveCategoryApi getRemoveCategoryApi() {
-        return removeCategoryApi;
+        return mRemoveCategoryApi;
     }
 
     public AddCategoryApi getAddCategoryApi() {
-        return addCategoryApi;
+        return mAddCategoryApi;
     }
 
     public EditCategoryApi getEditCategoryApi() {
-        return editCategoryApi;
+        return mEditCategoryApi;
     }
 }

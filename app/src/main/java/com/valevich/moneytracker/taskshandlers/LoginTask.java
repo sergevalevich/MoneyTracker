@@ -96,6 +96,8 @@ public class LoginTask {
     }
 
     private void notifyAboutNetworkError(String message) {
+        MoneyTrackerApplication_.setIsNetworkError(true);
+        MoneyTrackerApplication_.setErrorMessage(message);
         mEventBus.post(new NetworkErrorEvent(message));
     }
 }

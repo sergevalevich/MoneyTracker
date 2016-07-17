@@ -12,9 +12,9 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.AccountPicker;
 import com.squareup.otto.Subscribe;
+import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
-import com.valevich.moneytracker.eventbus.events.DbErrorEvent;
 import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
 import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
 import com.valevich.moneytracker.taskshandlers.LoginTask;
@@ -91,6 +91,11 @@ public class LoginActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         mEventBus.register(this);
+        if (MoneyTrackerApplication_.isLoginFinished()) {//if the user pressed the power button
+            onLoginFinished(null);
+        } else if (MoneyTrackerApplication_.isNetworkError()) {
+            onNetworkError(new NetworkErrorEvent(MoneyTrackerApplication_.getErrorMessage()));
+        }
     }
 
     @Override
@@ -142,13 +147,8 @@ public class LoginActivity extends AppCompatActivity {
 
     @Subscribe
     public void onNetworkError(NetworkErrorEvent event) {
-        closeProgressDialog();
-        unblockButtons();
-        notifyUserWithSnackBar(event.getMessage());
-    }
-
-    @Subscribe
-    public void onDbError(DbErrorEvent event) {
+        MoneyTrackerApplication_.setIsNetworkError(false);
+        MoneyTrackerApplication_.setErrorMessage("");
         closeProgressDialog();
         unblockButtons();
         notifyUserWithSnackBar(event.getMessage());
@@ -157,6 +157,7 @@ public class LoginActivity extends AppCompatActivity {
     @Subscribe
     public void onLoginFinished(LoginFinishedEvent loginFinishedEvent) {
         Timber.d("onLoginFinished: ");
+        MoneyTrackerApplication_.setIsLoginFinished(false);
         closeProgressDialog();
         unblockButtons();
         navigateToMain();

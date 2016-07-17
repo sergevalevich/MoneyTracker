@@ -21,8 +21,6 @@ public interface ConstantsManager {
     String STATUS_WRONG_ID = "Wrong id";
     String STATUS_ERROR = "Error";
 
-    String UNAUTHORIZED_ERROR_CODE = "401";
-
     //-----SYNC-----------------//
     String CONTENT_AUTHORITY = "com.loftschool.loftmoneytracker";
     String SYNC_ACCOUNT_TYPE = "loftmoneytracker.loftschool.com";
@@ -34,5 +32,8 @@ public interface ConstantsManager {
     //---Dialog--//
     String CATEGORY_DIALOG_TAG = "CATEGORY_DIALOG";
     String PROGRESS_DIALOG_TAG = "PROGRESS_DIALOG";
+
+    //--Intent--//
+    int NOTIFICATION_INTENT_ID = 1;
 
 }

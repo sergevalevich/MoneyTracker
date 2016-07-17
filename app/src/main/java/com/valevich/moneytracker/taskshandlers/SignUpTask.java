@@ -138,10 +138,13 @@ public class SignUpTask {
     }
 
     private void notifySignUpFinished() {
+        MoneyTrackerApplication_.setIsSignUpFinished(true);
         mEventBus.post(new SignUpFinishedEvent());
     }
 
     private void notifyAboutNetworkError(String message) {
+        MoneyTrackerApplication_.setIsNetworkError(true);
+        MoneyTrackerApplication_.setErrorMessage(message);
         mEventBus.post(new NetworkErrorEvent(message));
     }
 }

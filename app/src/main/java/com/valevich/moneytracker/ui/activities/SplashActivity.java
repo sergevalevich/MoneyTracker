@@ -46,20 +46,14 @@ public class SplashActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable(){
             @Override
             public void run() {
-                checkIfUserRegistered();
+                if (!MoneyTrackerApplication_.isUserRegistered()) {
+                    navigateToLogIn();
+                } else {
+                    navigateToMain();
+                }
             }
         }, SPLASH_DISPLAY_LENGTH);
 
-    }
-
-    private void checkIfUserRegistered() {
-        boolean tokenExists = MoneyTrackerApplication_.isLoftTokenExist()
-                || MoneyTrackerApplication_.isGoogleTokenExist();
-        if(!tokenExists) {
-            navigateToLogIn();
-        } else {
-            navigateToMain();
-        }
     }
 
     private void navigateToLogIn() {
@@ -73,6 +67,4 @@ public class SplashActivity extends AppCompatActivity {
         MainActivity_.intent(this).start();
         finish();
     }
-
-
 }

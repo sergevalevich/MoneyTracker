@@ -171,10 +171,15 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void notifySyncFinished() {
+        if (mIsSyncBeforeExit) MoneyTrackerApplication_.setIsSyncFinished(true);
         mEventBus.post(new SyncFinishedEvent(mIsSyncBeforeExit));
     }
 
     private void notifyAboutNetworkError(String message) {
+        if (mIsSyncBeforeExit) {
+            MoneyTrackerApplication_.setIsNetworkError(true);
+            MoneyTrackerApplication_.setErrorMessage(message);
+        }
         mEventBus.post(new NetworkErrorEvent(message));
     }
 
@@ -191,49 +196,53 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
                 : getCategoriesString(getPreparedCategories());
 
         if (mNetworkStatusChecker.isNetworkAvailable()) {
-            mRestService.syncCategories(
-                    categoriesJsonString,
-                    MoneyTrackerApplication_.getLoftApiToken(),
-                    MoneyTrackerApplication_.getGoogleToken(),
-                    new Callback<CategoriesSyncModel>() {
-                        @Override
-                        public void success(CategoriesSyncModel apiCategories, Response response) {
+            if (MoneyTrackerApplication_.isGoogleTokenExist() || MoneyTrackerApplication_.isLoftTokenExist()) {
+                mRestService.syncCategories(
+                        categoriesJsonString,
+                        MoneyTrackerApplication_.getLoftApiToken(),
+                        MoneyTrackerApplication_.getGoogleToken(),
+                        new Callback<CategoriesSyncModel>() {
+                            @Override
+                            public void success(CategoriesSyncModel apiCategories, Response response) {
 
-                            mNetworkErrorTriesCounter.resetTries();
-                            String status = apiCategories.getStatus();
+                                mNetworkErrorTriesCounter.resetTries();
+                                String status = apiCategories.getStatus();
 
-                            switch (status) {
-                                case ConstantsManager.STATUS_SUCCESS:
-                                    mApiErrorTriesCounter.resetTries();
-                                    setNewServerIds(apiCategories);
-                                    break;
-                                default:
-                                    mApiErrorTriesCounter.reduceTry();
-                                    if (mApiErrorTriesCounter.areTriesLeft()) {
-                                        mApiErrorHandler.handleError(status, new ApiErrorHandler.HandleCallback() {
-                                            @Override
-                                            public void onHandle() {
-                                                syncCategories();
-                                            }
-                                        });
-                                    } else {
-                                        notifyAboutNetworkError(ConstantsManager.STATUS_ERROR);
-                                    }
-                                    break;
+                                switch (status) {
+                                    case ConstantsManager.STATUS_SUCCESS:
+                                        mApiErrorTriesCounter.resetTries();
+                                        setNewServerIds(apiCategories);
+                                        break;
+                                    default:
+                                        mApiErrorTriesCounter.reduceTry();
+                                        if (mApiErrorTriesCounter.areTriesLeft()) {
+                                            mApiErrorHandler.handleError(status, new ApiErrorHandler.HandleCallback() {
+                                                @Override
+                                                public void onHandle() {
+                                                    syncCategories();
+                                                }
+                                            });
+                                        } else {
+                                            notifyAboutNetworkError(ConstantsManager.STATUS_ERROR);
+                                        }
+                                        break;
+                                }
                             }
-                        }
 
-                        @Override
-                        public void failure(RetrofitError error) {
-                            Timber.d(error.getLocalizedMessage());
-                            mNetworkErrorTriesCounter.reduceTry();
-                            if (mNetworkErrorTriesCounter.areTriesLeft()) {
-                                syncCategories();
-                            } else {
-                                notifyAboutNetworkError(error.getLocalizedMessage());
+                            @Override
+                            public void failure(RetrofitError error) {
+                                Timber.d(error.getLocalizedMessage());
+                                mNetworkErrorTriesCounter.reduceTry();
+                                if (mNetworkErrorTriesCounter.areTriesLeft()) {
+                                    syncCategories();
+                                } else {
+                                    notifyAboutNetworkError(error.getLocalizedMessage());
+                                }
                             }
-                        }
-                    });
+                        });
+            } else {
+                disableSync();
+            }
         } else {
             notifyAboutNetworkError(mNetworkUnavailableMessage);
         }
@@ -311,48 +320,52 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         String expensesString = getExpensesString(expenses);
 
         if (mNetworkStatusChecker.isNetworkAvailable()) {
-            mRestService.syncExpenses(
-                    expensesString,
-                    MoneyTrackerApplication_.getLoftApiToken(),
-                    MoneyTrackerApplication_.getGoogleToken(),
-                    new Callback<ExpensesSyncModel>() {
-                        @Override
-                        public void success(ExpensesSyncModel apiExpenses, Response response) {
+            if (MoneyTrackerApplication_.isGoogleTokenExist() || MoneyTrackerApplication_.isLoftTokenExist()) {
+                mRestService.syncExpenses(
+                        expensesString,
+                        MoneyTrackerApplication_.getLoftApiToken(),
+                        MoneyTrackerApplication_.getGoogleToken(),
+                        new Callback<ExpensesSyncModel>() {
+                            @Override
+                            public void success(ExpensesSyncModel apiExpenses, Response response) {
 
-                            String status = apiExpenses.getStatus();
+                                String status = apiExpenses.getStatus();
 
-                            switch (status) {
-                                case ConstantsManager.STATUS_SUCCESS:
-                                    notifySyncFinished();
-                                    sendUserNotification();
-                                    break;
-                                default:
-                                    mApiErrorTriesCounter.reduceTry();
-                                    if (mApiErrorTriesCounter.areTriesLeft()) {
-                                        mApiErrorHandler.handleError(status, new ApiErrorHandler.HandleCallback() {
-                                            @Override
-                                            public void onHandle() {
-                                                syncExpenses();
-                                            }
-                                        });
-                                    } else {
-                                        notifyAboutNetworkError(ConstantsManager.STATUS_ERROR);
-                                    }
-                                    break;
+                                switch (status) {
+                                    case ConstantsManager.STATUS_SUCCESS:
+                                        notifySyncFinished();
+                                        sendUserNotification();
+                                        break;
+                                    default:
+                                        mApiErrorTriesCounter.reduceTry();
+                                        if (mApiErrorTriesCounter.areTriesLeft()) {
+                                            mApiErrorHandler.handleError(status, new ApiErrorHandler.HandleCallback() {
+                                                @Override
+                                                public void onHandle() {
+                                                    syncExpenses();
+                                                }
+                                            });
+                                        } else {
+                                            notifyAboutNetworkError(ConstantsManager.STATUS_ERROR);
+                                        }
+                                        break;
+                                }
                             }
-                        }
 
-                        @Override
-                        public void failure(RetrofitError error) {
-                            Timber.d(error.getLocalizedMessage());
-                            mNetworkErrorTriesCounter.reduceTry();
-                            if (mNetworkErrorTriesCounter.areTriesLeft()) {
-                                syncExpenses();
-                            } else {
-                                notifyAboutNetworkError(error.getLocalizedMessage());
+                            @Override
+                            public void failure(RetrofitError error) {
+                                Timber.d(error.getLocalizedMessage());
+                                mNetworkErrorTriesCounter.reduceTry();
+                                if (mNetworkErrorTriesCounter.areTriesLeft()) {
+                                    syncExpenses();
+                                } else {
+                                    notifyAboutNetworkError(error.getLocalizedMessage());
+                                }
                             }
-                        }
-                    });
+                        });
+            } else {
+                disableSync();
+            }
         } else {
             notifyAboutNetworkError(mNetworkUnavailableMessage);
         }
@@ -390,7 +403,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void onAccountCreated(Account newAccount, Context context) {
-        final int SYNC_INTERVAL = 60;
+        final int SYNC_INTERVAL = 60 * 3;
         final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
         configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
         ContentResolver.setSyncAutomatically(newAccount,

@@ -6,7 +6,6 @@ import com.valevich.moneytracker.R;
 import com.valevich.moneytracker.database.data.CategoryEntry;
 import com.valevich.moneytracker.database.data.ExpenseEntry;
 import com.valevich.moneytracker.eventbus.buses.OttoBus;
-import com.valevich.moneytracker.eventbus.events.DbErrorEvent;
 import com.valevich.moneytracker.eventbus.events.LoginFinishedEvent;
 import com.valevich.moneytracker.eventbus.events.NetworkErrorEvent;
 import com.valevich.moneytracker.network.rest.RestService;
@@ -147,7 +146,7 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
 
     @Override
     public void onError(Transaction transaction, Throwable error) {
-        notifyAboutDbError(error.getMessage());
+        notifyLoginFinished();
     }
 
     @Override
@@ -158,15 +157,14 @@ public class FetchUserDataTask implements Transaction.Error, Transaction.Success
 
     private void notifyLoginFinished() {
         Timber.d("notifyLoginFinished: ");
+        MoneyTrackerApplication_.setIsLoginFinished(true);
         mEventBus.post(new LoginFinishedEvent());
     }
 
     private void notifyAboutNetworkError(String message) {
+        MoneyTrackerApplication_.setIsNetworkError(true);
+        MoneyTrackerApplication_.setErrorMessage(message);
         mEventBus.post(new NetworkErrorEvent(message));
-    }
-
-    private void notifyAboutDbError(String message) {
-        mEventBus.post(new DbErrorEvent(message));
     }
 
     private boolean isFetchedCategoryDefault(GlobalCategoriesDataModel category) {

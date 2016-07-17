@@ -45,10 +45,12 @@ import com.valevich.moneytracker.utils.ConstantsManager;
 import com.valevich.moneytracker.utils.NetworkStatusChecker;
 import com.valevich.moneytracker.utils.ui.ImageLoader;
 
+import org.androidannotations.annotations.AfterExtras;
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.Extra;
 import org.androidannotations.annotations.InstanceState;
 import org.androidannotations.annotations.NonConfigurationInstance;
 import org.androidannotations.annotations.ViewById;
@@ -95,6 +97,9 @@ public class MainActivity extends AppCompatActivity
     @ViewById(R.id.navigation_view)
     NavigationView mNavigationView;
 
+    @Extra
+    int intentId;
+
     @Bean
     ImageLoader mImageLoader;
 
@@ -134,7 +139,7 @@ public class MainActivity extends AppCompatActivity
 
         mTrackerSyncAdapter.initializeSyncAdapter(this);
 
-        if(savedInstanceState == null) {
+        if (savedInstanceState == null) {
             replaceFragment(new ExpensesFragment_());
         }
 
@@ -144,6 +149,12 @@ public class MainActivity extends AppCompatActivity
     protected void onStart() {
         super.onStart();
         mEventBus.register(this);
+        if (MoneyTrackerApplication_.isSyncFinished())//if the user pressed the power button
+            onSyncFinished(new SyncFinishedEvent(true));
+        else if (MoneyTrackerApplication_.isLogoutFinished())
+            onLogoutFinished(null);
+        else if (MoneyTrackerApplication_.isNetworkError())
+            onNetworkError(new NetworkErrorEvent(MoneyTrackerApplication_.getErrorMessage()));
     }
 
     @Override
@@ -159,6 +170,15 @@ public class MainActivity extends AppCompatActivity
         setupFragmentManager();
     }
 
+    @AfterExtras
+    public void checkIfUserRegistered() {
+        if (intentId == ConstantsManager.NOTIFICATION_INTENT_ID
+                && !MoneyTrackerApplication_.isUserRegistered()) {
+            mTrackerSyncAdapter.disableSync();
+            navigateToLogIn();
+        }
+    }
+
     @Background
     void requestSync() {
         mTrackerSyncAdapter.syncImmediately(this, true);
@@ -167,6 +187,7 @@ public class MainActivity extends AppCompatActivity
     @Subscribe
     public void onSyncFinished(SyncFinishedEvent syncFinishedEvent) {
         if (syncFinishedEvent.isSyncBeforeExit()) {
+            MoneyTrackerApplication_.setIsSyncFinished(false);
             mTrackerSyncAdapter.disableSync();
             mLogoutTask.logOut();
         }
@@ -178,6 +199,7 @@ public class MainActivity extends AppCompatActivity
         MoneyTrackerApplication_.saveUserInfo("", "", "", "");
         MoneyTrackerApplication_.saveGoogleToken("");
         MoneyTrackerApplication_.saveLoftApiToken("");
+        MoneyTrackerApplication_.setIsLogoutFinished(false);
 
         closeProgressDialog();
         navigateToLogIn();
@@ -202,11 +224,10 @@ public class MainActivity extends AppCompatActivity
 
     @Subscribe
     public void onNetworkError(NetworkErrorEvent event) {
+        MoneyTrackerApplication_.setIsNetworkError(false);
+        MoneyTrackerApplication_.setErrorMessage("");
         closeProgressDialog();
-        if (event.getMessage().contains(ConstantsManager.UNAUTHORIZED_ERROR_CODE)) {
-            mTrackerSyncAdapter.disableSync();
-            mLogoutTask.logOut();
-        } else notifyUser(event.getMessage());
+        notifyUser(event.getMessage());
     }
 
     @Override
@@ -293,23 +314,23 @@ public class MainActivity extends AppCompatActivity
         nameField.setText(userFullName);
         emailField.setText(userEmail);
 
-        if(MoneyTrackerApplication_.isGoogleTokenExist()) {
+        if (MoneyTrackerApplication_.isGoogleTokenExist()) {
             mImageLoader.loadRoundedUserImage(profileImage, imageUrl);
         } else {
-            mImageLoader.loadRoundedUserImage(profileImage,R.drawable.dummy_profile);
+            mImageLoader.loadRoundedUserImage(profileImage, R.drawable.dummy_profile);
         }
     }
 
     private void changeToolbarTitle(String backStackEntryName) {
-        if(backStackEntryName.equals(ExpensesFragment_.class.getName())) {
+        if (backStackEntryName.equals(ExpensesFragment_.class.getName())) {
             setTitle(mExpensesTitle);
             mToolbarTitle = mExpensesTitle;
             mNavigationView.setCheckedItem(R.id.drawer_expenses);
-        } else if(backStackEntryName.equals(CategoriesFragment_.class.getName())) {
+        } else if (backStackEntryName.equals(CategoriesFragment_.class.getName())) {
             setTitle(mCategoriesTitle);
             mToolbarTitle = mCategoriesTitle;
             mNavigationView.setCheckedItem(R.id.drawer_categories);
-        } else if(backStackEntryName.equals(SettingsFragment_.class.getName())) {
+        } else if (backStackEntryName.equals(SettingsFragment_.class.getName())) {
             setTitle(mSettingsTitle);
             mToolbarTitle = mSettingsTitle;
             mNavigationView.setCheckedItem(R.id.drawer_settings);
@@ -335,7 +356,7 @@ public class MainActivity extends AppCompatActivity
     private void setupActionBar() {
         setSupportActionBar(mToolbar);
         ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null) {
+        if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
     }
@@ -343,12 +364,12 @@ public class MainActivity extends AppCompatActivity
     private void replaceFragment(Fragment fragment) {
         String backStackName = fragment.getClass().getName();
 
-        boolean isFragmentPopped = mFragmentManager.popBackStackImmediate(backStackName,0);
+        boolean isFragmentPopped = mFragmentManager.popBackStackImmediate(backStackName, 0);
 
-        if(!isFragmentPopped && mFragmentManager.findFragmentByTag(backStackName) == null) {
+        if (!isFragmentPopped && mFragmentManager.findFragmentByTag(backStackName) == null) {
 
             FragmentTransaction transaction = mFragmentManager.beginTransaction();
-            transaction.replace(R.id.main_container,fragment,backStackName);
+            transaction.replace(R.id.main_container, fragment, backStackName);
             transaction.addToBackStack(backStackName);
             transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             transaction.commit();

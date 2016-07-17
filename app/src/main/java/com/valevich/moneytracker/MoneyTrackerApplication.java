@@ -60,6 +60,10 @@ public class MoneyTrackerApplication extends Application {
         }
     }
 
+    public static boolean isUserRegistered() {
+        return isLoftTokenExist() || isGoogleTokenExist();
+    }
+
     public static void saveGoogleToken(String token) {
         mPreferences.googleToken().put(token);
     }
@@ -107,5 +111,53 @@ public class MoneyTrackerApplication extends Application {
 
     public static String getUserPassword() {
         return mPreferences.userPassword().get();
+    }
+
+    public static boolean isLoginFinished() {
+        return mPreferences.isLoginFinished().get();
+    }
+
+    public static void setIsLoginFinished(boolean isLoginFinished) {
+        mPreferences.isLoginFinished().put(isLoginFinished);
+    }
+
+    public static boolean isLogoutFinished() {
+        return mPreferences.isLogoutFinished().get();
+    }
+
+    public static void setIsLogoutFinished(boolean isLogoutFinished) {
+        mPreferences.isLogoutFinished().put(isLogoutFinished);
+    }
+
+    public static boolean isSyncFinished() {
+        return mPreferences.isSyncFinished().get();
+    }
+
+    public static void setIsSyncFinished(boolean isSyncFinished) {
+        mPreferences.isSyncFinished().put(isSyncFinished);
+    }
+
+    public static boolean isSignUpFinished() {
+        return mPreferences.isSignUpFinished().get();
+    }
+
+    public static void setIsSignUpFinished(boolean isSignUpFinished) {
+        mPreferences.isSignUpFinished().put(isSignUpFinished);
+    }
+
+    public static boolean isNetworkError() {
+        return mPreferences.isNetworkError().get();
+    }
+
+    public static void setIsNetworkError(boolean isNetworkError) {
+        mPreferences.isNetworkError().put(isNetworkError);
+    }
+
+    public static String getErrorMessage() {
+        return mPreferences.errorMessage().get();
+    }
+
+    public static void setErrorMessage(String message) {
+        mPreferences.errorMessage().put(message);
     }
 }
