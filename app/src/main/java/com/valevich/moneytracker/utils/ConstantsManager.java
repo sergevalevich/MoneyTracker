@@ -19,10 +19,12 @@ public interface ConstantsManager {
     String STATUS_EMPTY = "";
     String STATUS_WRONG_ID = "Wrong id";
     String STATUS_ERROR = "Error";
+    String UNAUTHORIZED_ERROR_CODE = "401";
 
     //--SYNC--//
     String CONTENT_AUTHORITY = "com.loftschool.loftmoneytracker";
     String SYNC_ACCOUNT_TYPE = "loftmoneytracker.loftschool.com";
+    int DEFAULT_SYNC_INTERVAL = 3600;//hour
 
     //--CHART---//
     float CHART_LABEL_SIZE = 14.0f;

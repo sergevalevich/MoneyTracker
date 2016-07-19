@@ -46,7 +46,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 import timber.log.Timber;
 
-@EBean
+@EBean(scope = EBean.Scope.Singleton)
 public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private List<CategoryEntry> mCategoriesDb;
@@ -88,35 +88,19 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         super(context, true);
     }
 
-    public void syncImmediately(Context context, boolean stopAfterSync) {
+    public void syncImmediately(boolean stopAfterSync) {
         mIsSyncBeforeExit = stopAfterSync;
         Bundle bundle = new Bundle();
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED,
                 true);
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL,
                 true);
-        ContentResolver.requestSync(getSyncAccount(context),
+        ContentResolver.requestSync(mAccount,
                 ConstantsManager.CONTENT_AUTHORITY, bundle);
     }
 
-    public void configurePeriodicSync(Context context, int syncInterval, int flexTime) {
-        Account account = getSyncAccount(context);
-        String authority = ConstantsManager.CONTENT_AUTHORITY;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            // we can enable inexact timers in our periodic sync
-            SyncRequest request = new SyncRequest.Builder().
-                    syncPeriodic(syncInterval, flexTime).
-                    setSyncAdapter(account, authority).
-                    setExtras(new Bundle()).build();
-            ContentResolver.requestSync(request);
-        } else {
-            ContentResolver.addPeriodicSync(account,
-                    authority, new Bundle(), syncInterval);
-        }
-    }
-
     public void initializeSyncAdapter(Context context) {
-        getSyncAccount(context);
+        createAccount(context);
     }
 
     @Override
@@ -143,7 +127,7 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     }
 
-    private Account getSyncAccount(Context context) {
+    private void createAccount(Context context) {
         AccountManager accountManager =
                 (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
         mAccount = new Account(context.getString(R.string.app_name),
@@ -151,23 +135,39 @@ public class TrackerSyncAdapter extends AbstractThreadedSyncAdapter {
         ContentResolver.setIsSyncable(mAccount, ConstantsManager.CONTENT_AUTHORITY, 1);
         if (null == accountManager.getPassword(mAccount)) {
             if (!accountManager.addAccountExplicitly(mAccount, "", null)) {
-                return null;
+                mAccount = null;
             }
-            onAccountCreated(mAccount, context);
+            onAccountCreated();
         }
-        return mAccount;
     }
 
-    private void onAccountCreated(Account newAccount, Context context) {
-        final int SYNC_INTERVAL = 60 * 60;
+    private void onAccountCreated() {
+        configureSync();
+        syncImmediately(false);
+    }
+
+    public void configureSync() {
+
+        final int SYNC_INTERVAL = mPreferences.syncIntervalPreference().get();
         final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
-        configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
-        ContentResolver.setSyncAutomatically(newAccount,
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // we can enable inexact timers in our periodic sync
+            SyncRequest request = new SyncRequest.Builder().
+                    syncPeriodic(SYNC_INTERVAL, SYNC_FLEXTIME).
+                    setSyncAdapter(mAccount, ConstantsManager.CONTENT_AUTHORITY).
+                    setExtras(new Bundle()).build();
+            ContentResolver.requestSync(request);
+        } else {
+            ContentResolver.addPeriodicSync(mAccount,
+                    ConstantsManager.CONTENT_AUTHORITY, new Bundle(), SYNC_INTERVAL);
+        }
+
+        ContentResolver.setSyncAutomatically(mAccount,
                 ConstantsManager.CONTENT_AUTHORITY, true);
-        ContentResolver.addPeriodicSync(newAccount, ConstantsManager.CONTENT_AUTHORITY,
+        ContentResolver.addPeriodicSync(mAccount, ConstantsManager.CONTENT_AUTHORITY,
                 Bundle.EMPTY,
                 SYNC_INTERVAL);
-        syncImmediately(context, false);
     }
 
     private boolean areExpensesEmpty() {

@@ -19,11 +19,13 @@
         <item name="colorControlNormal">@color/colorText</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
+        <item name="alertDialogTheme">@style/Theme.AppCompat.Dialog.Alert</item>
     </style>
 
     <style name="PreferenceThemeOverlay.v14">
         <item name="android:textColor">@color/colorText</item>
-        <item name="android:textColorSecondary">@color/colorText</item>
+        <item name="android:textColorSecondary">@color/colorTextSecondary</item>
+        <item name="android:padding">@dimen/preference_padding</item>
     </style>
 
 </resources>
