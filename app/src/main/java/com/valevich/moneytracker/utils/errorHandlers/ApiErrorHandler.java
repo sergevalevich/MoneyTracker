@@ -74,7 +74,6 @@ public class ApiErrorHandler {
                             case ConstantsManager.STATUS_SUCCESS:
                                 MoneyTrackerApplication_.saveLoftApiToken(userLoginModel.getAuthToken());
                                 mHandleCallback.onHandle();
-                                Timber.d(Thread.currentThread().getName());
                                 break;
                         }
                     }
@@ -112,12 +111,6 @@ public class ApiErrorHandler {
             mRestService.getGoogleInfo(token, new Callback<UserGoogleInfoModel>() {
                 @Override
                 public void success(UserGoogleInfoModel userGoogleInfoModel, Response response) {
-                    if (!userGoogleInfoModel.getEmail().isEmpty())
-                        MoneyTrackerApplication_.saveUserInfo(
-                                userGoogleInfoModel.getName(),
-                                userGoogleInfoModel.getEmail(),
-                                userGoogleInfoModel.getPicture(),
-                                "");
                     mHandleCallback.onHandle();
                 }
 
