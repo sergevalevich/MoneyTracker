@@ -3,6 +3,7 @@ package com.valevich.moneytracker.utils;
 import com.valevich.moneytracker.R;
 
 import org.androidannotations.annotations.sharedpreferences.DefaultBoolean;
+import org.androidannotations.annotations.sharedpreferences.DefaultInt;
 import org.androidannotations.annotations.sharedpreferences.DefaultString;
 import org.androidannotations.annotations.sharedpreferences.SharedPref;
 
@@ -37,6 +38,9 @@ public interface Preferences {
 
     @DefaultBoolean(value = true,keyRes = R.string.pref_enable_sound_key)
     boolean soundPreference();
+
+    @DefaultInt(value = ConstantsManager.DEFAULT_SYNC_INTERVAL, keyRes = R.string.pref_sync_interval_key)
+    int syncIntervalPreference();
 
     @DefaultBoolean(value = false)
     boolean isLoginFinished();

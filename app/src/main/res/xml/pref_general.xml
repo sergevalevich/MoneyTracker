@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory
+
+    <com.valevich.moneytracker.custom.TrackerPreferenceCategory
+        android:title="@string/pref_sync_section">
+
+        <ListPreference
+            android:title="@string/pref_sync_interval_label"
+            android:key="@string/pref_sync_interval_key"
+            android:defaultValue="@string/pref_sync_interval_default"
+            android:entries="@array/entries_sync_interval_preference"
+            android:entryValues="@array/entry_values_sync_interval_preference">
+        </ListPreference>
+
+    </com.valevich.moneytracker.custom.TrackerPreferenceCategory>
+
+    <com.valevich.moneytracker.custom.TrackerPreferenceCategory
         android:title="@string/pref_notification_section">
 
         <SwitchPreferenceCompat
@@ -28,6 +42,6 @@
             android:defaultValue="@string/pref_enable_indicator_default">
         </SwitchPreferenceCompat>
 
-    </PreferenceCategory>
+    </com.valevich.moneytracker.custom.TrackerPreferenceCategory>
 
 </PreferenceScreen>

@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity
 
     @Background
     void requestSync() {
-        mTrackerSyncAdapter.syncImmediately(this, true);
+        mTrackerSyncAdapter.syncImmediately(true);
     }
 
     @Subscribe
@@ -229,7 +229,12 @@ public class MainActivity extends AppCompatActivity
         MoneyTrackerApplication_.setIsNetworkError(false);
         MoneyTrackerApplication_.setErrorMessage("");
         closeProgressDialog();
-        notifyUser(event.getMessage());
+        if (event != null && event.getMessage() != null) {
+            if (event.getMessage().contains(ConstantsManager.UNAUTHORIZED_ERROR_CODE)) {
+                mTrackerSyncAdapter.disableSync();
+                mLogoutTask.logOut();
+            } else notifyUser(event.getMessage());
+        }
     }
 
     @Override

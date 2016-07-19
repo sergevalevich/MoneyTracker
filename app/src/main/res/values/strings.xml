@@ -53,7 +53,18 @@
     <string name="chart_total_center_text">Всего</string>
     <string name="google_sign_in_button_text">Google</string>
 
+    <!-- sync preferences -->
+
+    <string name="pref_sync_section">Синхронизация</string>
+    <string name="pref_sync_interval_label">Интервал синхронизации</string>
+    <string name="pref_sync_interval_default">3600</string>
+
+    <string
+        name="pref_sync_interval_key"
+        translatable="false">sync_interval</string>
+
     <!-- notification preferences -->
+
     <string
         name="pref_enable_notifications_key"
         translatable="false">enable_notifications</string>

@@ -9,4 +9,16 @@
         <item>@color/blue</item>
         <item>@color/red</item>
     </array>
+
+    <string-array name="entries_sync_interval_preference">
+        <item>1 час</item>
+        <item>3 часа</item>
+        <item>6 часов</item>
+    </string-array>
+
+    <string-array name="entry_values_sync_interval_preference">
+        <item>3600</item>
+        <item>10800</item>
+        <item>21600</item>
+    </string-array>
 </resources>

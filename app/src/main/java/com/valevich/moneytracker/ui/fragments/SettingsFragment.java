@@ -2,13 +2,16 @@ package com.valevich.moneytracker.ui.fragments;
 
 
 import android.os.Bundle;
+import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.SwitchPreferenceCompat;
 
 import com.valevich.moneytracker.R;
+import com.valevich.moneytracker.network.sync.TrackerSyncAdapter;
 import com.valevich.moneytracker.utils.Preferences_;
 
 import org.androidannotations.annotations.AfterPreferences;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.PreferenceByKey;
 import org.androidannotations.annotations.PreferenceChange;
@@ -23,6 +26,9 @@ public class SettingsFragment
     @Pref
     Preferences_ mPreferences;
 
+    @PreferenceByKey(R.string.pref_sync_interval_key)
+    ListPreference mSyncIntervalPreference;
+
     @PreferenceByKey(R.string.pref_enable_notifications_key)
     SwitchPreferenceCompat mNotificationPreference;
 
@@ -34,6 +40,17 @@ public class SettingsFragment
 
     @PreferenceByKey(R.string.pref_enable_indicator_key)
     SwitchPreferenceCompat mIndicatorPreference;
+
+    @Bean
+    TrackerSyncAdapter mTrackerSyncAdapter;
+
+    @PreferenceChange(R.string.pref_sync_interval_key)
+    void onSyncIntervalPreferenceChanged(int interval, ListPreference listPreference) {
+        mPreferences.syncIntervalPreference().put(interval);
+        int prefIndex = listPreference.findIndexOfValue(String.valueOf(interval));
+        if (prefIndex >= 0) listPreference.setSummary(listPreference.getEntries()[prefIndex]);
+        mTrackerSyncAdapter.configureSync();
+    }
 
     @PreferenceChange(R.string.pref_enable_notifications_key)
     void onNotificationPreferenceChanged(boolean isEnabled,SwitchPreferenceCompat switchPreference) {
@@ -63,6 +80,8 @@ public class SettingsFragment
     void initPrefs() {
         onNotificationPreferenceChanged(mPreferences.notificationPreference().get(),
                 mNotificationPreference);
+        onSyncIntervalPreferenceChanged(mPreferences.syncIntervalPreference().get(),
+                mSyncIntervalPreference);
     }
 
     private void togglePrefs(boolean enabled){
