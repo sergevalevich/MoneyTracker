@@ -39,6 +39,7 @@ public interface ConstantsManager {
 
     //--Activity result request code--//
     int PICK_ACCOUNT_REQUEST_CODE = 100;
+    int GOOGLE_PLAY_SERVICES_ERROR_REQUEST_CODE = 101;
 
     //--Loader ids--//
     int EXPENSES_LOADER_ID = 0;

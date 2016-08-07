@@ -1,6 +1,8 @@
 package com.valevich.moneytracker.ui.activities;
 
 import android.accounts.AccountManager;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +13,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.AccountPicker;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.squareup.otto.Subscribe;
 import com.valevich.moneytracker.MoneyTrackerApplication_;
 import com.valevich.moneytracker.R;
@@ -108,9 +112,14 @@ public class LoginActivity extends AppCompatActivity {
     @Click(R.id.google_login_btn)
     void pickAccount() {
         blockButtons();
-        Intent intent = AccountPicker.newChooseAccountIntent(null, null, new String[]{"com.google"},
-                false, null, null, null, null);
-        startActivityForResult(intent, ConstantsManager.PICK_ACCOUNT_REQUEST_CODE);
+        int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
+        if (status == ConnectionResult.SUCCESS) {
+            Intent intent = AccountPicker.newChooseAccountIntent(null, null, new String[]{"com.google"},
+                    false, null, null, null, null);
+            startActivityForResult(intent, ConstantsManager.PICK_ACCOUNT_REQUEST_CODE);
+        } else {
+            showErrorDialog(status);
+        }
     }
 
     @Click(R.id.logInButton)
@@ -136,13 +145,21 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     @OnActivityResult(ConstantsManager.PICK_ACCOUNT_REQUEST_CODE)
-    void onResult(int resultCode, @OnActivityResult.Extra(value = AccountManager.KEY_ACCOUNT_NAME) String accountName) {
+    void onAccountPicked(int resultCode, @OnActivityResult.Extra(value = AccountManager.KEY_ACCOUNT_NAME) String accountName) {
         if (resultCode == RESULT_OK) {
             showProgressDialog();
             mSignUpWithGoogleTask.logInWithGoogle(accountName);
-        } else if (resultCode != RESULT_CANCELED) {
+        } else if (resultCode == RESULT_CANCELED) {
+            unblockButtons();
+        } else {
             Toast.makeText(this, mGoogleAccountPickerErrorMessage, Toast.LENGTH_LONG).show();
+            unblockButtons();
         }
+    }
+
+    @OnActivityResult((ConstantsManager.GOOGLE_PLAY_SERVICES_ERROR_REQUEST_CODE))
+    void onGooglePlayServicesVerified(int resultCode) {
+        unblockButtons();
     }
 
     @Subscribe
@@ -198,6 +215,20 @@ public class LoginActivity extends AppCompatActivity {
     private void closeProgressDialog() {
         if (mProgressDialog != null)
             mProgressDialog.dismiss();
+    }
+
+    private void showErrorDialog(int errorCode) {
+        Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog(errorCode,
+                this,
+                ConstantsManager.GOOGLE_PLAY_SERVICES_ERROR_REQUEST_CODE,
+                new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        unblockButtons();
+                    }
+                });
+        if (errorDialog != null)
+            errorDialog.show();
     }
 
     private void blockButtons() {
